@@ -1,5 +1,5 @@
 # Block2nd
 
-## A Minecraft clone implemented using Unity
+## A Unity clone of Minecraft.
 
 ![screenshot](Misc/screenshot.png "Game Screenshot")
