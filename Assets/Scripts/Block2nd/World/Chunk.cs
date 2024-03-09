@@ -6,11 +6,13 @@ using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Database;
 using Block2nd.MathUtil;
+using Block2nd.UnsafeStructure;
+using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
-    
     public class Chunk : MonoBehaviour
     {
         public IntVector3 worldBasePosition;
@@ -26,6 +28,26 @@ namespace Block2nd.World
         private GameObject subTransparentChunk;
 
         public bool dirty = false;
+        
+        private List<Vector3> opVert = new List<Vector3>();
+        private List<Vector2> opUvs = new List<Vector2>();
+        private List<Color> opColors = new List<Color>();
+        private List<int> opTris = new List<int>();
+            
+        private List<Vector3> trVert = new List<Vector3>();
+        private List<Vector2> trUvs = new List<Vector2>();
+        private List<Color> trColors = new List<Color>();
+        private List<int> trTris = new List<int>();
+
+        // private FastBuffer<Vector3> opVert = new FastBuffer<Vector3>();
+        // private FastBuffer<Vector2> opUvs = new FastBuffer<Vector2>();
+        // private FastBuffer<Color> opColors = new FastBuffer<Color>();
+        // private FastBuffer<int> opTris = new FastBuffer<int>();
+        
+        // private FastBuffer<Vector3> trVert = new FastBuffer<Vector3>();
+        // private FastBuffer<Vector2> trUvs = new FastBuffer<Vector2>();
+        // private FastBuffer<Color> trColors = new FastBuffer<Color>();
+        // private FastBuffer<int> trTris = new FastBuffer<int>();
 
         private void Awake()
         {
@@ -50,6 +72,22 @@ namespace Block2nd.World
             }
 
             return 1f;
+        }
+
+        private void ReplaceOrAdd<T>(ref List<T> list, T val, ref bool overflowed, ref int count)
+        {
+            if (rendered && !overflowed)
+            {
+                list[count++] = val;
+                if (count >= list.Count)
+                {
+                    overflowed = true;
+                }
+            }
+            else
+            {
+                list.Add(val);
+            }
         }
 
         public void BakeHeightMap()
@@ -82,17 +120,16 @@ namespace Block2nd.World
             
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
-
-            List<Vector3> opVert = new List<Vector3>();
-            List<Vector2> opUvs = new List<Vector2>();
-            List<Color> opColors = new List<Color>();
-            List<int> opTris = new List<int>();
             
-            List<Vector3> trVert = new List<Vector3>();
-            List<Vector2> trUvs = new List<Vector2>();
-            List<Color> trColors = new List<Color>();
-            List<int> trTris = new List<int>();
-
+            trColors.Clear();
+            trTris.Clear();
+            trUvs.Clear();
+            trVert.Clear();
+            opColors.Clear();
+            opTris.Clear();
+            opUvs.Clear();
+            opVert.Clear();
+            
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -128,24 +165,24 @@ namespace Block2nd.World
                                     GetLightAttenuation(x, y, z));
                             var triangleStartIdx = vert.Count;
 
-                            foreach (var triIdx in blockMesh.triangles)
+                            for (int i = 0; i < blockMesh.triangleCount; ++i)
                             {
-                                tris.Add(triangleStartIdx + triIdx);
+                                tris.Add(triangleStartIdx + blockMesh.triangles[i]);
                             }
 
-                            foreach (var positions in blockMesh.positions)
+                            for (int i = 0; i < blockMesh.positionCount; ++i)
                             {
-                                vert.Add(positions + new Vector3(x, y, z));
+                                vert.Add(blockMesh.positions[i] + new Vector3(x, y, z));
                             }
 
-                            foreach (var texcoord in blockMesh.texcoords)
+                            for (int i = 0; i < blockMesh.texcoordCount; ++i)
                             {
-                                uvs.Add(texcoord);
+                                uvs.Add(blockMesh.texcoords[i]);
                             }
 
-                            foreach (var color in blockMesh.colors)
+                            for (int i = 0; i < blockMesh.colorsCount; ++i)
                             {
-                                colors.Add(color);
+                                colors.Add(blockMesh.colors[i]);
                             }
                         }
                     }

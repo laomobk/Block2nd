@@ -6,7 +6,9 @@ using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
+using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
@@ -236,11 +238,13 @@ namespace Block2nd.World
         {
             var intPoint = new IntVector3(point);
 
+            /*
             if (Time.time - lastSortTime < minSortInterval &&
                 lastChunkListSortIntPos.DistanceSqure(intPoint) < 9 * worldSettings.chunkWidth)
             {
                 return;
             }
+            */
 
             if (reverse)
             {
@@ -318,7 +322,7 @@ namespace Block2nd.World
                 else
                     ctx.chunk.ChunkUpdate(pos.x, pos.y, pos.z, ctx.size);
             }
-
+            
             if (length > 0)
             {
                 SortChunksByDistance(player.transform.position);

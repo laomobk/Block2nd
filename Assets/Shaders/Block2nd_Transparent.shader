@@ -64,5 +64,53 @@
 			}
 			ENDCG
 		}
+		
+		Pass
+        {
+            Name "Klee's Shadow Caster"
+            Tags {
+                "LightMode"="ShadowCaster"
+            }
+
+            CGPROGRAM
+            
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "UnityCG.cginc" 
+
+            struct vin {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD;
+            };
+
+            struct v2f {
+                float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            sampler2D _MainTex;
+
+            v2f vert(vin v) { 
+                v2f o;
+
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.pos = UnityApplyLinearShadowBias(o.pos);
+                
+                o.uv = v.uv;
+
+                return o;
+            }
+
+            float4 frag(v2f i) : SV_TARGET {
+                if (tex2D(_MainTex, i.uv).a == 0)
+                {
+                    discard;
+                }
+                return 0;
+            }
+
+            ENDCG
+        }
 	}
 }

@@ -14,6 +14,11 @@ namespace Block2nd.Database.Meta
         public int[] triangles;
         public Vector2[] texcoords;
         public Color[] colors;
+
+        public byte positionCount;
+        public byte triangleCount;
+        public byte texcoordCount;
+        public byte colorsCount;
     }
     
     [Serializable]
@@ -61,7 +66,6 @@ namespace Block2nd.Database.Meta
             public int rightTexIdx;
             public int topTexIdx;
             public int bottomTexIdx;
-
             public static CubeAppearance New(
                 int frontIdx, int backIdx, int leftIdx, int rightIdx, int topIdx, int bottomIdx)
             {
@@ -89,7 +93,13 @@ namespace Block2nd.Database.Meta
                 };
             }
         }
-        
+
+        // pooling memory...
+        private Vector3[] tempPositionsArray;
+        private Vector2[] tempTexcoordsArray;
+        private Color[] tempColorsArray;
+        private int[] tempTrianglesArray;
+
         private static Mesh _cubeMesh;
 
         public CubeAppearance appearance;
@@ -97,6 +107,11 @@ namespace Block2nd.Database.Meta
         public CubeBlockShape(CubeAppearance appearance)
         {
             this.appearance = appearance;
+
+            tempPositionsArray = new Vector3[24];
+            tempTexcoordsArray = new Vector2[24];
+            tempColorsArray = new Color[24];
+            tempTrianglesArray = new int[36];
         }
 
         public static CubeBlockShape NewWithTexIdx(
@@ -106,37 +121,35 @@ namespace Block2nd.Database.Meta
                 frontIdx, backIdx, leftIdx, rightIdx, topIdx, bottomIdx));
         }
 
-        private void _BuildFace(List<Vector3> vertices, List<int> triangles, List<Vector2> texcoords,
+        private void _BuildFace(
+            ref byte posIdx, ref byte texcoordIdx, ref byte triangleIdx,
             Vector3 origin, Vector3 up, Vector3 right, 
             Vector2 texcoordOrigin, Vector2 texcoordUp, Vector2 texcoordRight)
         {
-            var startIdx = vertices.Count;
+            int startIdx = posIdx;
             
-            vertices.Add(origin);
-            vertices.Add(origin + up);
-            vertices.Add(origin + right);
-            vertices.Add(origin + up + right);
+            tempPositionsArray[posIdx++] = origin;
+            tempPositionsArray[posIdx++] = origin + up;
+            tempPositionsArray[posIdx++] = origin + right;
+            tempPositionsArray[posIdx++] = origin + up + right;
             
-            texcoords.Add(texcoordOrigin);
-            texcoords.Add(texcoordOrigin + texcoordUp);
-            texcoords.Add(texcoordOrigin + texcoordRight);
-            texcoords.Add(texcoordOrigin + texcoordRight + texcoordUp);
+            tempTexcoordsArray[texcoordIdx++] = texcoordOrigin;
+            tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordUp;
+            tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordRight;
+            tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordRight + texcoordUp;
             
-            triangles.Add(startIdx + 0);
-            triangles.Add(startIdx + 3);
-            triangles.Add(startIdx + 2);
+            tempTrianglesArray[triangleIdx++] = startIdx + 0;
+            tempTrianglesArray[triangleIdx++] = startIdx + 3;
+            tempTrianglesArray[triangleIdx++] = startIdx + 2;
 
-            triangles.Add(startIdx + 0);
-            triangles.Add(startIdx + 1);
-            triangles.Add(startIdx + 3);
+            tempTrianglesArray[triangleIdx++] = startIdx + 0;
+            tempTrianglesArray[triangleIdx++] = startIdx + 1;
+            tempTrianglesArray[triangleIdx++] = startIdx + 3;
         }
 
         public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation)
         {
-            var vertices = new List<Vector3>();
-            var triangles = new List<int>();
-            var texcoords = new List<Vector2>();
-            var colors = new List<Color>();
+            byte posIdx = 0, colorsIdx = 0, texcoordsIdx = 0, trianglesIdx = 0;
 
             var uvUp = new Vector2(0, AtlasTextureDescriptor.Default.VStep);
             var uvRight = new Vector2(AtlasTextureDescriptor.Default.UStep, 0);
@@ -146,7 +159,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.frontTexIdx);
                 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     new Vector3(1, 0, 1),
                     Vector3.up, Vector3.left, texcoordOrigin, uvUp, uvRight);
 
@@ -155,10 +168,10 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
 
             if ((exposedFace & 2) != 0)  // back
@@ -166,7 +179,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.backTexIdx);
 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     Vector3.zero, 
                     Vector3.up, Vector3.right, texcoordOrigin, uvUp, uvRight);
 
@@ -175,10 +188,10 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
             
             if ((exposedFace & 4) != 0)  // left
@@ -186,7 +199,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.leftTexIdx);
 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     new Vector3(0, 0, 1), 
                     Vector3.up, Vector3.back, texcoordOrigin, uvUp, uvRight);
 
@@ -195,10 +208,10 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
             
             if ((exposedFace & 8) != 0)  // right
@@ -206,7 +219,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.rightTexIdx);
 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     new Vector3(1, 0, 0), 
                     Vector3.up, Vector3.forward, texcoordOrigin, uvUp, uvRight);
 
@@ -215,10 +228,10 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
             
             if ((exposedFace & 16) != 0)  // top
@@ -226,7 +239,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.topTexIdx);
 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     new Vector3(1, 1, 1), 
                     Vector3.back, Vector3.left, texcoordOrigin, uvUp, uvRight);
 
@@ -235,10 +248,10 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
             
             if ((exposedFace & 32) != 0)  // bottom
@@ -246,7 +259,7 @@ namespace Block2nd.Database.Meta
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.bottomTexIdx);
 
                 _BuildFace(
-                    vertices, triangles, texcoords,
+                    ref posIdx, ref texcoordsIdx, ref trianglesIdx,
                     new Vector3(1, 0, 0), 
                     Vector3.forward, Vector3.left, texcoordOrigin, uvUp, uvRight);
 
@@ -255,18 +268,24 @@ namespace Block2nd.Database.Meta
                 {
                     color = new Color(0.7f, 0.7f, 0.7f);
                 }
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
-                colors.Add(color);
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
+                tempColorsArray[colorsIdx++] = color;
             }
 
-            var verts = new BlockMesh();
-            
-            verts.positions = vertices.ToArray();
-            verts.triangles = triangles.ToArray();
-            verts.texcoords = texcoords.ToArray();
-            verts.colors = colors.ToArray();
+            var verts = new BlockMesh
+            {
+                positions = tempPositionsArray,
+                triangles = tempTrianglesArray,
+                texcoords = tempTexcoordsArray,
+                colors = tempColorsArray,
+                
+                positionCount = posIdx,
+                colorsCount = colorsIdx,
+                texcoordCount = texcoordsIdx,
+                triangleCount = trianglesIdx
+            };
 
             return verts;
         }

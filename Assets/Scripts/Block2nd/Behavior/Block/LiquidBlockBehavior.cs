@@ -42,7 +42,7 @@ namespace Block2nd.Behavior.Block
             if (y > 0 && level.GetBlock(x, y - 1, z, out cp).blockCode == 0)
             {
                 var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x, y - 1, z, true);
+                    GetSelfBlockCode(), x, y - 1, z, false);
 
                 if (behavior is LiquidBlockBehavior blockBehavior)
                 {

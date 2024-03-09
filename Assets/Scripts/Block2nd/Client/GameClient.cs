@@ -45,7 +45,7 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.16.0a";
+		public string GameVersion => "0.16.1a";
 
 		public string GameVersionSubject => "Indev";
 
