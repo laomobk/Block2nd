@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
+using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.MathUtil;
 using Block2nd.UnsafeStructure;
@@ -25,7 +26,9 @@ namespace Block2nd.World
 
         private ChunkManager locatedChunkManager;
 
+        private GameClient gameClient;
         private GameObject subTransparentChunk;
+        private MeshCollider meshCollider;
 
         public bool dirty = false;
         
@@ -52,6 +55,12 @@ namespace Block2nd.World
         private void Awake()
         {
             subTransparentChunk = transform.GetChild(0).gameObject;
+            meshCollider = GetComponent<MeshCollider>();
+        }
+
+        private void Start()
+        {
+            gameClient = FindObjectOfType<GameClient>();
         }
 
         private void OnDestroy()
@@ -282,6 +291,17 @@ namespace Block2nd.World
             }
 
             return chunkBlocks[x, y, z];
+        }
+
+        public ChunkBlockData GetBlock(Vector3 pos, bool searchLevel = false)
+        {
+            return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, searchLevel);
+        }
+        
+        public ChunkBlockData GetBlockWS(Vector3 pos, bool searchLevel = false)
+        {
+            var iPos = WorldToLocal((int)pos.x, (int)pos.y, (int)pos.z);;
+            return GetBlock(iPos.x, iPos.y, iPos.z, searchLevel);
         }
         
         public BlockBehavior SetBlock(int blockCode, int x, int y, int z, 

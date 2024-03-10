@@ -13,21 +13,28 @@ public class FPSMonitor : MonoBehaviour
     void Start()
     {
         text = GetComponent<Text>();
+
+        StartCoroutine(FPSTextUpdateCoroutine());
     }
 
     private void Update()
     {
-        if (count > 10)
-        {
-            text.text = fpsSum / 10 + " FPS";
-            count = 0;
-            fpsSum = 0;
-        }
-        else
-        {
-            fpsSum += (int)(1 / Time.deltaTime);
-        }
-
+        fpsSum += (int) (1 / Time.deltaTime);
         count++;
+    }
+
+    private IEnumerator FPSTextUpdateCoroutine()
+    {
+        while (true)
+        {
+            if (count != 0)
+            {
+                text.text = fpsSum / count + " FPS";
+                count = 0;
+                fpsSum = 0;
+            }
+
+            yield return new WaitForSeconds(1f);
+        }
     }
 }

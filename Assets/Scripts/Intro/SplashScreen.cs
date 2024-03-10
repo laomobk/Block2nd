@@ -15,14 +15,14 @@ public class SplashScreen : MonoBehaviour
 
     private IEnumerator SphlashScreenCoroutine()
     {
-        
+        /*
         var color = mask.color;
 
         color.a = 1;
         
         mask.color = color;
         
-        for (; color.a >= -0.2; color.a -= Time.deltaTime)
+        for (; color.a >= -0.5; color.a -= Time.deltaTime)
         {
             mask.color = color;
             yield return null;
@@ -30,12 +30,15 @@ public class SplashScreen : MonoBehaviour
         
         yield return new WaitForSeconds(0.5f);
 
-        for (; color.a <= 1.2; color.a += Time.deltaTime)
+        for (; color.a <= 1.5; color.a += Time.deltaTime)
         {
             mask.color = color;
             yield return null;
         }
+        */
 
+        yield return new WaitForSeconds(1.25f);
+        
         SceneManager.LoadScene("Game");
     }
 }

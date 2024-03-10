@@ -44,7 +44,7 @@ namespace Block2nd.World
         private float lastSortTime = -10;
         private float minSortInterval = 5f;
         private IntVector3 lastChunkListSortIntPos;
-        private int maxEachUpdateCount = 5;
+        private int maxEachUpdateCount = 30;
 
         public ChunkManager(GameObject chunkPrefabObject, Transform levelTransform,
             WorldSettings worldSettings, GameClient gameClient)
@@ -332,6 +332,22 @@ namespace Block2nd.World
             return length;
         }
 
+        public bool CheckIsActiveChunk(Chunk chunk, IntVector3 playerIntPos, int chunkWidth)
+        {
+            var chunkPos = chunk.worldBasePosition;
+            chunkPos.x += chunkWidth / 2;
+            chunkPos.z += chunkWidth / 2;
+
+            var distance = Mathf.Sqrt(chunkPos.PlaneDistanceSqure(playerIntPos));
+
+            if (distance > gameClient.gameSettings.viewDistance * chunkWidth)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public IEnumerator ChunkManagementWorkerCoroutine()
         {
             var player = gameClient.player;
@@ -362,23 +378,15 @@ namespace Block2nd.World
                         break;
                     }
 
-                    var chunkPos = entry.basePos;
-                    chunkPos.x += chunkWidth / 2;
-                    chunkPos.z += chunkWidth / 2;
-
-                    var distance = Mathf.Sqrt(chunkPos.PlaneDistanceSqure(playerIntPos));
-
-                    if (distance > gameClient.gameSettings.viewDistance * chunkWidth)
+                    if (CheckIsActiveChunk(entry.chunk, playerIntPos, chunkWidth))
                     {
-                        entry.chunk.gameObject.SetActive(false);
+                        entry.chunk.gameObject.SetActive(true);
+                        if (entry.chunk.dirty || !entry.chunk.rendered)
+                            entry.chunk.UpdateChuckMesh();
                     }
                     else
                     {
-                        entry.chunk.gameObject.SetActive(true);
-                        if (!entry.chunk.rendered || entry.chunk.dirty)
-                        {
-                            entry.chunk.UpdateChuckMesh();
-                        }
+                        entry.chunk.gameObject.SetActive(false);
                     }
 
                     if (yieldTick > 1)

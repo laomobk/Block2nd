@@ -34,9 +34,10 @@ namespace Block2nd.World
             var plain = Mathf.PerlinNoise(x * 10, z * 5) * 20;
             var plain2 = Mathf.Clamp(Mathf.PerlinNoise(x * 5, z * 5) - 0.1f, 0, 1) * 5;
             var mountain = Mathf.Clamp(Mathf.PerlinNoise(10 * x, 10 * z) - 0.5f, 0, 1) * 50;
-            var mountain2 = Mathf.Clamp(Mathf.PerlinNoise(2 * x, 8 * z) - 0.7f, 0, 1) * 80;
+            var mountain2 = Mathf.Clamp(Mathf.PerlinNoise(5 * x, 15 * z) - 0.7f, 0, 1) * 80;
+            var mountain3 = Mathf.Clamp(Mathf.PerlinNoise(15 * x, 6 * z) - 0.6f, 0, 1) * 80;
 
-            return (int) (3 + plain + plain2 + mountain + mountain2);
+            return (int) (3 + plain + plain2 + mountain + mountain2 + mountain3);
         }
 
         public int GetHeightHonkai(float x, float z)
@@ -65,7 +66,7 @@ namespace Block2nd.World
 
             var mountain = Mathf.Clamp(Noise2d.PerlinNoise(6 * x, 6 * z) - 0.3f, 0, 1) * 80;
             
-            var mountain2 = Mathf.Clamp(Noise2d.PerlinNoise(6 * x, 6 * z) - 0.2f, 0, 1) * 100;
+            var mountain2 = Mathf.Clamp(Noise2d.PerlinNoise(20 * x, 20 * z) - 0.2f, 0, 1) * 100;
 
             return (int) (3 + plain + plain2 + mountain + mountain2);
         }

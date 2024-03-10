@@ -318,6 +318,8 @@ namespace Block2nd.Database.Meta
         
         public BlockBehavior behavior = new StaticBlockBehavior();
 
+        public Bounds aabb = new Bounds(new Vector3(0.5f, 0.5f, 0.5f), Vector3.one);
+
         [NotNull] public BlockShape shape;
     }
 }

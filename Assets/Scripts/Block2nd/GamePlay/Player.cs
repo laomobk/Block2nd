@@ -45,6 +45,7 @@ namespace Block2nd.GamePlay
         public HoldingBlockPreview holdingBlockPreview;
 
         public Inventory Inventory => inventory;
+        public IntVector3 IntPos => new IntVector3(transform.position);
 
         private void Awake()
         {
