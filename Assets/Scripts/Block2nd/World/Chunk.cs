@@ -159,9 +159,9 @@ namespace Block2nd.World
                             var blockMesh = behavior.OnRender();
                             if (blockMesh == null)
                                 blockMesh = meta.shape.GetShapeMesh(
-                                    meta.transparent ? 
+                                    meta.forceRenderAllFace ? 255 : (meta.transparent ? 
                                         GetExposedFaceTransparent(x, y, z, meta.blockCode) :
-                                        GetExposedFace(x, y, z),
+                                        GetExposedFace(x, y, z)),
                                     GetLightAttenuation(x, y, z));
                             var triangleStartIdx = vert.Count;
 

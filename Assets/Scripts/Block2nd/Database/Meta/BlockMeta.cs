@@ -312,7 +312,10 @@ namespace Block2nd.Database.Meta
         public int blockCode = 0;
         public string blockId;
         public string blockName;
+        
         public bool transparent;
+        public bool forceRenderAllFace;
+        
         public BlockBehavior behavior = new StaticBlockBehavior();
 
         [NotNull] public BlockShape shape;

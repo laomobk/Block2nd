@@ -263,7 +263,8 @@ namespace Block2nd.Database
 				blockId = "b2nd:block/leaves",
 				blockName = "Leaves",
 				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(22)),
-				transparent = true
+				transparent = true,
+				forceRenderAllFace = true,
 			});
 			
 			AddBlock(new BlockMeta

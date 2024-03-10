@@ -6,7 +6,7 @@
 	}
 	SubShader
 	{
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Tags { "Queue"="Transparent+1" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		LOD 100
 		
 		Blend SrcAlpha OneMinusSrcAlpha
@@ -56,6 +56,10 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 texColor = tex2D(_MainTex, i.uv);
+
+				if (texColor.a == 0)
+					discard;
+
 				fixed3 col = texColor.xyz * i.lambert;
 				
 				UNITY_APPLY_FOG(i.fogCoord, col);
