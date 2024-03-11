@@ -312,7 +312,8 @@ namespace Block2nd.Database.Meta
         public int blockCode = 0;
         public string blockId;
         public string blockName;
-        
+
+        public bool liquid;
         public bool transparent;
         public bool forceRenderAllFace;
         

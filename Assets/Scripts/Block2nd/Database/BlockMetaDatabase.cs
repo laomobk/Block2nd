@@ -22,6 +22,17 @@ namespace Block2nd.Database
 
 			return null;
 		}
+		
+		public static int GetBlockCodeById(string id)
+		{
+			for (int i = 0; i < blocks.Count; ++i)
+			{
+				if (blocks[i].blockId == id)
+					return i;
+			}
+
+			return 0;
+		}
 
 		public static BlockMeta GetBlockMetaByCode(int code)
 		{
@@ -319,7 +330,8 @@ namespace Block2nd.Database
 				blockName = "Water",
 				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(14)),
 				transparent = true,
-				behavior = new WaterBlockBehavior()
+				behavior = new WaterBlockBehavior(),
+				liquid = true
 			});
 		}
 	}

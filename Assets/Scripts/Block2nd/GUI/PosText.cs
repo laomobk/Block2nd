@@ -19,6 +19,6 @@ public class PosText : MonoBehaviour
     void Update()
     {
         Vector3 pos = this.player.transform.position;
-        this.text.text = "X: " + pos.x + " Y: " + pos.y + " Z: " + pos.z;
+        this.text.text = "X: " + (int)pos.x + " Y: " + (int)pos.y + " Z: " + (int)pos.z;
     }
 }

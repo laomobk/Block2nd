@@ -9,6 +9,7 @@ using Block2nd.Database.Meta;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
@@ -90,12 +91,9 @@ namespace Block2nd.World
             
             yield return GenerateLevelBlocksCoroutine();
             
-            var chunk = chunkManager.FindChunk(x, z);
-            var chunkLocalPos = chunk.WorldToLocal(x, z);
+            progressUI.SetTitle("Making rivers...");
             
-            var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 3;
-            
-            var playerPos = new Vector3(x, y, z);
+            yield return GenerateRiverCoroutine();
             
             progressUI.SetTitle("Planting trees...");
 
@@ -106,6 +104,14 @@ namespace Block2nd.World
 
             yield return null;
             yield return GeneratePyramids();
+            
+            var chunk = chunkManager.FindChunk(x, z);
+            var chunkLocalPos = chunk.WorldToLocal(x, z);
+            
+            chunkManager.BakeAllChunkHeightMap();
+            var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 3;
+            
+            var playerPos = new Vector3(x, y, z);
             
             chunkManager.SortChunksByDistance(playerPos);
             
@@ -170,6 +176,7 @@ namespace Block2nd.World
         private IEnumerator GenerateTrees()
         {
             var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
+            var waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
 
             var nTree = terrain is FlatTerrainGenerator ? 200 : 425;
             
@@ -182,6 +189,9 @@ namespace Block2nd.World
                 var chunkLocalPos = chunk.WorldToLocal(x, z);
                 
                 var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z];
+                
+                if (GetBlock(x, y, z).blockCode == waterCode)
+                    continue;
 
                 var orkCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/ork").blockCode;
                 var leavesCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/leaves").blockCode;
@@ -268,6 +278,8 @@ namespace Block2nd.World
             
             var width = worldSettings.levelWidth;
             var height = worldSettings.chunkHeight;
+
+            var count = 1;
             
             yield return null;
 
@@ -289,23 +301,88 @@ namespace Block2nd.World
                                 var blockCode = GetBlockCodeFromGenerator(x + cx, cy, z + cz);
                                 chunkBlocks[cx, cy, cz] = new ChunkBlockData
                                 {
-                                    blockCode = blockCode,
-                                    behaviorInstance = BlockMetaDatabase
-                                                            .GetBlockBehaviorByCode(blockCode)
-                                                                .CreateInstance()
+                                    blockCode = blockCode
                                 };
-
-                                if (blockCode != 0 && chunk.heightMap[cx, cz] < cy)
-                                {
-                                    chunk.heightMap[cx, cz] = cy;
-                                } 
                             }
                         }
                     }
                 }
 
-                progressUI.SetProgress((float)x / width);
-                yield return null;
+                if (count % 5 == 0)
+                {
+                    count = 1;
+                    progressUI.SetProgress((float) x / width);
+                    yield return null;
+                }
+                else
+                {
+                    count++;
+                }
+            }
+        }
+
+        private IEnumerator GenerateRiverCoroutine()
+        {
+            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
+
+            var width = worldSettings.levelWidth;
+            var height = worldSettings.chunkHeight;
+            
+            chunkManager.BakeAllChunkHeightMap();
+
+            var count = 1;
+            var progress = 0;
+            var total = chunkManager.chunkEntries.Count;
+
+            var waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
+            
+            yield return null;
+
+            foreach (var entry in chunkManager.chunkEntries)
+            {
+                var cCoord = entry.basePos;
+                var chunkBlocks = entry.chunk.chunkBlocks;
+                var chunkWidth = chunkBlocks.GetLength(0);
+                var chunkHeight = chunkBlocks.GetLength(1);
+
+                for (int cx = 0; cx < chunkWidth; ++cx)
+                {
+                    for (int cz = 0; cz < chunkWidth; ++cz)
+                    {
+                        if (entry.chunk.heightMap[cx, cz] > terrain.waterLevel)
+                            continue;
+
+                        for (int cy = chunkHeight - 1; cy >= 0; --cy)
+                        {
+                            if (cy > terrain.waterLevel)
+                            {
+                                chunkBlocks[cx, cy, cz].blockCode = 0;
+                            } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
+                            {
+                                chunkBlocks[cx, cy, cz].blockCode = waterCode;
+                            } else if (cy < entry.chunk.heightMap[cx, cz] - 2)
+                            {
+                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Dirt;
+                            } else
+                            {
+                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Stone;
+                            }
+                        }
+                    }
+                }
+                
+                if (count % 20 == 0)
+                {
+                    count = 1;
+                    progressUI.SetProgress((float) progress / total);
+                    yield return null;
+                }
+                else
+                {
+                    count++;
+                }
+
+                progress++;
             }
         }
 

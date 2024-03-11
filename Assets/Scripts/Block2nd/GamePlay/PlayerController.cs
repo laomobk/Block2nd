@@ -29,6 +29,9 @@ namespace Block2nd.GamePlay
         public float walkSpeedRatio = 5;
         
         private float speedRatio = 5;
+        private int waterCode;
+
+        public bool inWater;
 
         public PlayerState playerState = PlayerState.WALK;
 
@@ -40,6 +43,7 @@ namespace Block2nd.GamePlay
 
         private void Awake()
         {
+            waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
             gameClient = GameObject.FindWithTag("GameClient").GetComponent<GameClient>();
         }
 
@@ -53,7 +57,7 @@ namespace Block2nd.GamePlay
         {
             if ((SharedData.CollisionFlags & CollisionFlags.CollidedBelow) == 0)
             {
-                playerSpeed.y -= gravity * Time.deltaTime;
+                playerSpeed.y -= (inWater ? gravity * 0.1f : gravity) * Time.deltaTime;
             }
         }
 
@@ -204,6 +208,7 @@ namespace Block2nd.GamePlay
             
             if (gameClient.GameClientState == GameClientState.GAME)
             {
+                inWater = gameClient.CurrentLevel.GetBlock(transform.position).blockCode == waterCode;
                 UpdateGravity();
 
                 if (!Application.isMobilePlatform && !gameClient.gameSettings.mobileControl)

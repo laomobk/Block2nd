@@ -22,7 +22,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
 
         public void GenerateWorldNormal()
         {
-            GenerateWorld(256);
+            GenerateWorld(384);
         }
 
         public void GenerateWorldBig()

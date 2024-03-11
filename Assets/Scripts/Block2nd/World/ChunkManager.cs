@@ -32,6 +32,7 @@ namespace Block2nd.World
         private Transform levelTransform;
 
         public List<ChunkEntry> chunkEntries = new List<ChunkEntry>();
+        public Dictionary<long, Chunk> chunkDict = new Dictionary<long, Chunk>();
 
         public bool chunkWorkerRunning = false;
 
@@ -68,6 +69,13 @@ namespace Block2nd.World
             chunkUpdateQueue.Enqueue(ctx);
         }
 
+        public long ChunkCoordsToLongKey(IntVector3 pos)
+        {
+            long key = (long) (pos.x / 16) << 32 | (uint) (pos.z / 16);
+
+            return key;
+        }
+
         public Chunk AddNewChunkGameObject(int x, int z)
         {
             var chunkWidth = worldSettings.chunkWidth;
@@ -98,9 +106,10 @@ namespace Block2nd.World
                 basePos = new IntVector3(x, 0, z)
             };
 
+            chunkDict.Add(ChunkCoordsToLongKey(chunk.worldBasePosition), chunk);
             chunkEntries.Add(entry);
 
-            Debug.Log("ChunkManager: request new chunk at (" + x + ", " + z + ")");
+            // Debug.Log("ChunkManager: request new chunk at (" + x + ", " + z + ")");
 
             return chunk;
         }

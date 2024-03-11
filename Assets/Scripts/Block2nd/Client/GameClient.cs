@@ -26,7 +26,7 @@ namespace Block2nd.Client
 		public WorldSettings worldSettings;
 		public Transform worldTransform;
 		public Player player;
-		public int initWorldWidth = 384;
+		public int initWorldWidth = 256;
 		private GameObject currentLevel;
 		
 		public Material terrainMaterial;
@@ -45,9 +45,9 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.1.6.2a";
+		public string GameVersion => "0.1.7.0a";
 
-		public string GameVersionSubject => "Indev";
+		public string GameVersionSubject => "\"The River\"";
 
 		public IGameGUI currentGUI;
 

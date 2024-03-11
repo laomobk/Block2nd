@@ -1,13 +1,9 @@
-Shader "B2nd/Block2nd_Skybox"
+﻿Shader "B2nd/Block2nd_InWaterPost"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        
-        _HorizonColor ("Horizon Color", Color) = (1, 1, 1)
-        _TopColor ("Top Color", Color) = (1, 1, 1)
-        _BlendRatio ("Blend Ratio", Range(-1, 1)) = 0.5
-        _StepRatio("Step Ratio", Range(1, 10)) = 0.1
+        [Toggle]_InWater ("In Water", int) = 0
     }
     SubShader
     {
@@ -31,45 +27,27 @@ Shader "B2nd/Block2nd_Skybox"
             struct v2f
             {
                 float2 uv : TEXCOORD0;
-                float3 pos : TEXCOORD1;
                 float4 vertex : SV_POSITION;
             };
 
             sampler2D _MainTex;
-
             float4 _MainTex_ST;
-
-            float4 _HorizonColor, _TopColor;
-
-            float _BlendRatio, _StepRatio;
-
-            float sigmoid(float fact_x, float ofs_x, float x)
-            {
-                return 1 / (1 + exp(-6 * fact_x * (2 * x - ofs_x - 1)));
-            }
-
-            float4 skycolor(float3 v)
-            {
-                return lerp(_HorizonColor, _TopColor, saturate(sigmoid(_StepRatio, _BlendRatio, (v.y > 0 ? v.y : 0))));
-            }
+            int _InWater;
 
             v2f vert (appdata v)
             {
                 v2f o;
-
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.pos = v.vertex;
-                
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float3 v = normalize(i.pos.xyz);
-
-                float4 col = skycolor(v);
-
+                fixed4 col = tex2D(_MainTex, i.uv);
+                if (_InWater) {
+                    col *= fixed4(0.6, 0.6, 0.8, 1);
+                }
                 return col;
             }
             ENDCG

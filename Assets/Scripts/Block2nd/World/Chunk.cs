@@ -28,7 +28,10 @@ namespace Block2nd.World
 
         private GameClient gameClient;
         private GameObject subTransparentChunk;
+        private GameObject subLiquidChunk;
         private MeshCollider meshCollider;
+
+        private bool instanced = false;
 
         public bool dirty = false;
         
@@ -41,6 +44,11 @@ namespace Block2nd.World
         private List<Vector2> trUvs = new List<Vector2>();
         private List<Color> trColors = new List<Color>();
         private List<int> trTris = new List<int>();
+        
+        private List<Vector3> lqVert = new List<Vector3>();
+        private List<Vector2> lqUvs = new List<Vector2>();
+        private List<Color> lqColors = new List<Color>();
+        private List<int> lqTris = new List<int>();
 
         // private FastBuffer<Vector3> opVert = new FastBuffer<Vector3>();
         // private FastBuffer<Vector2> opUvs = new FastBuffer<Vector2>();
@@ -55,6 +63,7 @@ namespace Block2nd.World
         private void Awake()
         {
             subTransparentChunk = transform.GetChild(0).gameObject;
+            subLiquidChunk = transform.GetChild(1).gameObject;
             meshCollider = GetComponent<MeshCollider>();
         }
 
@@ -99,6 +108,27 @@ namespace Block2nd.World
             }
         }
 
+        private void InstantiateAllBlocks()
+        {
+            
+            var width = chunkBlocks.GetLength(0);
+            var height = chunkBlocks.GetLength(1);
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int z = 0; z < width; z++)
+                    {
+                        chunkBlocks[x, y, z].behaviorInstance = BlockMetaDatabase.GetBlockBehaviorByCode(
+                            chunkBlocks[x, y, z].blockCode).CreateInstance();
+                    }
+                }
+            }
+
+            instanced = true;
+        }
+
         public void BakeHeightMap()
         {
             var width = chunkBlocks.GetLength(0);
@@ -122,10 +152,14 @@ namespace Block2nd.World
         
         public void UpdateChuckMesh()
         {
+            if (!instanced)
+                InstantiateAllBlocks();
+            
             BakeHeightMap();
             
             var opMesh = new Mesh();
             var trMesh = new Mesh();
+            var lqMesh = new Mesh();
             
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
@@ -138,6 +172,10 @@ namespace Block2nd.World
             opTris.Clear();
             opUvs.Clear();
             opVert.Clear();
+            lqColors.Clear();
+            lqTris.Clear();
+            lqUvs.Clear();
+            lqVert.Clear();
             
             for (int x = 0; x < width; x++)
             {
@@ -157,7 +195,13 @@ namespace Block2nd.World
                         
                         if (meta != null)
                         {
-                            if (meta.transparent)
+                            if (meta.liquid)
+                            {
+                                tris = lqTris;
+                                uvs = lqUvs;
+                                colors = lqColors;
+                                vert = lqVert;
+                            } else if (meta.transparent)
                             {
                                 tris = trTris;
                                 uvs = trUvs;
@@ -212,16 +256,27 @@ namespace Block2nd.World
             trMesh.RecalculateNormals();
             trMesh.RecalculateBounds();
 
+            lqMesh.vertices = lqVert.ToArray();
+            lqMesh.uv = lqUvs.ToArray();
+            lqMesh.SetColors(lqColors);
+            lqMesh.triangles = lqTris.ToArray();
+            lqMesh.RecalculateNormals();
+            lqMesh.RecalculateBounds();
+
             var curTrMesh = subTransparentChunk.GetComponent<MeshFilter>().sharedMesh;
+            var curLqMesh = subLiquidChunk.GetComponent<MeshFilter>().sharedMesh;
             var curOpMesh = GetComponent<MeshFilter>().sharedMesh;
             DestroyImmediate(curOpMesh, true);
             DestroyImmediate(curTrMesh, true);
+            DestroyImmediate(curLqMesh, true);
             
             GetComponent<MeshFilter>().sharedMesh = opMesh;
             GetComponent<MeshCollider>().sharedMesh = opMesh;
 
             subTransparentChunk.GetComponent<MeshFilter>().sharedMesh = trMesh;
             subTransparentChunk.GetComponent<MeshCollider>().sharedMesh = trMesh;
+
+            subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
 
             rendered = true;
             dirty = false;

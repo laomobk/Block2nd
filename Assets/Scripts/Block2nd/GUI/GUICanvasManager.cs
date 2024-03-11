@@ -46,7 +46,7 @@ namespace Block2nd.GUI
 
         public void SetUpdateText(int nUpdate)
         {
-            updateText.text = nUpdate + " update event" + ((nUpdate > 1) ? "s" : "") + ".";
+            // updateText.text = nUpdate + " update event" + ((nUpdate > 1) ? "s" : "") + ".";
         }
 
         private void Update()
