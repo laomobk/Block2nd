@@ -88,12 +88,15 @@ namespace Block2nd.World
             progressUI.gameObject.SetActive(true);
             
             progressUI.SetTitle("Generating terrain...");
+
+            yield return null;
             
             yield return GenerateLevelBlocksCoroutine();
             
             progressUI.SetTitle("Making rivers...");
             
-            yield return GenerateRiverCoroutine();
+            if (!(terrain is FlatTerrainGenerator) && !(terrain is HonkaiTerrainGenerator))
+                yield return GenerateRiverCoroutine();
             
             progressUI.SetTitle("Planting trees...");
 
@@ -352,11 +355,17 @@ namespace Block2nd.World
                         if (entry.chunk.heightMap[cx, cz] > terrain.waterLevel)
                             continue;
 
+                        var rawHeight = terrain.GetHeight((cCoord.x + cx) / 384f, (cCoord.z + cz) / 384f);
+
                         for (int cy = chunkHeight - 1; cy >= 0; --cy)
                         {
                             if (cy > terrain.waterLevel)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = 0;
+                            } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz] && 
+                                       terrain.waterLevel - rawHeight < 0.015f)
+                            {
+                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Sand;
                             } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = waterCode;
@@ -476,8 +485,7 @@ namespace Block2nd.World
 
         private int GetHeight(float x, float z)
         {
-            var levelWidth = client.worldSettings.levelWidth;
-            return terrain.GetHeight(x / 384, z / 384);
+            return (int)terrain.GetHeight(x / 384, z / 384);
         }
 
         int GetBlockCodeFromGenerator(float x, float y, float z)

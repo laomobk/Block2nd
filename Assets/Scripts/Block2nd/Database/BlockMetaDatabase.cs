@@ -70,6 +70,7 @@ namespace Block2nd.Database
 			public static readonly int Rock = 3;
 			public static readonly int Wood = 4;
 			public static readonly int Dirt = 5;
+			public static readonly int Sand = 6;
 		}
 
 		public static void AddBlock(BlockMeta meta)
@@ -120,6 +121,16 @@ namespace Block2nd.Database
 				blockId = "b2nd:block/dirt",
 				blockName = "Dirt",
 				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(2)),
+			});
+			
+			AddBlock(new BlockMeta
+			{
+				blockCode = blocks.Count,
+				blockId = "b2nd:block/sand",
+				blockName = "Sand",
+				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(18)),
+				transparent = false,
+				behavior = new SandBlockBehavior()
 			});
 			
 			// Wools
@@ -301,16 +312,6 @@ namespace Block2nd.Database
 				blockName = "Grass",
 				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(49)),
 				transparent = true
-			});
-			
-			AddBlock(new BlockMeta
-			{
-				blockCode = blocks.Count,
-				blockId = "b2nd:block/sand",
-				blockName = "Sand",
-				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(18)),
-				transparent = false,
-				behavior = new SandBlockBehavior()
 			});
 			
 			AddBlock(new BlockMeta

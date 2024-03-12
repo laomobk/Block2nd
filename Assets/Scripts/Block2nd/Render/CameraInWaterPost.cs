@@ -1,4 +1,6 @@
 ﻿using System;
+using Block2nd.Client;
+using Block2nd.Database;
 using Block2nd.GamePlay;
 using UnityEngine;
 
@@ -6,17 +8,24 @@ namespace Block2nd.Render
 {
     public class CameraInWaterPost : MonoBehaviour
     {
-        private Player player;
         public Material postMaterial;
+
+        private int waterCode;
+        private Player player;
+        private GameClient client;
+
         
         private void Awake()
         {
+            waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
             player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+            client = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
         }
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
-            postMaterial.SetInt("_InWater", player.playerController.inWater ? 1 : 0);
+            postMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
+                player.playerCamera.transform.position).blockCode == waterCode ? 1 : 0);
             Graphics.Blit(src, dest, postMaterial);
         }
     }

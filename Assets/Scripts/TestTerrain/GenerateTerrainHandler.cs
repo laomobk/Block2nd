@@ -13,15 +13,20 @@ namespace TestTerrain
         public WorldSettings worldSettings;
         public Text progressText;
 
+        private Texture2D terrainTexture;
+
         private void Start()
         {
+            var levelWidth = worldSettings.levelWidth;
+            terrainTexture = new Texture2D(levelWidth, levelWidth);
             Generate();
         }
 
         private IEnumerator GenerateCoroutine()
         {
+            outputUIImage.texture = terrainTexture;
+            
             var levelWidth = worldSettings.levelWidth;
-            var terrainTexture = new Texture2D(levelWidth, levelWidth);
             
             var generator = new TerrainGenerator(worldSettings);
 
@@ -29,19 +34,32 @@ namespace TestTerrain
             {
                 for (int z = 0; z < levelWidth; ++z)
                 {
-                    var height = Mathf.Sqrt(
-                        generator.GetHeight((float)x / levelWidth, (float)z / levelWidth) / 64f);
-                    terrainTexture.SetPixel(x, z, new Color(height, height, height));
+                    var rawHeight = generator.GetHeight((float) x / levelWidth, (float) z / levelWidth);
+                    var height = Mathf.Sqrt(rawHeight / 64f);
+
+                    if (rawHeight >= generator.waterLevel && rawHeight <= generator.waterLevel + 0.05f)
+                    {
+                        terrainTexture.SetPixel(x, z, new Color(1f, 1f, 0.0f));
+                    }
+                    else if (rawHeight <= generator.waterLevel)
+                    {
+                        terrainTexture.SetPixel(x, z, new Color(0f, 0.0f, 0.5f));
+                    }
+                    else
+                    {
+                        terrainTexture.SetPixel(x, z, new Color(height, height, height));
+                    }
                 }
-                
-                terrainTexture.Apply();
-                outputUIImage.texture = terrainTexture;
-                progressText.text = "Generating... " + (int) (100 * (x + 1f) / levelWidth) + "%";
-                yield return null;
+
+                if (x % 20 == 0)
+                {
+                    terrainTexture.Apply();
+                    progressText.text = "Generating... " + (int) (100 * (x + 1f) / levelWidth) + "%";
+                    yield return null;
+                }
             }
 
             terrainTexture.Apply();
-            outputUIImage.texture = terrainTexture;
             progressText.text = "Done !";
         }
 

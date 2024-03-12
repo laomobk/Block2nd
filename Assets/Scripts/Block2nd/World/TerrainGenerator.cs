@@ -6,7 +6,8 @@ namespace Block2nd.World
 {
     public class TerrainGenerator
     {
-        public int waterLevel = 6;
+        public int waterLevel = 16;
+        public int baseHeight = 10;
         
         public int seed = 10727;
         public int minHeight = 5;
@@ -34,24 +35,31 @@ namespace Block2nd.World
                 rand.Next(100000, 999999) / 1000000f);
         }
 
-        public int GetHeightPerlin(float x, float z)
+        public float GetHeightPerlin(float x, float z)
         {
             x += sampleOffset.x;
             z += sampleOffset.y;
             
             var plain = Mathf.PerlinNoise(x * 10, z * 5) * 20;
             var plain2 = Mathf.Clamp(Mathf.PerlinNoise(x * 30, z * 30) - 0.1f, 0, 1) * 5;
+            
             var mountain = Mathf.Clamp(Mathf.PerlinNoise(10 * x, 10 * z) - 0.5f, 0, 1) * 10;
             var mountain2 = Mathf.Clamp(Mathf.PerlinNoise(5 * x, 15 * z) - 0.7f, 0, 1) * 20;
             var mountain3 = Mathf.Clamp(Mathf.PerlinNoise(20 * x, 17 * z) - 0.6f, 0, 1) * 25;
+
+            var mountain23 = Mathf.Lerp(mountain2, mountain3, 0.5f);
             
             var erode1 = -Mathf.Clamp(Mathf.PerlinNoise(48 * x, 32 * z) - 0.8f, 0, 1) * 10;
             var erode2 = -Mathf.Clamp(Mathf.PerlinNoise(32 * x, 40 * z) - 0.6f, 0, 1) * 10;
             
-            var riverDown = Mathf.Clamp01(Mathf.PerlinNoise(8 * x, 8 * z)) * (20 + waterLevel / 2);
+            var riverDown = Mathf.Clamp01(Mathf.Sqrt(Mathf.PerlinNoise(10 * x, 10 * z))) * (15 + waterLevel / 3f);
 
-            var h = (int) (waterLevel + plain + plain2 + mountain + mountain2 + mountain3 + 
-                            erode1 + erode2 - riverDown);
+            var h = (baseHeight + 
+                           Mathf.Lerp(
+                               waterLevel + plain + plain2 + mountain + mountain23 + 
+                                erode1 + erode2 - riverDown / 4f,
+                               -riverDown,
+                               0.45f));
 
             return h > 0 ? h : 1;
         }
@@ -118,7 +126,7 @@ namespace Block2nd.World
             return 5;
         }
 
-        public virtual int GetHeight(float x, float z)
+        public virtual float GetHeight(float x, float z)
         {
             return GetHeightPerlin(x, z);
         }
@@ -129,7 +137,7 @@ namespace Block2nd.World
         public HonkaiTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
         { }
 
-        public override int GetHeight(float x, float z)
+        public override float GetHeight(float x, float z)
         {
             return GetHeightHonkai(x, z);
         }
@@ -140,7 +148,7 @@ namespace Block2nd.World
         public FlatTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
         { }
 
-        public override int GetHeight(float x, float z)
+        public override float GetHeight(float x, float z)
         {
             return GetHeightFlat(x, z);
         }
