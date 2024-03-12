@@ -1,4 +1,7 @@
-﻿namespace Block2nd.Phys
+﻿using System;
+using UnityEngine;
+
+namespace Block2nd.Phys
 {
     public class AABB
     {
@@ -104,6 +107,166 @@
             return this.minX > minX && this.maxX > maxX &&
                    this.minY > maxY && this.maxY > maxY &&
                    this.minZ > minZ && this.maxZ > maxZ;
+        }
+
+        public bool InSideXYBounds(Vector3 point)
+        {
+            return minZ < point.z && maxZ > point.z;
+        }
+        
+        public bool InSideXZBounds(Vector3 point)
+        {
+            return minY < point.y && maxY > point.y;
+        }
+
+        public bool InSideYZBounds(Vector3 point)
+        {
+            return minX < point.x && maxX > point.x;
+        }
+
+        /// <summary>
+        ///     检测向量 start -> end 是否穿过或穿入了此碰撞箱
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public RayHit Raycast(Vector3 start, Vector3 end)
+        {
+
+            bool hitYZ1 = ScaleToXPlane(start, end, minX, out Vector3 YZ1);
+            bool hitYZ2 = ScaleToXPlane(start, end, maxX, out Vector3 YZ2);
+            bool hitXY1 = ScaleToZPlane(start, end, minZ, out Vector3 XY1);
+            bool hitXY2 = ScaleToZPlane(start, end, maxZ, out Vector3 XY2);
+            bool hitXZ1 = ScaleToYPlane(start, end, minY, out Vector3 XZ1);
+            bool hitXZ2 = ScaleToYPlane(start, end, maxY, out Vector3 XZ2);
+
+            bool gotHitPoint = false;
+            Vector3 hitPoint = start + (end - start) * 9999999999f;
+
+            if (hitXY1 && InSideXYBounds(XY1) && (hitPoint - start).sqrMagnitude > (XY1 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = XY1;
+            }
+            
+            if (hitXY2 && InSideXYBounds(XY2) && (hitPoint - start).sqrMagnitude > (XY2 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = XY2;
+            }
+            
+            if (hitXZ1 && InSideXYBounds(XZ1) && (hitPoint - start).sqrMagnitude > (XZ1 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = XZ1;
+            }
+            
+            if (hitXZ2 && InSideXYBounds(XZ2) && (hitPoint - start).sqrMagnitude > (XZ2 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = XZ2;
+            }
+            
+            if (hitYZ1 && InSideXYBounds(YZ1) && (hitPoint - start).sqrMagnitude > (YZ1 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = YZ1;
+            }
+            
+            if (hitYZ2 && InSideXYBounds(YZ2) && (hitPoint - start).sqrMagnitude > (YZ2 - start).sqrMagnitude)
+            {
+                gotHitPoint = true;
+                hitPoint = YZ2;
+            }
+
+            if (!gotHitPoint)
+                return null;
+
+            byte direction = 0;
+
+            if (hitPoint == XY1)
+                direction = 2;
+            else if (hitPoint == XY2)
+                direction = 1;
+            else if (hitPoint == XZ1)
+                direction = 6;
+            else if (hitPoint == XZ2)
+                direction = 5;
+            else if (hitPoint == YZ1)
+                direction = 3;
+            else if (hitPoint == YZ2)
+                direction = 4;
+
+            return new RayHit(direction, hitPoint);
+        }
+
+        /// <summary>
+        ///     返回沿 start -> end 方向的，缩放至 plane 位置的向量
+        /// </summary>
+        /// <returns> false 如果不存在这样的向量 </returns>
+        public bool ScaleToZPlane(Vector3 start, Vector3 end, float plane, out Vector3 result)
+        {
+            var dx = end.x - start.x;
+            var dy = end.y - start.y;
+            var dz = end.z - start.z;
+            
+            result = Vector3.zero;
+
+            if (dz * dz < Single.Epsilon)
+                return false;
+
+            var scale = (plane - start.z) / dz;
+            if (scale < 0 || scale > 1)  // make sure the plane is between the start and end.
+                return false;
+
+            result = new Vector3(start.x + dx * scale, start.y + dy * scale, start.z + dz * scale);
+            return true;
+        }
+        
+        /// <summary>
+        ///     返回沿 start -> end 方向的，缩放至 plane 位置的向量
+        /// </summary>
+        /// <returns> false 如果不存在这样的向量 </returns>
+        public bool ScaleToYPlane(Vector3 start, Vector3 end, float plane, out Vector3 result)
+        {
+            var dx = end.x - start.x;
+            var dy = end.y - start.y;
+            var dz = end.z - start.z;
+            
+            result = Vector3.zero;
+
+            if (dy * dy < Single.Epsilon)
+                return false;
+
+            var scale = (plane - start.y) / dy;
+            if (scale < 0 || scale > 1)  // make sure the plane is between the start and end.
+                return false;
+
+            result = new Vector3(start.x + dx * scale, start.y + dy * scale, start.z + dz * scale);
+            return true;
+        }
+        
+        /// <summary>
+        ///     返回沿 start -> end 方向的，缩放至 plane 位置的向量
+        /// </summary>
+        /// <returns> false 如果不存在这样的向量 </returns>
+        public bool ScaleToXPlane(Vector3 start, Vector3 end, float plane, out Vector3 result)
+        {
+            var dx = end.x - start.x;
+            var dy = end.y - start.y;
+            var dz = end.z - start.z;
+            
+            result = Vector3.zero;
+
+            if (dx * dx < Single.Epsilon)
+                return false;
+
+            var scale = (plane - start.x) / dx;
+            if (scale < 0 || scale > 1)  // make sure the plane is between the start and end.
+                return false;
+
+            result = new Vector3(start.x + dx * scale, start.y + dy * scale, start.z + dz * scale);
+            return true;
         }
 
         public static AABB One()

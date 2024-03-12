@@ -311,7 +311,7 @@ namespace Block2nd.World
                     }
                 }
 
-                if (count % 5 == 0)
+                if (count % 3 == 0)
                 {
                     count = 1;
                     progressUI.SetProgress((float) x / width);
@@ -363,7 +363,7 @@ namespace Block2nd.World
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = 0;
                             } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz] && 
-                                       terrain.waterLevel - rawHeight < 0.015f)
+                                       terrain.waterLevel - rawHeight < 0.005f)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Sand;
                             } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])

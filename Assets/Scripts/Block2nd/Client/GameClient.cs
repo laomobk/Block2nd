@@ -34,7 +34,7 @@ namespace Block2nd.Client
 		public int[] viewDistanceCandidates = new int[]{4, 8, 16, 32};
 
 		private GameClientState gameClientState = GameClientState.GAME;
-		private int viewDistanceCandidateIdx = 1;
+		private int viewDistanceCandidateIdx = 2;
 		private int shaderCandidateIdx = 0;
 		private bool cursorLocked;
 		private GameSaveManager gameSaveManager;
