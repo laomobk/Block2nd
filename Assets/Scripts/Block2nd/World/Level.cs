@@ -369,7 +369,7 @@ namespace Block2nd.World
                             } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = waterCode;
-                            } else if (cy < entry.chunk.heightMap[cx, cz] - 2)
+                            } else if (cy >= entry.chunk.heightMap[cx, cz] - 2)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Dirt;
                             } else

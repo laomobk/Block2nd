@@ -157,6 +157,8 @@ namespace Block2nd.World
             // 从低到高分别代表顶点 B(LT, RT, LB, RB), F(LT, RT, LB, RB)
             // 只有不透明方块才会被加入到环境光遮蔽的计算之中
             
+            Profiler.BeginSample("C:Bake AO");
+            
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
             
@@ -166,59 +168,77 @@ namespace Block2nd.World
                 {
                     for (int y = height - 1; y >= 0; --y)
                     {
-                        int vertAoValue = 0;
+                        byte vertAoValue = 0;
 
                         if (!GetBlock(x + 1, y + 1, z - 1).Transparent())
                             vertAoValue |= 1;
                         
                         if (!GetBlock(x + 1, y + 1, z).Transparent())
-                            vertAoValue |= 21;
+                            vertAoValue |= 17;
                         
                         if (!GetBlock(x + 1, y + 1, z + 1).Transparent())
-                            vertAoValue |= 20;
+                            vertAoValue |= 16;
 
                         if (!GetBlock(x, y + 1, z - 1).Transparent())
                             vertAoValue |= 3;
                         
                         if (!GetBlock(x, y + 1, z + 1).Transparent())
-                            vertAoValue |= 60;
+                            vertAoValue |= 48;
 
                         if (!GetBlock(x - 1, y + 1, z - 1).Transparent())
                             vertAoValue |= 2;
                         
                         if (!GetBlock(x - 1, y + 1, z).Transparent())
-                            vertAoValue |= 42;
+                            vertAoValue |= 34;
                         
                         if (!GetBlock(x - 1, y + 1, z + 1).Transparent())
-                            vertAoValue |= 40;
+                            vertAoValue |= 32;
                         
                         
                         if (!GetBlock(x + 1, y - 1, z - 1).Transparent())
                             vertAoValue |= 4;
                         
                         if (!GetBlock(x + 1, y - 1, z).Transparent())
-                            vertAoValue |= 104;
+                            vertAoValue |= 68;
                         
                         if (!GetBlock(x + 1, y - 1, z + 1).Transparent())
-                            vertAoValue |= 100;
+                            vertAoValue |= 64;
 
                         if (!GetBlock(x, y - 1, z - 1).Transparent())
-                            vertAoValue |= 14;
+                            vertAoValue |= 12;
                         
                         if (!GetBlock(x, y - 1, z + 1).Transparent())
-                            vertAoValue |= 300;
+                            vertAoValue |= 192;
 
                         if (!GetBlock(x - 1, y - 1, z - 1).Transparent())
-                            vertAoValue |= 10;
+                            vertAoValue |= 8;
                         
                         if (!GetBlock(x - 1, y - 1, z).Transparent())
-                            vertAoValue |= 210;
+                            vertAoValue |= 136;
                         
                         if (!GetBlock(x - 1, y - 1, z + 1).Transparent())
-                            vertAoValue |= 200;
+                            vertAoValue |= 128;
+                        
+                        
+                        if (!GetBlock(x - 1, y, z + 1).Transparent())
+                            vertAoValue |= 80;
+                        
+                        if (!GetBlock(x - 1, y, z - 1).Transparent())
+                            vertAoValue |= 5;
+                        
+                        
+                        if (!GetBlock(x - 1, y, z + 1).Transparent())
+                            vertAoValue |= 128;
+                        
+                        if (!GetBlock(x - 1, y, z - 1).Transparent())
+                            vertAoValue |= 160;
+
+                        ambientOcclusionMap[x, y, z] = vertAoValue;
                     }
                 }
             }
+            
+            Profiler.EndSample();
         }
         
         public void UpdateChuckMesh()

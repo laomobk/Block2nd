@@ -13,5 +13,6 @@ namespace Block2nd.Database
 		public bool mobileControl;
 		public int viewDistance = 16;
 		public bool infiniteJump = true;
+		public bool ambientOcclusion = true;
 	}
 }
