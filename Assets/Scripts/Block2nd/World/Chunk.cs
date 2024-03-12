@@ -23,6 +23,7 @@ namespace Block2nd.World
         
         public ChunkBlockData[,,] chunkBlocks;
         public int[,] heightMap;
+        public byte[,,] ambientOcclusionMap;
 
         private ChunkManager locatedChunkManager;
 
@@ -145,6 +146,76 @@ namespace Block2nd.World
                             heightMap[x, z] = y;
                             break;
                         }
+                    }
+                }
+            }
+        }
+
+        public void BakeAmbientOcclusionMap()
+        {
+            // cell: 32 位数字, 每 4 bit 为一个顶点的遮蔽数值，共 8 个顶点.
+            // 从低到高分别代表顶点 B(LT, RT, LB, RB), F(LT, RT, LB, RB)
+            // 只有不透明方块才会被加入到环境光遮蔽的计算之中
+            
+            var width = chunkBlocks.GetLength(0);
+            var height = chunkBlocks.GetLength(1);
+            
+            for (int x = 0; x < width; ++x)
+            {
+                for (int z = 0; z < width; ++z)
+                {
+                    for (int y = height - 1; y >= 0; --y)
+                    {
+                        int vertAoValue = 0;
+
+                        if (!GetBlock(x + 1, y + 1, z - 1).Transparent())
+                            vertAoValue |= 1;
+                        
+                        if (!GetBlock(x + 1, y + 1, z).Transparent())
+                            vertAoValue |= 21;
+                        
+                        if (!GetBlock(x + 1, y + 1, z + 1).Transparent())
+                            vertAoValue |= 20;
+
+                        if (!GetBlock(x, y + 1, z - 1).Transparent())
+                            vertAoValue |= 3;
+                        
+                        if (!GetBlock(x, y + 1, z + 1).Transparent())
+                            vertAoValue |= 60;
+
+                        if (!GetBlock(x - 1, y + 1, z - 1).Transparent())
+                            vertAoValue |= 2;
+                        
+                        if (!GetBlock(x - 1, y + 1, z).Transparent())
+                            vertAoValue |= 42;
+                        
+                        if (!GetBlock(x - 1, y + 1, z + 1).Transparent())
+                            vertAoValue |= 40;
+                        
+                        
+                        if (!GetBlock(x + 1, y - 1, z - 1).Transparent())
+                            vertAoValue |= 4;
+                        
+                        if (!GetBlock(x + 1, y - 1, z).Transparent())
+                            vertAoValue |= 104;
+                        
+                        if (!GetBlock(x + 1, y - 1, z + 1).Transparent())
+                            vertAoValue |= 100;
+
+                        if (!GetBlock(x, y - 1, z - 1).Transparent())
+                            vertAoValue |= 14;
+                        
+                        if (!GetBlock(x, y - 1, z + 1).Transparent())
+                            vertAoValue |= 300;
+
+                        if (!GetBlock(x - 1, y - 1, z - 1).Transparent())
+                            vertAoValue |= 10;
+                        
+                        if (!GetBlock(x - 1, y - 1, z).Transparent())
+                            vertAoValue |= 210;
+                        
+                        if (!GetBlock(x - 1, y - 1, z + 1).Transparent())
+                            vertAoValue |= 200;
                     }
                 }
             }

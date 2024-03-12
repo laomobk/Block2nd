@@ -72,54 +72,6 @@ namespace Block2nd.GamePlay
             }
         }
 
-        private void UpdateGroundBlock()
-        {
-            var bottom = transform.position - transform.up;
-            
-            var fPointNW = bottom + Vector3.forward + Vector3.left;
-            var fPointNE = bottom + Vector3.forward + Vector3.right;
-            var fPointSW = bottom + Vector3.back + Vector3.left;
-            var fPointSE = bottom + Vector3.back + Vector3.right;
-            
-            IntVector3 ipoint;
-            ChunkBlockData block;
-
-            var level = gameClient.CurrentLevel;
-
-            if ((block = level.GetBlock(fPointNE, out Chunk chunk)).blockCode != 0)
-                ipoint = new IntVector3(fPointNE);
-            else if ((block = chunk.GetBlockWS(fPointNW)).blockCode != 0) 
-                ipoint = new IntVector3(fPointNW);
-            else if ((block = chunk.GetBlockWS(fPointSE)).blockCode != 0) 
-                ipoint = new IntVector3(fPointSE);
-            else if ((block = chunk.GetBlockWS(fPointSW)).blockCode != 0) 
-                ipoint = new IntVector3(fPointSW);
-            else
-            {
-                stepBlockMeta = null;
-                return;
-            }
-            
-            var meta = BlockMetaDatabase.GetBlockMetaByCode(block.blockCode);
-
-            if (meta == null)
-            {
-                stepBlockMeta = null;
-                return;
-            }
-
-            var blockAabb = new Bounds(meta.aabb.center + ipoint.ToUnityVector3(), meta.aabb.size);
-
-            if (blockAabb.Intersects(aabb))
-            {
-                stepBlockMeta = meta;
-            }
-            else
-            {
-                stepBlockMeta = BlockMetaDatabase.blocks[0];
-            }
-        }
-
         public void ResetVelocity()
         {
             try

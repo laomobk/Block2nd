@@ -96,6 +96,9 @@ namespace Block2nd.World
                 worldSettings.chunkHeight,
                 worldSettings.chunkWidth];
             chunk.heightMap = new int[worldSettings.chunkWidth, worldSettings.chunkWidth];
+            chunk.ambientOcclusionMap = new byte[worldSettings.chunkWidth,
+                worldSettings.chunkHeight,
+                worldSettings.chunkWidth];
 
             chunk.gameObject.name = "_Chunk_" + x + "_" + z;
             chunkGameObject.transform.position = new Vector3(x, 0, z);
@@ -116,6 +119,16 @@ namespace Block2nd.World
 
         public Chunk FindChunk(int x, int z)
         {
+            Chunk chunk;
+            if (chunkDict.TryGetValue(ChunkCoordsToLongKey(new IntVector3(x, 0, z)), out chunk))
+            {
+                return chunk;
+            }
+
+            return null;
+            
+            /*
+            
             var chunkWidth = worldSettings.chunkWidth;
 
             foreach (var entry in chunkEntries)
@@ -129,6 +142,8 @@ namespace Block2nd.World
             }
 
             return null;
+            
+            */
         }
 
         public BlockBehavior SetBlock(int blockCode, int x, int y, int z, bool updateMesh = false,

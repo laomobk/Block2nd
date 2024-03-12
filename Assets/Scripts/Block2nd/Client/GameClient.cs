@@ -45,9 +45,9 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.1.7.0a";
+		public string GameVersion => "0.1.7.1a";
 
-		public string GameVersionSubject => "\"The River\"";
+		public string GameVersionSubject => "Indev";
 
 		public IGameGUI currentGUI;
 

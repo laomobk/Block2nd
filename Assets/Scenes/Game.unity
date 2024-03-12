@@ -2283,9 +2283,6 @@ MonoBehaviour:
     liquid: 0
     transparent: 0
     forceRenderAllFace: 0
-    aabb:
-      m_Center: {x: 0.5, y: 0.5, z: 0.5}
-      m_Extent: {x: 0.5, y: 0.5, z: 0.5}
 --- !u!33 &972082048
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -3115,7 +3112,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 305.4, y: -19.789978}
+  m_AnchoredPosition: {x: 305.4, y: -19.79004}
   m_SizeDelta: {x: 586.1, y: 25.682335}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1170904738
@@ -3270,7 +3267,7 @@ MonoBehaviour:
   worldSettings: {fileID: 11400000, guid: 2c7949822500ebc47b2577083b24acdc, type: 2}
   worldTransform: {fileID: 526760868}
   player: {fileID: 972082045}
-  initWorldWidth: 384
+  initWorldWidth: 128
   terrainMaterial: {fileID: 2100000, guid: a954707937c1164489be48accdb3001d, type: 2}
   shaderCandidates:
   - {fileID: 4800000, guid: 2f521f0a66f4c224d9da70d85b4abd5b, type: 3}
@@ -6953,7 +6950,7 @@ PrefabInstance:
     - target: {fileID: 6233634256739641026, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 133.1
+      value: 133.09998
       objectReference: {fileID: 0}
     - target: {fileID: 6233634256739641026, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}

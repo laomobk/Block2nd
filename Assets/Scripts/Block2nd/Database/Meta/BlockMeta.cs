@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Block2nd.Behavior;
+using Block2nd.Phys;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -318,9 +319,8 @@ namespace Block2nd.Database.Meta
         public bool forceRenderAllFace;
         
         public BlockBehavior behavior = new StaticBlockBehavior();
-
-        public Bounds aabb = new Bounds(new Vector3(0.5f, 0.5f, 0.5f), Vector3.one);
-
+        public AABB aabb = AABB.One();
+        
         [NotNull] public BlockShape shape;
     }
 }
