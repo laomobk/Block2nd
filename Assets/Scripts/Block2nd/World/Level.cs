@@ -38,7 +38,7 @@ namespace Block2nd.World
         private float tickInterval = 0.3f;
         private float lastTickTime = -10f;
 
-        public Vector3 gravity = new Vector3(0, -9.8f, 0);
+        public Vector3 gravity = new Vector3(0, -0.98f, 0);
 
         public ChunkManager ChunkManager
         {
@@ -586,7 +586,8 @@ namespace Block2nd.World
                     {
                         var block = GetBlock(x, y, z);
                         AABB blockBox;
-                        if (block.blockCode != 0 &&
+                        if (block.blockCode != 0 &&  
+                            !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
                             aabb.Intersects(blockBox = block.behaviorInstance.GetAABB(new IntVector3(x, y, z))))
                         {
                             result.Add(blockBox);

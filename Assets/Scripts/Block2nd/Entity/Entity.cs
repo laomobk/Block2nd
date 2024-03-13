@@ -6,43 +6,26 @@ using UnityEngine;
 
 namespace Block2nd.Entity
 {
-    public class Entity : MonoBehaviour
+    public abstract class Entity : MonoBehaviour
     {
         protected float stepHeight = 1;
-        protected AABB aabb = AABB.One();
         protected bool onGround = false;
 
-        [HideInInspector] public Vector3 velocity;
-        [HideInInspector] public Vector3 gravityVelocity;
-
         protected GameClient gameClient;
+
+        public abstract AABB GetAABB();
+        
+        public bool OnGround => onGround;
 
         private void Awake()
         {
             gameClient = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
         }
-
-        public void ResetVelocity()
-        {
-            velocity = Vector3.zero;
-            gravityVelocity = Vector3.zero;
-        }
-
-        protected void ApplyGravity(ref Vector3 dir)
-        {
-            if (!onGround)
-            {
-                gravityVelocity += gameClient.CurrentLevel.gravity * Time.deltaTime;
-                dir += gravityVelocity;
-            }
-            else
-            {
-                gravityVelocity = Vector3.zero;
-            }
-        }
-
+        
         public void MoveAABBToWorldPosition()
         {
+            var aabb = GetAABB();
+            
             var halfX = (aabb.maxX - aabb.minX) / 2f;
             var halfY = (aabb.maxY - aabb.minY) / 2f;
             var halfZ = (aabb.maxZ - aabb.minZ) / 2f;
@@ -58,37 +41,41 @@ namespace Block2nd.Entity
 
         public void MoveWorldPositionToAABB()
         {
-            transform.position = aabb.Center;
+            transform.position = GetAABB().Center;
         }
-
-        public void MoveRelative(Vector3 dir)
+        
+        public void MoveWorld(Vector3 dir)
         {   
-            ApplyGravity(ref dir);
-            
-            var wantX = dir.x;
-            var wantY = dir.y;
-            var wantZ = dir.z;
+            float wantX = dir.x;
+            float wantY = dir.y;
+            float wantZ = dir.z;
 
-            var dx = wantX;
-            var dy = wantY;
-            var dz = wantZ;
+            float dx = wantX;
+            float dy = wantY;
+            float dz = wantZ;
+
+            var aabb = GetAABB();
             
             var collideBoxes = gameClient.CurrentLevel.GetWorldCollideBoxIntersect(
                                                 aabb.CopyWithExpand(wantX, wantY, wantZ));
 
+            for (int i = 0; i < collideBoxes.Count; ++i)
+            {
+                var box = collideBoxes[i];
+                dy = box.ClipYCollide(aabb, dy);
+            }
+            
+            aabb.Move(0, dy, 0);
+
+            onGround = dy != wantY && wantY < 0;
+
             foreach (var box in collideBoxes)
             {
-                dy = box.ClipYCollide(aabb, dy);
                 dx = box.ClipXCollide(aabb, dx);
                 dz = box.ClipZCollide(aabb, dz);
             }
-
-            if (Math.Abs(wantY - dy) > Single.Epsilon)
-                onGround = true;
-            else
-                onGround = false;
             
-            aabb.Move(dx, dy, dz);
+            aabb.Move(dx, 0f, dz);
             
             MoveWorldPositionToAABB();
         }

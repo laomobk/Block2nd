@@ -155,7 +155,7 @@ namespace Block2nd.GamePlay
             playerController.playerSpeed = Vector3.zero;
             playerController.ResetVelocity();
             
-            entity.ResetVelocity();
+            // entity.ResetVelocity();
             entity.MoveAABBToWorldPosition();
         }
 

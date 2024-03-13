@@ -2188,9 +2188,9 @@ GameObject:
   - component: {fileID: 972082048}
   - component: {fileID: 972082046}
   - component: {fileID: 972082045}
-  - component: {fileID: 972082051}
   - component: {fileID: 972082047}
   - component: {fileID: 972082050}
+  - component: {fileID: 972082052}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -2270,20 +2270,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerSpeed: {x: 0, y: 0, z: 0}
   externalSpeed: {x: 0, y: 0, z: 0}
-  playerStep: 0.5
-  gravity: 25
-  runSpeedRatio: 10
+  runSpeedRatio: 8
   walkSpeedRatio: 5
   inWater: 0
   playerState: 0
   playerCamera: {fileID: 1654655558}
-  stepBlockMeta:
-    blockCode: 0
-    blockId: 
-    blockName: 
-    liquid: 0
-    transparent: 0
-    forceRenderAllFace: 0
 --- !u!33 &972082048
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2318,10 +2309,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c440632023a4edbbedc26ac19dbb138, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocity: {x: 0, y: 0, z: 0}
-  gravityVelocity: {x: 0, y: 0, z: 0}
---- !u!143 &972082051
-CharacterController:
+  gravity: -0.98
+  verticalVelocity: 0
+--- !u!65 &972082052
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2331,12 +2322,7 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 1.5
-  m_Radius: 0.2
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.1
-  m_MinMoveDistance: 0.001
+  m_Size: {x: 1, y: 1.8, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &989039545
 GameObject:

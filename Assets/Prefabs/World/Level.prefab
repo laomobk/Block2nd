@@ -50,6 +50,7 @@ MonoBehaviour:
     type: 3}
   chunkPrefab: {fileID: 1353389129824702, guid: 57d381d19974b484e94fdb9705acdb49,
     type: 3}
+  gravity: {x: 0, y: -0.98, z: 0}
 --- !u!64 &64583259336041784
 MeshCollider:
   m_ObjectHideFlags: 0

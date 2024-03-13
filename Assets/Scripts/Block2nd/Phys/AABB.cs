@@ -5,7 +5,7 @@ namespace Block2nd.Phys
 {
     public class AABB
     {
-        public float epsilon = 0.001f;
+        public float epsilon = 0;
         public float minX, minY, minZ;
         public float maxX, maxY, maxZ;
 
@@ -77,9 +77,18 @@ namespace Block2nd.Phys
             {
                 float actualX;
                 if (wantX > 0 && thatBox.maxX <= minX && (actualX = minX - thatBox.maxX - epsilon) < wantX)
+                {
+                    if (actualX < 0)  // avoid bouncing
+                        actualX = 0;
                     wantX = actualX;
+                }
+
                 if (wantX < 0 && thatBox.minX >= maxX && (actualX = thatBox.minX - maxX + epsilon) > wantX)
+                {
+                    if (actualX > 0)  // avoid bouncing
+                        actualX = 0;
                     wantX = actualX;
+                }
             }
 
             return wantX;
@@ -87,15 +96,22 @@ namespace Block2nd.Phys
 
         public float ClipYCollide(AABB thatBox, float wantY)
         {
+            
             if (thatBox.maxX > minX && thatBox.minX < maxX && thatBox.maxZ > minZ && thatBox.minZ < maxZ)
             {
                 float actualY;
                 if (wantY > 0 && thatBox.maxY <= minY && (actualY = minY - thatBox.maxY - epsilon) < wantY)
+                {
+                    if (actualY < 0)  // avoid bouncing
+                        actualY = 0;
                     wantY = actualY;
-                if (wantY < 0 && thatBox.minY >= maxY && (actualY = thatBox.minY - maxY + epsilon) > wantY)
+                } else if (wantY < 0 && thatBox.minY >= maxY && (actualY = thatBox.minY - maxY + epsilon) > wantY)
+                {
+                    if (actualY > 0)  // avoid bouncing
+                        actualY = 0;
                     wantY = actualY;
+                }
             }
-
             return wantY;
         }
 
@@ -105,9 +121,18 @@ namespace Block2nd.Phys
             {
                 float actualZ;
                 if (wantZ > 0 && thatBox.maxZ <= minZ && (actualZ = minZ - thatBox.maxZ - epsilon) < wantZ)
+                {
+                    if (actualZ < 0)  // avoid bouncing
+                        actualZ = 0;
                     wantZ = actualZ;
+                }
+
                 if (wantZ < 0 && thatBox.minZ >= maxZ && (actualZ = thatBox.minZ - maxZ + epsilon) > wantZ)
+                {
+                    if (actualZ > 0)  // avoid bouncing
+                        actualZ = 0;
                     wantZ = actualZ;
+                }
             }
 
             return wantZ;
