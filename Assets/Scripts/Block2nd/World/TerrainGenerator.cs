@@ -153,4 +153,16 @@ namespace Block2nd.World
             return GetHeightFlat(x, z);
         }
     }
+
+    public class TestTerrainGenerator : FlatTerrainGenerator
+    {
+        public TestTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
+        {
+        }
+
+        public override float GetHeight(float x, float z)
+        {
+            return GetHeightFlat(x, z);
+        }
+    }
 }

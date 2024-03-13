@@ -8,6 +8,7 @@ using Block2nd.Database;
 using Block2nd.Database.Meta;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
+using Block2nd.Phys;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -36,6 +37,8 @@ namespace Block2nd.World
 
         private float tickInterval = 0.3f;
         private float lastTickTime = -10f;
+
+        public Vector3 gravity = new Vector3(0, -9.8f, 0);
 
         public ChunkManager ChunkManager
         {
@@ -101,12 +104,15 @@ namespace Block2nd.World
             progressUI.SetTitle("Planting trees...");
 
             yield return null;
-            yield return GenerateTrees();
+            if (!(terrain is TestTerrainGenerator))
+                yield return GenerateTrees();
             
             progressUI.SetTitle("Generating relics...");
 
             yield return null;
-            yield return GeneratePyramids();
+            
+            if (!(terrain is TestTerrainGenerator))
+                yield return GeneratePyramids();
             
             var chunk = chunkManager.FindChunk(x, z);
             var chunkLocalPos = chunk.WorldToLocal(x, z);
@@ -551,6 +557,46 @@ namespace Block2nd.World
         {
             return chunkManager.SetBlock(blockCode, x, y, z, updateMesh, updateHeightmap, triggerUpdate);
         }
+
+        public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)
+        {
+            var x0 = (int) aabb.minX;
+            var x1 = (int) aabb.maxX + 1;
+            var y0 = (int) aabb.minY;
+            var y1 = (int) aabb.maxY + 1;
+            var z0 = (int) aabb.minZ;
+            var z1 = (int) aabb.maxZ + 1;
+
+            if (x0 < 0)
+                x0--;
+
+            if (y0 < 0)
+                y0--;
+
+            if (z0 < 0)
+                z0--;
+
+            var result = new List<AABB>();
+
+            for (int x = x0; x < x1; ++x)
+            {
+                for (int y = y0; y < y1; ++y)
+                {
+                    for (int z = z0; z < z1; ++z)
+                    {
+                        var block = GetBlock(x, y, z);
+                        AABB blockBox;
+                        if (block.blockCode != 0 &&
+                            aabb.Intersects(blockBox = block.behaviorInstance.GetAABB(new IntVector3(x, y, z))))
+                        {
+                            result.Add(blockBox);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        } 
 
         public Vector3 CalculateWorldBlockPosByHit(RaycastHit hit)
         {

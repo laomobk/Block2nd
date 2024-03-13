@@ -6,6 +6,7 @@ using Block2nd.GUI;
 using Block2nd.Render;
 using Block2nd.Database;
 using Block2nd.Database.Meta;
+using Block2nd.Entity;
 using Block2nd.MathUtil;
 using Block2nd.World;
 using UnityEngine;
@@ -47,10 +48,13 @@ namespace Block2nd.GamePlay
         public Inventory Inventory => inventory;
         public IntVector3 IntPos => new IntVector3(transform.position);
 
+        [HideInInspector] public PlayerEntity entity;
+
         private void Awake()
         {
             playerController = GetComponent<PlayerController>();
             gameClient = GameObject.FindWithTag("GameClient").GetComponent<GameClient>();
+            entity = GetComponent<PlayerEntity>();
         }
         
         private void Start()
@@ -150,6 +154,9 @@ namespace Block2nd.GamePlay
             transform.position = position;
             playerController.playerSpeed = Vector3.zero;
             playerController.ResetVelocity();
+            
+            entity.ResetVelocity();
+            entity.MoveAABBToWorldPosition();
         }
 
         private void HandleItemKey()

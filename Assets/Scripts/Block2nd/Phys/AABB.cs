@@ -8,7 +8,12 @@ namespace Block2nd.Phys
         public float epsilon = 0.001f;
         public float minX, minY, minZ;
         public float maxX, maxY, maxZ;
-        
+
+        public Vector3 Center => new Vector3(
+            minX + (maxX - minX) / 2, 
+            minY + (maxY - minY) / 2, 
+            minZ + (maxZ - minZ) / 2);
+
         public AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
         {
             this.minX = minX;
@@ -37,6 +42,33 @@ namespace Block2nd.Phys
         public AABB CopyWithOffset(float ox, float oy, float oz)
         {
             return new AABB(minX + ox, minY + oy, minZ + oz, maxX + ox, maxY + oy, maxZ + oz);
+        }
+
+        public AABB CopyWithExpand(float dx, float dy, float dz)
+        {
+            var newMinX = minX;
+            var newMinY = minY;
+            var newMinZ = minZ;
+            var newMaxX = maxX;
+            var newMaxY = maxY;
+            var newMaxZ = maxZ;
+
+            if (dx > 0)
+                newMaxX += dx;
+            else
+                newMinX += dx;
+
+            if (dy > 0)
+                newMaxY += dy;
+            else
+                newMinY += dy;
+
+            if (dz > 0)
+                newMaxZ += dz;
+            else
+                newMinZ += dz;
+
+            return new AABB(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
         }
 
         public float ClipXCollide(AABB thatBox, float wantX)
@@ -269,9 +301,16 @@ namespace Block2nd.Phys
             return true;
         }
 
+        public string ToString()
+        {
+            return "(" + minX + ", " + minY + ", " + minZ + ", " + maxX + ", " + maxY + ", " + maxZ + ")";
+        }
+
         public static AABB One()
         {
             return new AABB(0, 0, 0, 1, 1, 1);
         }
+
+        public static readonly AABB LazyOneBox = new AABB(0, 0, 0, 1, 1, 1);
     }
 }

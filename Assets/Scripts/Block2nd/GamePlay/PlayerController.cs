@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.Database.Meta;
+using Block2nd.Entity;
 using Block2nd.MathUtil;
 using Block2nd.World;
 using UnityEngine;
@@ -12,12 +13,11 @@ namespace Block2nd.GamePlay
 {
     public class PlayerController : MonoBehaviour
     {
-        private BoxCollider playerCollider;
         private CharacterController controller;
         private GameClient gameClient;
         private bool touchedGround = false;
 
-        private Bounds aabb = new Bounds(Vector3.zero, Vector3.zero);
+        private PlayerEntity entity;
         
         public Vector3 playerSpeed;
         public Vector3 externalSpeed;
@@ -51,6 +51,7 @@ namespace Block2nd.GamePlay
         {
             speedRatio = walkSpeedRatio;
             controller = GetComponent<CharacterController>();
+            entity = GetComponent<PlayerEntity>();
         }
 
         private void UpdateGravity()
@@ -156,12 +157,10 @@ namespace Block2nd.GamePlay
 
         void Update()
         {
-            aabb.center = transform.position;
-            
             if (gameClient.GameClientState == GameClientState.GAME)
             {
                 inWater = gameClient.CurrentLevel.GetBlock(transform.position).blockCode == waterCode;
-                UpdateGravity();
+                // UpdateGravity();
 
                 if (!Application.isMobilePlatform && !gameClient.gameSettings.mobileControl)
                 {
@@ -207,6 +206,10 @@ namespace Block2nd.GamePlay
                 ApplyAcculation(ref externalSpeed);
 
                 var speed = playerSpeed + transform.worldToLocalMatrix.MultiplyVector(externalSpeed);
+                entity.MoveRelative(speed);
+                
+
+                return;
 
                 CollisionFlags flags = controller.Move(transform.TransformVector(speed * Time.deltaTime));
                 if ((flags & CollisionFlags.Below) != 0)

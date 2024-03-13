@@ -167,7 +167,7 @@ namespace Block2nd.Client
 		private void ClientStart()
 		{
 			SyncGameSettings();
-			GenerateWorld();
+			GenerateWorld(new TestTerrainGenerator(worldSettings));
 		}
 
 		private void SetLightingWithGameSetting()
