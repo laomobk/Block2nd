@@ -13,7 +13,7 @@ namespace Block2nd.Phys
         /// <param name="x">方块的 X 坐标</param>
         /// <param name="y">方块的 Y 坐标</param>
         /// <param name="z">方块的 Z 坐标</param>
-        /// <param name="direction">法线朝向: 1 ~ 6 分别为 forward, left, right, up, down, 0 表示动点在碰撞盒中</param>
+        /// <param name="direction">法线朝向: 1 ~ 6 分别为 forward, back, left, right, up, down, 0 表示动点在碰撞盒中</param>
         /// <param name="hitPoint">动点</param>
         public RayHit(byte direction, Vector3 point)
         {

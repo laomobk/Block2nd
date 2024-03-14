@@ -21,9 +21,14 @@ namespace Block2nd.Behavior
             
         }
 
-        public virtual AABB GetAABB(IntVector3 worldPos)
+        public AABB GetAABB(IntVector3 worldPos)
         {
-            return aabb.CopyWithOffset(worldPos.x, worldPos.y, worldPos.z);
+            return GetAABB(worldPos.x, worldPos.y, worldPos.z);
+        }
+        
+        public virtual AABB GetAABB(int x, int y, int z)
+        {
+            return aabb.CopyWithOffset(x, y, z);
         }
 
         public virtual void OnPlace(ref IntVector3 originalPos, Level level, Chunk chunk, Player player)

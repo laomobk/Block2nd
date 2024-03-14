@@ -558,6 +558,84 @@ namespace Block2nd.World
             return chunkManager.SetBlock(blockCode, x, y, z, updateMesh, updateHeightmap, triggerUpdate);
         }
 
+        public RayHit RaycastBlocks(Vector3 start, Vector3 end)
+        {
+            float iStartX = Mathf.Floor(start.x);
+            float iStartY = Mathf.Floor(start.y);
+            float iStartZ = Mathf.Floor(start.z);
+            float iEndX = Mathf.Floor(end.x);
+            float iEndY = Mathf.Floor(end.y);
+            float iEndZ = Mathf.Floor(end.z);
+
+            BlockBehavior blockBehavior = null;
+            RayHit hit;
+            blockBehavior = GetBlock((int) iStartX, (int) iStartY, (int) iStartZ).behaviorInstance;
+            if ((hit = blockBehavior.GetAABB((int) iStartX, (int) iStartY, (int) iStartZ).Raycast(start, end)) != null)
+                return hit;
+            
+            int blockTraceCount = 20;
+
+            while (blockTraceCount-- > 0)
+            {
+                float newX = 0, newY = 0, newZ = 0;
+                bool xMoved = true, yMoved = true, zMoved = true;
+
+                if (iEndX > iStartX)
+                {
+                    newX = iStartX + 1;
+                } else if (iEndX < iStartX)
+                {
+                    newX = iStartX;
+                }
+                else
+                {
+                    xMoved = false;
+                }
+                
+                if (iEndY > iStartY)
+                {
+                    newY = iStartY + 1;
+                } else if (iEndY < iStartY)
+                {
+                    newY = iStartY;
+                }
+                else
+                {
+                    yMoved = false;
+                }
+                
+                if (iEndZ > iStartZ)
+                {
+                    newZ = iStartZ + 1;
+                } else if (iEndZ < iStartZ)
+                {
+                    newZ = iStartZ;
+                }
+                else
+                {
+                    zMoved = false;
+                }
+
+                byte direction = 0;
+                float dx = end.x - start.x;
+                float dy = end.y - start.y;
+                float dz = end.z - start.z;
+                float gradX = (newX - start.x) / dx;
+                float gradY = (newX - start.y) / dy;
+                float gradZ = (newX - start.z) / dz;
+
+                if (gradX < gradY && gradX < gradZ)  // below the ray
+                {
+                    if (iStartX < iEndX)
+                    {
+                        direction = 3;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)
         {
             var x0 = (int) aabb.minX;
