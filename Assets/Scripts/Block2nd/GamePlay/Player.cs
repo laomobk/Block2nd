@@ -8,6 +8,7 @@ using Block2nd.Database;
 using Block2nd.Database.Meta;
 using Block2nd.Entity;
 using Block2nd.MathUtil;
+using Block2nd.Phys;
 using Block2nd.World;
 using UnityEngine;
 using UnityEngine.AI;
@@ -22,9 +23,7 @@ namespace Block2nd.GamePlay
         private CharacterController controller;
         private GameClient gameClient;
 
-        private RaycastHit raycastBlockHit;
-        private Vector3 raycastHitPointBlockNormalAlong;
-        private bool isRaycastHitBlock;
+        private RayHit raycastBlockHit = null;
 
         private Inventory inventory = new Inventory();
         private int holdingBlockCode = 1;
@@ -80,13 +79,13 @@ namespace Block2nd.GamePlay
             
             gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
             
-            selectBox.gameObject.SetActive(isRaycastHitBlock);
+            selectBox.gameObject.SetActive(raycastBlockHit != null);
 
             if (gameClient.GameClientState == GameClientState.GAME && !gameClient.gameSettings.mobileControl)
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    if (isRaycastHitBlock)
+                    if (raycastBlockHit != null)
                     {
                         DestroyBlock();
                     }
@@ -94,7 +93,7 @@ namespace Block2nd.GamePlay
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    if (isRaycastHitBlock)
+                    if (raycastBlockHit != null)
                     {
                         PlaceBlock();
                     }
@@ -222,26 +221,21 @@ namespace Block2nd.GamePlay
 
         public void PlaceBlock()
         {
-            var blockCenter = raycastHitPointBlockNormalAlong + new Vector3(0.5f, 0.5f, 0.5f);
-            if (GetComponent<BoxCollider>().bounds.Contains(blockCenter))
-            {
-                return;
-            }
-            
             var level = gameClient.GetCurrentLevel();
-            
-            var worldPos = level.CalculateWorldBlockPosByHit(raycastBlockHit);
 
             Chunk cp;
-            var defaultAction = level.GetBlock(worldPos, out cp)
+            var defaultAction = level.GetBlock(
+                    raycastBlockHit.blockX, 
+                    raycastBlockHit.blockY, 
+                    raycastBlockHit.blockZ, out cp)
                                     .behaviorInstance
                                         .OnInteract(
-                                            new IntVector3(worldPos), level, cp, this);
+                                            raycastBlockHit.ToIntVector3(), level, cp, this);
 
             if (!defaultAction)
                 return;
             
-            var intPos = new IntVector3(raycastHitPointBlockNormalAlong);
+            var intPos = raycastBlockHit.ToNormalAlongIntVector3();
             
             BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnPlace(
                 ref intPos, level, cp, this);
@@ -253,9 +247,11 @@ namespace Block2nd.GamePlay
         public void DestroyBlock()
         {
             var level = gameClient.GetCurrentLevel();
-            var worldPos = level.CalculateWorldBlockPosByHit(raycastBlockHit);
-            level.CreateBlockParticle(worldPos);
-            level.SetBlock(0, worldPos, true, triggerUpdate: true);
+            level.CreateBlockParticle(raycastBlockHit.ToIntVector3().ToUnityVector3());
+            level.SetBlock(0, 
+                raycastBlockHit.blockX, 
+                raycastBlockHit.blockY, 
+                raycastBlockHit.blockZ, true, triggerUpdate: true);
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 
@@ -299,13 +295,32 @@ namespace Block2nd.GamePlay
         
         private void UpdateSelectedBox()
         {
-            RaycastHit hit;
+            var playerPos = playerCamera.transform.position;
+            var currentLevel = gameClient.GetCurrentLevel();
+            if (currentLevel != null)
+            {
+                var hit = currentLevel.RaycastBlocks(playerPos, playerPos + playerCamera.transform.forward * 10);
+                raycastBlockHit = hit;
 
+                if (hit != null)
+                {
+                    var blockCode = currentLevel.GetBlock(hit.blockX, hit.blockY, hit.blockZ).blockCode;
+                    var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
+                    if (meta != null)
+                    {
+                        selectBox.UpdateDetectBoxByShape(meta.shape, hit.ToIntVector3().ToUnityVector3(),
+                            currentLevel.GetExposedFace(hit.blockX, hit.blockY, hit.blockZ));
+                    }
+                }
+            }
+            
+            /*
+            
             if (Physics.Raycast(playerCamera.transform.position,
                     playerCamera.transform.forward, out hit, 10,
                     layerMask: raycastLayerMask))
             {
-                Debug.DrawRay(hit.point, hit.normal, Color.red);
+                // Debug.DrawRay(hit.point, hit.normal, Color.red);
 
                 if (hit.collider.CompareTag("WorldDetectBox"))
                 {
@@ -317,8 +332,8 @@ namespace Block2nd.GamePlay
                     var meta = BlockMetaDatabase.GetBlockMetaByCode(code);
                     if (meta != null)
                     {
-                        selectBox.UpdateDetectBoxByShape(meta.shape, worldPos, level.GetExposedFace(
-                            (int) worldPos.x, (int) worldPos.y, (int) worldPos.z));
+                        //selectBox.UpdateDetectBoxByShape(meta.shape, worldPos, level.GetExposedFace(
+                        //    (int) worldPos.x, (int) worldPos.y, (int) worldPos.z));
                     }
 
                     isRaycastHitBlock = true;
@@ -334,6 +349,7 @@ namespace Block2nd.GamePlay
             {
                 isRaycastHitBlock = false;
             }
+            */
         }
     }
 }

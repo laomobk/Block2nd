@@ -3255,7 +3255,7 @@ MonoBehaviour:
   worldSettings: {fileID: 11400000, guid: 2c7949822500ebc47b2577083b24acdc, type: 2}
   worldTransform: {fileID: 526760868}
   player: {fileID: 972082045}
-  initWorldWidth: 50
+  initWorldWidth: 384
   terrainMaterial: {fileID: 2100000, guid: a954707937c1164489be48accdb3001d, type: 2}
   shaderCandidates:
   - {fileID: 4800000, guid: 2f521f0a66f4c224d9da70d85b4abd5b, type: 3}

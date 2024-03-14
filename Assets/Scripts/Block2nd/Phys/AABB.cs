@@ -168,17 +168,17 @@ namespace Block2nd.Phys
 
         public bool InSideXYBounds(Vector3 point)
         {
-            return minZ < point.z && maxZ > point.z;
+            return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
         }
         
         public bool InSideXZBounds(Vector3 point)
         {
-            return minY < point.y && maxY > point.y;
+            return point.x >= minX && point.x <= maxX && point.z >= minZ && point.z <= maxZ;
         }
 
         public bool InSideYZBounds(Vector3 point)
         {
-            return minX < point.x && maxX > point.x;
+            return point.z >= minZ && point.z <= maxZ && point.y >= minY && point.y <= maxY;
         }
 
         /// <summary>
@@ -212,25 +212,25 @@ namespace Block2nd.Phys
                 hitPoint = XY2;
             }
             
-            if (hitXZ1 && InSideXYBounds(XZ1) && (hitPoint - start).sqrMagnitude > (XZ1 - start).sqrMagnitude)
+            if (hitXZ1 && InSideXZBounds(XZ1) && (hitPoint - start).sqrMagnitude > (XZ1 - start).sqrMagnitude)
             {
                 gotHitPoint = true;
                 hitPoint = XZ1;
             }
             
-            if (hitXZ2 && InSideXYBounds(XZ2) && (hitPoint - start).sqrMagnitude > (XZ2 - start).sqrMagnitude)
+            if (hitXZ2 && InSideXZBounds(XZ2) && (hitPoint - start).sqrMagnitude > (XZ2 - start).sqrMagnitude)
             {
                 gotHitPoint = true;
                 hitPoint = XZ2;
             }
             
-            if (hitYZ1 && InSideXYBounds(YZ1) && (hitPoint - start).sqrMagnitude > (YZ1 - start).sqrMagnitude)
+            if (hitYZ1 && InSideYZBounds(YZ1) && (hitPoint - start).sqrMagnitude > (YZ1 - start).sqrMagnitude)
             {
                 gotHitPoint = true;
                 hitPoint = YZ1;
             }
             
-            if (hitYZ2 && InSideXYBounds(YZ2) && (hitPoint - start).sqrMagnitude > (YZ2 - start).sqrMagnitude)
+            if (hitYZ2 && InSideYZBounds(YZ2) && (hitPoint - start).sqrMagnitude > (YZ2 - start).sqrMagnitude)
             {
                 gotHitPoint = true;
                 hitPoint = YZ2;
@@ -254,7 +254,7 @@ namespace Block2nd.Phys
             else if (hitPoint == YZ2)
                 direction = 4;
 
-            return new RayHit(direction, hitPoint);
+            return new RayHit((int) minX, (int) minY, (int) minZ, direction, hitPoint);
         }
 
         /// <summary>

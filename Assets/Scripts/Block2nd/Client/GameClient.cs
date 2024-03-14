@@ -45,9 +45,9 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.1.7.1a";
+		public string GameVersion => "0.1.8.0a";
 
-		public string GameVersionSubject => "Indev";
+		public string GameVersionSubject => "NOT STABLE!!";
 
 		public IGameGUI currentGUI;
 
@@ -264,7 +264,7 @@ namespace Block2nd.Client
 
 		public Level GetCurrentLevel()
 		{
-			return currentLevel.GetComponent<Level>();
+			return currentLevel != null ? currentLevel.GetComponent<Level>() : null;
 		}
 
 		public int SwitchDistance()

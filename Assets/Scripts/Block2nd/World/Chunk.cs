@@ -30,7 +30,6 @@ namespace Block2nd.World
         private GameClient gameClient;
         private GameObject subTransparentChunk;
         private GameObject subLiquidChunk;
-        private MeshCollider meshCollider;
 
         private bool instanced = false;
 
@@ -65,7 +64,6 @@ namespace Block2nd.World
         {
             subTransparentChunk = transform.GetChild(0).gameObject;
             subLiquidChunk = transform.GetChild(1).gameObject;
-            meshCollider = GetComponent<MeshCollider>();
         }
 
         private void Start()
@@ -362,10 +360,8 @@ namespace Block2nd.World
             DestroyImmediate(curLqMesh, true);
             
             GetComponent<MeshFilter>().sharedMesh = opMesh;
-            GetComponent<MeshCollider>().sharedMesh = opMesh;
 
             subTransparentChunk.GetComponent<MeshFilter>().sharedMesh = trMesh;
-            subTransparentChunk.GetComponent<MeshCollider>().sharedMesh = trMesh;
 
             subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
 

@@ -21,6 +21,11 @@ namespace Block2nd.Behavior
             
         }
 
+        public virtual bool CanRaycast()
+        {
+            return true;
+        }
+
         public AABB GetAABB(IntVector3 worldPos)
         {
             return GetAABB(worldPos.x, worldPos.y, worldPos.z);

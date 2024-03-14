@@ -45,9 +45,9 @@ namespace Block2nd.Database
 		public static BlockBehavior GetBlockBehaviorByCode(int code)
 		{
 			// 0 is null block.
-			if (code > 0 && code < behaviors.Count)
+			if (code >= 0 && code < behaviors.Count)
 				return behaviors[code];
-			return StaticBlockBehavior.Default;
+			return NullBlockBehavior.Default;
 		}
 
 		public static BlockMeta GetNextBlockMeta(int code)
@@ -81,7 +81,10 @@ namespace Block2nd.Database
 
 		static BlockMetaDatabase()
 		{
-			AddBlock(new BlockMeta());  // Null
+			AddBlock(new BlockMeta
+			{
+				behavior = new NullBlockBehavior()
+			});  // Null
 			
 			AddBlock(new BlockMeta
 			{

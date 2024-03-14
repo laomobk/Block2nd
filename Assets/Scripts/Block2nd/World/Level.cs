@@ -288,8 +288,6 @@ namespace Block2nd.World
             var width = worldSettings.levelWidth;
             var height = worldSettings.chunkHeight;
 
-            var count = 1;
-            
             yield return null;
 
             for (int x = 0; x < width; x += worldSettings.chunkWidth)
@@ -316,17 +314,8 @@ namespace Block2nd.World
                         }
                     }
                 }
-
-                if (count % 3 == 0)
-                {
-                    count = 1;
-                    progressUI.SetProgress((float) x / width);
-                    yield return null;
-                }
-                else
-                {
-                    count++;
-                }
+                progressUI.SetProgress((float) x / width);
+                yield return null;
             }
         }
 
@@ -560,30 +549,44 @@ namespace Block2nd.World
 
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
         {
-            float iStartX = Mathf.Floor(start.x);
-            float iStartY = Mathf.Floor(start.y);
-            float iStartZ = Mathf.Floor(start.z);
-            float iEndX = Mathf.Floor(end.x);
-            float iEndY = Mathf.Floor(end.y);
-            float iEndZ = Mathf.Floor(end.z);
+            start += new Vector3(5e-5f, 5e-5f, -5e-5f);
+            int iStartX = MathHelper.FloorInt(start.x);
+            int iStartY = MathHelper.FloorInt(start.y);
+            int iStartZ = MathHelper.FloorInt(start.z);
+            int iEndX = MathHelper.FloorInt(end.x);
+            int iEndY = MathHelper.FloorInt(end.y);
+            int iEndZ = MathHelper.FloorInt(end.z);
 
-            BlockBehavior blockBehavior = null;
             RayHit hit;
-            blockBehavior = GetBlock((int) iStartX, (int) iStartY, (int) iStartZ).behaviorInstance;
-            if ((hit = blockBehavior.GetAABB((int) iStartX, (int) iStartY, (int) iStartZ).Raycast(start, end)) != null)
-                return hit;
+            ChunkBlockData block = GetBlock(iStartX, iStartY, iStartZ);
+            var blockBehavior = block.behaviorInstance;
             
-            int blockTraceCount = 20;
+            if (blockBehavior.CanRaycast() &&
+                (hit = blockBehavior.GetAABB(iStartX, iStartY, iStartZ).Raycast(start, end)) != null)
+            {
+                return hit;
+            }
+
+            int blockTraceCount = 100;
 
             while (blockTraceCount-- > 0)
             {
-                float newX = 0, newY = 0, newZ = 0;
+                if (Single.IsNaN(start.x) || Single.IsNaN(start.y) || Single.IsNaN(start.z))
+                    return null;
+                
+                float newX = 1000f, newY = 1000f, newZ = 1000f;
                 bool xMoved = true, yMoved = true, zMoved = true;
+
+                if (iStartX == iEndX && iStartY == iEndY && iStartZ == iEndZ)
+                {
+                    return null;
+                }
 
                 if (iEndX > iStartX)
                 {
                     newX = iStartX + 1;
-                } else if (iEndX < iStartX)
+                }
+                else if (iEndX < iStartX)
                 {
                     newX = iStartX;
                 }
@@ -591,11 +594,12 @@ namespace Block2nd.World
                 {
                     xMoved = false;
                 }
-                
+
                 if (iEndY > iStartY)
                 {
                     newY = iStartY + 1;
-                } else if (iEndY < iStartY)
+                }
+                else if (iEndY < iStartY)
                 {
                     newY = iStartY;
                 }
@@ -603,11 +607,12 @@ namespace Block2nd.World
                 {
                     yMoved = false;
                 }
-                
+
                 if (iEndZ > iStartZ)
                 {
                     newZ = iStartZ + 1;
-                } else if (iEndZ < iStartZ)
+                }
+                else if (iEndZ < iStartZ)
                 {
                     newZ = iStartZ;
                 }
@@ -616,23 +621,82 @@ namespace Block2nd.World
                     zMoved = false;
                 }
 
-                byte direction = 0;
+                byte normalDirection;
                 float dx = end.x - start.x;
                 float dy = end.y - start.y;
                 float dz = end.z - start.z;
-                float gradX = (newX - start.x) / dx;
-                float gradY = (newX - start.y) / dy;
-                float gradZ = (newX - start.z) / dz;
+                float ratioX = xMoved ? (newX - start.x) / dx : 1000f;
+                float ratioY = yMoved ? (newY - start.y) / dy : 1000f;
+                float ratioZ = zMoved ? (newZ - start.z) / dz : 1000f;
 
-                if (gradX < gradY && gradX < gradZ)  // below the ray
+                if (ratioX < ratioY && ratioX < ratioZ) // x direction is closest
                 {
                     if (iStartX < iEndX)
                     {
-                        direction = 3;
+                        normalDirection = RayHitNormalDirection.Left;
                     }
+                    else
+                    {
+                        normalDirection = RayHitNormalDirection.Right;
+                    }
+
+                    start.x = newX;
+                    start.y += dy * ratioX;
+                    start.z += dz * ratioX;
+                }
+                else if (ratioY < ratioZ) // y direction is cloest.
+                {
+                    if (iStartY < iEndY)
+                    {
+                        normalDirection = RayHitNormalDirection.Down;
+                    }
+                    else
+                    {
+                        normalDirection = RayHitNormalDirection.Up;
+                    }
+
+                    start.y = newY;
+                    start.x += dx * ratioY;
+                    start.z += dz * ratioY;
+                }
+                else
+                {
+                    if (iStartZ < iEndZ)
+                    {
+                        normalDirection = RayHitNormalDirection.Back;
+                    }
+                    else
+                    {
+                        normalDirection = RayHitNormalDirection.Forward;
+                    }
+
+                    start.y += dy * ratioZ;
+                    start.x += dx * ratioZ;
+                    start.z = newZ;
+                }
+
+                // reset new int start xyz.
+                iStartX = MathHelper.FloorInt(start.x);
+                iStartY = MathHelper.FloorInt(start.y);
+                iStartZ = MathHelper.FloorInt(start.z);
+
+                if (normalDirection == RayHitNormalDirection.Right)
+                    iStartX--;
+                
+                if (normalDirection == RayHitNormalDirection.Up) // if top face, offset it.
+                    iStartY--;
+                
+                if (normalDirection == RayHitNormalDirection.Forward)  // if front face, offset it.
+                    iStartZ--;
+                
+                blockBehavior = GetBlock(iStartX, iStartY, iStartZ).behaviorInstance;
+                if (blockBehavior.CanRaycast() && 
+                    (hit = blockBehavior.GetAABB(iStartX, iStartY, iStartZ).Raycast(start, end)) != null)
+                {
+                    return hit;
                 }
             }
-
+            
             return null;
         }
 

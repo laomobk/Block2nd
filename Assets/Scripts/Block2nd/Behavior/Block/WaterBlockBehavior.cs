@@ -11,6 +11,11 @@ namespace Block2nd.Behavior.Block
             return new WaterBlockBehavior();
         }
 
+        public override bool CanRaycast()
+        {
+            return false;
+        }
+
         protected override int GetSelfBlockCode()
         {
             if (waterCode == -1)
