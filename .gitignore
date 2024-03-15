@@ -9,6 +9,7 @@ Assets/AssetStoreTools*
 Build/
 Build-Android/
 Logs/
+Resources/
 
 # ===================================== #
 # Visual Studio / MonoDevelop generated #

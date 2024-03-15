@@ -43,6 +43,7 @@ namespace Block2nd.GamePlay
         public LayerMask raycastLayerMask;
 
         public HoldingBlockPreview holdingBlockPreview;
+        private float bobbingTime = 0f;
 
         public Inventory Inventory => inventory;
         public IntVector3 IntPos => new IntVector3(transform.position);
@@ -83,6 +84,11 @@ namespace Block2nd.GamePlay
 
             if (gameClient.GameClientState == GameClientState.GAME && !gameClient.gameSettings.mobileControl)
             {
+                if (playerController.OnGround)
+                {
+                    bobbingTime += Time.deltaTime;
+                }
+                
                 if (Input.GetMouseButtonDown(0))
                 {
                     if (raycastBlockHit != null)
@@ -105,9 +111,15 @@ namespace Block2nd.GamePlay
                 HandleViewRotation(x, y);
             }
 
-            var camPos = transform.position + Vector3.up * 0.8f;
+            float zAngle;
+            ApplyViewBobbing(transform.localPosition + Vector3.up * 0.8f, out var camPos, out zAngle);
 
-            playerCamera.transform.position = camPos;
+            playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition,
+                                                                camPos,
+                                                                0.3f);
+            var localEulerAngles = playerCamera.transform.localEulerAngles;
+            localEulerAngles.z = zAngle;
+            playerCamera.transform.localEulerAngles = localEulerAngles;
         }
 
         public void ResetPlayer()
@@ -257,18 +269,26 @@ namespace Block2nd.GamePlay
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 
-        private Vector3 ApplyViewBobbing(Vector3 pos)
+        private void ApplyViewBobbing(Vector3 pos, out Vector3 posOfs, out float zAngle)
         {
-            var speedVector = transform.localToWorldMatrix.MultiplyVector(playerController.playerSpeed);
-            speedVector.y = 0;
-            Debug.Log(speedVector);
-            
-            var speed = speedVector.magnitude * Time.time * 0.1f;
-            pos += transform.localToWorldMatrix.MultiplyVector(new Vector3(Mathf.Sin(-3.14159f * speed * 0.5f), 
-                                -Mathf.Abs(Mathf.Cos(-speed * 3.14159f)), 
-                                0f));
+            if (gameClient.GameClientState == GameClientState.GAME && playerController.PlayerEntity.OnGround)
+            {
+                var speedVector = playerController.playerSpeed;
+                speedVector.y = 0;
 
-            return pos;
+                var t = bobbingTime * 2.5f + (1 + speedVector.magnitude / 2.5f);
+                var bobbing = new Vector3(Mathf.Sin(-3.14159f * t) * 
+                                          Mathf.Min(1, speedVector.magnitude / 5f) * 0.3f,
+                    1 + -Mathf.Abs(Mathf.Cos(-t * 3.14159f)), 0f);
+
+                posOfs = pos + playerCamera.transform.localToWorldMatrix.MultiplyVector(
+                    Vector3.Lerp(Vector3.zero, bobbing * 0.13f, speedVector.magnitude / 5));
+                
+                zAngle = 0.1f * Mathf.Sin(-3.14159f * t) * Mathf.Min(1, speedVector.magnitude / 5);
+                return;
+            }
+            posOfs = pos;
+            zAngle = 0;
         }
 
         private void HandleFunctionalKey()

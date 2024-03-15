@@ -10,6 +10,7 @@ TagManager:
   - WorldDetectBox
   - Menu
   - Inventory
+  - AudioManager
   layers:
   - Default
   - TransparentFX

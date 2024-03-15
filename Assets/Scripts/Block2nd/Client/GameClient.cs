@@ -45,7 +45,7 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.1.8.1a";
+		public string GameVersion => "0.1.8.2a";
 
 		public string GameVersionSubject => "Indev";
 
@@ -167,7 +167,7 @@ namespace Block2nd.Client
 		private void ClientStart()
 		{
 			SyncGameSettings();
-			GenerateWorld();
+			GenerateWorld(/* new TestTerrainGenerator(worldSettings) */);
 		}
 
 		private void SetLightingWithGameSetting()

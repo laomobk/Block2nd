@@ -43,7 +43,7 @@
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				o.lambert = clamp(dot(UnityObjectToWorldNormal(v.normal), 
-								normalize(WorldSpaceLightDir(v.vertex))), 0.2, 1) + 0.35;
+								normalize(WorldSpaceLightDir(v.vertex))), 0.2, 1) + 0.25;
 				return o;
 			}
 			

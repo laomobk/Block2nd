@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Block2nd.Audio;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Client;
@@ -73,6 +74,40 @@ namespace Block2nd.World
             }
         }
 
+        private IEnumerator BGMPlayCoroutine()
+        {
+            Debug.Log("BGM Coroutine Started.");
+            var audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
+            
+
+            while (true)
+            {
+                yield return new WaitForSeconds(random.Next(1, 4));
+                var song = random.Next(0, 4);
+                float length = 0;
+                switch (song)
+                {
+                    case 0:
+                        length = audioManager.PlayBGM("newmusic/hal1");
+                        break;
+                    case 1:
+                        length = audioManager.PlayBGM("newmusic/piano2");
+                        break;
+                    case 2:
+                        length = audioManager.PlayBGM("music/calm1");
+                        break;
+                    case 3:
+                        length = audioManager.PlayBGM("newmusic/hal1");
+                        break;
+                    case 4:
+                        length = audioManager.PlayBGM("music/calm2");
+                        break;
+                }
+
+                yield return new WaitForSeconds(length);
+            }
+        }
+
         public IEnumerator CreateLevelCoroutine(TerrainGenerator generator = null)
         {
             if (generator != null)
@@ -135,6 +170,8 @@ namespace Block2nd.World
 
             var coroutine = StartCoroutine(chunkManager.ChunkManagementWorkerCoroutine());
             chunkManagementCoroutine = coroutine;
+
+            StartCoroutine(BGMPlayCoroutine());
 
             /*
             

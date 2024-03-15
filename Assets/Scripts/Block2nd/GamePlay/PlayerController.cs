@@ -18,7 +18,7 @@ namespace Block2nd.GamePlay
         private PlayerEntity entity;
         
         [HideInInspector] public Vector3 playerSpeed;
-        public Vector3 externalSpeed;
+        [HideInInspector] public Vector3 externalSpeed;
 
         public float runSpeedRatio = 10;
         public float walkSpeedRatio = 5;
@@ -31,9 +31,12 @@ namespace Block2nd.GamePlay
         private bool jumpBegin = false;
 
         private bool externalFloatKeyState = false;
+        private float targetCameraFov;
 
         private bool inWater;
         public bool InWater => inWater;
+        public bool OnGround => entity.OnGround;
+        public PlayerEntity PlayerEntity => entity;
 
         public PlayerState playerState = PlayerState.WALK;
 
@@ -49,6 +52,7 @@ namespace Block2nd.GamePlay
 
         void Start()
         {
+            targetCameraFov = gameClient.gameSettings.cameraFov;
             speedRatio = walkSpeedRatio;
             entity = GetComponent<PlayerEntity>();
         }
@@ -134,14 +138,14 @@ namespace Block2nd.GamePlay
                 speedRatio = runSpeedRatio;
                 playerState = PlayerState.RUN;
 
-                playerCamera.fieldOfView = gameClient.gameSettings.cameraFov + 5;
+                targetCameraFov = gameClient.gameSettings.cameraFov + 5;
             }
             else
             {
                 speedRatio = walkSpeedRatio;
                 playerState = PlayerState.WALK;
                 
-                playerCamera.fieldOfView = gameClient.gameSettings.cameraFov;
+                targetCameraFov = gameClient.gameSettings.cameraFov;
             }
         }
 
@@ -160,8 +164,17 @@ namespace Block2nd.GamePlay
             impulseForceQueue.Enqueue(force);
         }
 
+        private void UpdateCameraLerp()
+        {
+            var fieldOfView = playerCamera.fieldOfView;
+            fieldOfView = (fieldOfView + (targetCameraFov - fieldOfView) * 0.135f);
+            playerCamera.fieldOfView = fieldOfView;
+        }
+
         void Update()
         {
+            UpdateCameraLerp();
+
             if (gameClient.GameClientState == GameClientState.GAME)
             {
                 floating = false;
