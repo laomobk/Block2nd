@@ -16,3 +16,4 @@ MonoBehaviour:
   mobileControl: 0
   viewDistance: 16
   infiniteJump: 1
+  ambientOcclusion: 1

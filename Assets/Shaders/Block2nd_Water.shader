@@ -36,8 +36,9 @@
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 				float lambert : TEXCOORD1;
+				float fresnel : TEXCOORD2;
 				
-				UNITY_FOG_COORDS(3)
+				UNITY_FOG_COORDS(4)
 			};
 
 			sampler2D _MainTex;
@@ -49,8 +50,14 @@
 
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				o.lambert = clamp(dot(v.normal, normalize(WorldSpaceLightDir(v.vertex))), 0.2, 1) + 0.4;
+				o.lambert = clamp(dot(UnityObjectToWorldNormal(v.normal), 
+									normalize(WorldSpaceLightDir(v.vertex))), 0.2, 1) + 0.35;
 				
+				float3 view = normalize(WorldSpaceViewDir(v.vertex));
+				float3 norm = UnityObjectToWorldNormal(v.normal);
+
+				o.fresnel = 1 - saturate(dot(view, norm));
+
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				
 				return o;
@@ -64,10 +71,15 @@
 					discard;
 
 				fixed3 col = texColor.xyz * i.lambert;
+
+				float alpha = texColor.a + 0.1f;
+
+				alpha = alpha * (0.5 + 0.5 * saturate(i.fresnel) + 0.38);
+				col = col * (saturate(i.fresnel) + 0.26);
 				
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				return fixed4(col, saturate(texColor.a + 0.1f));
+				return fixed4(col, saturate(alpha));
 			}
 			ENDCG
 		}

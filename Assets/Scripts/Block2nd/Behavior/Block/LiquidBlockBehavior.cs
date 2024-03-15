@@ -7,32 +7,34 @@ namespace Block2nd.Behavior.Block
 {
     public abstract class LiquidBlockBehavior : BlockBehavior
     {
-        private static readonly byte DefaultIterCount = 8;
+        public static readonly byte DefaultIterCount = 8;
         
         protected abstract int GetSelfBlockCode();
 
-        public override void OnPlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)
+        public override void OnAfterPlace(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
-            var local = chunk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
-            chunk.SetBlockState(local.x, local.y, local.z, DefaultIterCount, false, false);
+            level.SetBlockState(worldPos.x, worldPos.y, worldPos.z, DefaultIterCount, false);
+            
             OnUpdate(worldPos, level, chunk, player);
         }
 
-        public override void OnUpdate(IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public override void OnInit(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
-            byte state = chunk.GetBlock(originalPos).blockState;
-            byte iterCount = (byte) (state & 16);
-            
-            Debug.Log(iterCount);
-            
+        }
+
+        public override void OnUpdate(IntVector3 worldPos, Level level, Chunk chunk, Player player)
+        {
+            byte state = level.GetBlock(worldPos.x, worldPos.y, worldPos.z).blockState;
+            byte iterCount = (byte) (state & 15);
+
             if (iterCount == 0)
             {
                 return;
             }
 
-            var x = originalPos.x;
-            var y = originalPos.y;
-            var z = originalPos.z;
+            var x = worldPos.x;
+            var y = worldPos.y;
+            var z = worldPos.z;
 
             Chunk cp;
 

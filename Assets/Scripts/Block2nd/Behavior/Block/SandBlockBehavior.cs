@@ -11,9 +11,8 @@ namespace Block2nd.Behavior.Block
             return this;
         } 
 
-        public override void OnPlace(ref IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public override void OnBeforePlace(ref IntVector3 originalPos, Level level, Chunk chunk, Player player)
         {
-            
             int height = level.GetHeight(originalPos.x, originalPos.z);
 
             originalPos.y = height + 1;

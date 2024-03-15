@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Block2nd.Behavior;
+using Block2nd.Behavior.Block;
 using Block2nd.Client;
 using Block2nd.Render;
 using Block2nd.Database;
@@ -186,6 +187,8 @@ namespace Block2nd.World
         {
             var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
             var waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
+            
+            chunkManager.BakeAllChunkHeightMap();
 
             var nTree = terrain is FlatTerrainGenerator ? 200 : 425;
             
@@ -364,6 +367,7 @@ namespace Block2nd.World
                             } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = waterCode;
+                                chunkBlocks[cx, cy, cz].blockState = LiquidBlockBehavior.DefaultIterCount;
                             } else if (cy >= entry.chunk.heightMap[cx, cz] - 2)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Dirt;

@@ -488,7 +488,7 @@ namespace Block2nd.World
                     x + ", " + y + ", " + z + ")");
                 return;
             }
-            
+
             chunkBlocks[x, y, z].blockState = state;
 
             dirty = true;

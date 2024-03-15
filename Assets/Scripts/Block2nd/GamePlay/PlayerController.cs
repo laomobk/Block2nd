@@ -25,17 +25,22 @@ namespace Block2nd.GamePlay
         
         private float speedRatio = 1;
         private int waterCode;
+        private bool floating = false;
 
+        private bool floatBegin = true;
         private bool jumpBegin = false;
 
-        public bool inWater;
+        private bool externalFloatKeyState = false;
+
+        private bool inWater;
+        public bool InWater => inWater;
 
         public PlayerState playerState = PlayerState.WALK;
 
         public Camera playerCamera;
 
         private Queue<Vector3> impulseForceQueue = new Queue<Vector3>();
-
+        
         private void Awake()
         {
             waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
@@ -64,6 +69,11 @@ namespace Block2nd.GamePlay
             playerSpeed = Vector3.zero;
         }
 
+        public void SetFloatKeyState(bool state)
+        {
+            externalFloatKeyState = state;
+        }
+
         public void Jump()
         {
             if (entity.OnGround)
@@ -75,7 +85,14 @@ namespace Block2nd.GamePlay
 
         public void Float()
         {
-            playerSpeed.y += 13f * Time.deltaTime;
+            if (floatBegin)
+            {
+                playerSpeed.y = 0f;
+            }
+
+            floatBegin = false;
+            floating = true;
+            playerSpeed.y += 17f * Time.deltaTime;
         }
 
         public void MoveForward()
@@ -147,6 +164,8 @@ namespace Block2nd.GamePlay
         {
             if (gameClient.GameClientState == GameClientState.GAME)
             {
+                floating = false;
+                
                 inWater = gameClient.CurrentLevel.GetBlock(transform.position).blockCode == waterCode;
 
                 if (!Application.isMobilePlatform && !gameClient.gameSettings.mobileControl)
@@ -193,20 +212,19 @@ namespace Block2nd.GamePlay
 
                 if (inWater)
                 {
-                    if (Input.GetKey(KeyCode.Space))
+                    if (Input.GetKey(KeyCode.Space) || externalFloatKeyState)
                     {
                         Float();
-                    }
-                    else
-                    {
+                    } else {
+                        floatBegin = true;
                         playerSpeed.y = -3f;
                     }
                 } else if (entity.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
                 {
                     Jump();
                 }
-                playerSpeed.x *= entity.OnGround ? 1 : 0.8f;
-                playerSpeed.z *= entity.OnGround ? 1 : 0.8f;
+                playerSpeed.x *= onGround ? 1 : 0.8f;
+                playerSpeed.z *= onGround ? 1 : 0.8f;
 
                 if (!onGround)
                 {

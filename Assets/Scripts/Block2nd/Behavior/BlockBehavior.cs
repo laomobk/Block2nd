@@ -41,7 +41,11 @@ namespace Block2nd.Behavior
             return aabb.CopyWithOffset(x, y, z);
         }
 
-        public virtual void OnPlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)
+        public virtual void OnBeforePlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)
+        {
+        }
+        
+        public virtual void OnAfterPlace(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
         }
 

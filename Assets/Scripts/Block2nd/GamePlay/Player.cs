@@ -235,10 +235,14 @@ namespace Block2nd.GamePlay
             
             var intPos = raycastBlockHit.ToNormalAlongIntVector3();
             
-            BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnPlace(
+            BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnBeforePlace(
                 ref intPos, level, cp, this);
             
             level.SetBlock(holdingBlockCode, intPos.x, intPos.y, intPos.z, true);
+            
+            BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnAfterPlace(
+                intPos, level, cp, this);
+            
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 
