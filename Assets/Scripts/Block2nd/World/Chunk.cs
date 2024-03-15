@@ -106,28 +106,7 @@ namespace Block2nd.World
                 list.Add(val);
             }
         }
-
-        private void InstantiateAllBlocks()
-        {
-            
-            var width = chunkBlocks.GetLength(0);
-            var height = chunkBlocks.GetLength(1);
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    for (int z = 0; z < width; z++)
-                    {
-                        chunkBlocks[x, y, z].behaviorInstance = BlockMetaDatabase.GetBlockBehaviorByCode(
-                            chunkBlocks[x, y, z].blockCode).CreateInstance();
-                    }
-                }
-            }
-
-            instanced = true;
-        }
-
+        
         public void BakeHeightMap()
         {
             var width = chunkBlocks.GetLength(0);
@@ -241,9 +220,6 @@ namespace Block2nd.World
         
         public void UpdateChuckMesh()
         {
-            if (!instanced)
-                InstantiateAllBlocks();
-            
             BakeHeightMap();
             
             var opMesh = new Mesh();
@@ -275,7 +251,7 @@ namespace Block2nd.World
                         var block = GetBlock(x, y, z);
                         int code = block.blockCode;
                         var meta = BlockMetaDatabase.GetBlockMetaByCode(code);
-                        var behavior = block.behaviorInstance;
+                        var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(code);
 
                         var tris = opTris;
                         var uvs = opUvs;
@@ -298,7 +274,7 @@ namespace Block2nd.World
                                 vert = trVert;
                             }
                             
-                            var blockMesh = behavior.OnRender();
+                            var blockMesh = behavior.OnRender(LocalToWorld(x, y, z));
                             if (blockMesh == null)
                                 blockMesh = meta.shape.GetShapeMesh(
                                     meta.forceRenderAllFace ? 255 : (meta.transparent ? 
@@ -400,7 +376,7 @@ namespace Block2nd.World
             v.y += worldBasePosition.y;
             v.z += worldBasePosition.z;
                         
-            block.behaviorInstance.OnUpdate(
+            BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnUpdate(
                 v, 
                 locatedChunkManager.gameClient.CurrentLevel,
                 this,
@@ -435,6 +411,11 @@ namespace Block2nd.World
             return chunkBlocks[x, y, z];
         }
 
+        public ChunkBlockData GetBlock(IntVector3 pos, bool searchLevel = false)
+        {
+            return GetBlock(pos.x, pos.y, pos.z, searchLevel);
+        }
+
         public ChunkBlockData GetBlock(Vector3 pos, bool searchLevel = false)
         {
             return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, searchLevel);
@@ -446,9 +427,11 @@ namespace Block2nd.World
             return GetBlock(iPos.x, iPos.y, iPos.z, searchLevel);
         }
         
-        public BlockBehavior SetBlock(int blockCode, int x, int y, int z, 
-                                        bool worldPos, bool updateMesh, bool updateHeightMap)
+        public void SetBlock(int blockCode, int x, int y, int z, 
+                                        bool worldPos, bool updateMesh, bool updateHeightMap, byte state)
         {
+            int ox = x, oy = y, oz = z;
+            
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
 
@@ -463,18 +446,17 @@ namespace Block2nd.World
                 Debug.LogWarning(
                     "SetBlock: pos out of range: (" + width + ", " + height + ", " + width + "), got (" + 
                     x + ", " + y + ", " + z + ")");
-                return StaticBlockBehavior.Default;
+                return;
             }
 
             var data = new ChunkBlockData
             {
                 blockCode = blockCode,
-                behaviorInstance = BlockMetaDatabase
-                                        .GetBlockBehaviorByCode(blockCode)
-                                            .CreateInstance()
+                blockState = state
             };
-            
+
             chunkBlocks[x, y, z] = data;
+            
 
             if (heightMap[x, z] < y && updateHeightMap)
             {
@@ -485,8 +467,34 @@ namespace Block2nd.World
             
             if (updateMesh)
                 UpdateChuckMesh();
+        }
 
-            return data.behaviorInstance;
+        public void SetBlockState(int x, int y, int z, byte state, bool worldPos, bool updateMesh)
+        {
+            
+            var width = chunkBlocks.GetLength(0);
+            var height = chunkBlocks.GetLength(1);
+
+            if (worldPos)
+            {
+                x -= worldBasePosition.x;
+                z -= worldBasePosition.z;
+            }
+            
+            if (x < 0 || x >= width || z >= width || z < 0 || y < 0 || y >= height)
+            {
+                Debug.LogWarning(
+                    "SetBlockState: pos out of range: (" + width + ", " + height + ", " + width + "), got (" + 
+                    x + ", " + y + ", " + z + ")");
+                return;
+            }
+            
+            chunkBlocks[x, y, z].blockState = state;
+
+            dirty = true;
+            
+            if (updateMesh)
+                UpdateChuckMesh();
         }
         
         public int GetExposedFace(int x, int y, int z)
@@ -614,6 +622,11 @@ namespace Block2nd.World
         public IntVector3 WorldToLocal(int x, int y, int z)
         {
             return new IntVector3(x - worldBasePosition.x, y - worldBasePosition.y, z - worldBasePosition.z);
+        }
+        
+        public IntVector3 LocalToWorld(int x, int y, int z)
+        {
+            return new IntVector3(x + worldBasePosition.x, y + worldBasePosition.y, z + worldBasePosition.z);
         }
     }
 }

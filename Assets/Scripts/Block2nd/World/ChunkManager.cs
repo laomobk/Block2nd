@@ -146,8 +146,8 @@ namespace Block2nd.World
             */
         }
 
-        public BlockBehavior SetBlock(int blockCode, int x, int y, int z, bool updateMesh = false,
-            bool updateHeightmap = true, bool triggerUpdate = false)
+        public void SetBlock(int blockCode, int x, int y, int z, bool updateMesh = false,
+            bool updateHeightmap = true, bool triggerUpdate = false, byte state = 0)
         {
             var chunk = FindChunk(x, z);
             if (chunk == null)
@@ -157,8 +157,11 @@ namespace Block2nd.World
                 chunk = AddNewChunkGameObject(cx, cz);
             }
 
-            var behavior = chunk.SetBlock(blockCode, x, y, z, true,
-                updateMesh, updateHeightmap);
+            chunk.SetBlock(blockCode, x, y, z, true,
+                updateMesh, updateHeightmap, state);
+
+            BlockMetaDatabase.GetBlockBehaviorByCode(blockCode).OnInit(
+                new IntVector3(x, y, z), gameClient.CurrentLevel, chunk, gameClient.player);
 
             if (triggerUpdate)
             {
@@ -168,8 +171,19 @@ namespace Block2nd.World
                     pos = new IntVector3(x, y, z)
                 });
             }
+        }
 
-            return behavior;
+        public void SetBlockState(int x, int y, int z, byte state, bool updateMesh)
+        {
+            var chunk = FindChunk(x, z);
+            if (chunk == null)
+            {
+                int cx, cz;
+                CalcChunkGridPos(x, z, out cx, out cz);
+                chunk = AddNewChunkGameObject(cx, cz);
+            }
+            
+            chunk.SetBlockState(x, y, z, state, true, updateMesh);
         }
 
         public ChunkBlockData GetBlock(int x, int y, int z)

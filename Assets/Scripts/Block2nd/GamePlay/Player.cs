@@ -224,13 +224,11 @@ namespace Block2nd.GamePlay
             var level = gameClient.GetCurrentLevel();
 
             Chunk cp;
-            var defaultAction = level.GetBlock(
+            var defaultAction = BlockMetaDatabase.GetBlockBehaviorByCode(level.GetBlock(
                     raycastBlockHit.blockX, 
                     raycastBlockHit.blockY, 
-                    raycastBlockHit.blockZ, out cp)
-                                    .behaviorInstance
-                                        .OnInteract(
-                                            raycastBlockHit.ToIntVector3(), level, cp, this);
+                    raycastBlockHit.blockZ, out cp).blockCode)
+                        .OnInteract(raycastBlockHit.ToIntVector3(), level, cp, this);
 
             if (!defaultAction)
                 return;

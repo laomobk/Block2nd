@@ -413,7 +413,7 @@ namespace Block2nd.World
                             
                             if (cx != x && cy != y && cz != z)
                             {
-                                defaultAct = block.behaviorInstance.OnHurt(
+                                defaultAct = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnHurt(
                                     new IntVector3(cx, cy, cz), this, cp, client.player);
                             }
 
@@ -531,20 +531,26 @@ namespace Block2nd.World
             return chunkManager.GetBlock(x, y, z, out locatedChunk);
         }
 
-        public BlockBehavior SetBlock(int blockCode, Vector3 pos, bool update,
-                                        bool updateHeightmap = true, bool triggerUpdate = false)
+        public void SetBlockState(int x, int y, int z, byte state, bool updateMesh)
+        {
+            chunkManager.SetBlockState(x, y, z, state, updateMesh);
+        }
+
+        public void SetBlock(int blockCode, Vector3 pos, bool update,
+                                        bool updateHeightmap = true, bool triggerUpdate = true,
+                                        byte state = 0)
         {
             var intPos = new IntVector3(pos);
             
-            return chunkManager.SetBlock(blockCode, intPos.x, intPos.y, intPos.z, 
-                update, updateHeightmap, triggerUpdate);
+            chunkManager.SetBlock(blockCode, intPos.x, intPos.y, intPos.z, 
+                update, updateHeightmap, triggerUpdate, state);
         }
         
-        public BlockBehavior SetBlock(int blockCode, int x, int y, int z, 
+        public void SetBlock(int blockCode, int x, int y, int z, 
                                         bool updateMesh, bool updateHeightmap = true,
-                                        bool triggerUpdate = false)
+                                        bool triggerUpdate = false, byte state = 0)
         {
-            return chunkManager.SetBlock(blockCode, x, y, z, updateMesh, updateHeightmap, triggerUpdate);
+            chunkManager.SetBlock(blockCode, x, y, z, updateMesh, updateHeightmap, triggerUpdate, state);
         }
 
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
@@ -559,7 +565,7 @@ namespace Block2nd.World
 
             RayHit hit;
             ChunkBlockData block = GetBlock(iStartX, iStartY, iStartZ);
-            var blockBehavior = block.behaviorInstance;
+            var blockBehavior = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode);
             
             if (blockBehavior.CanRaycast() &&
                 (hit = blockBehavior.GetAABB(iStartX, iStartY, iStartZ).Raycast(start, end)) != null)
@@ -688,8 +694,9 @@ namespace Block2nd.World
                 
                 if (normalDirection == RayHitNormalDirection.Forward)  // if front face, offset it.
                     iStartZ--;
-                
-                blockBehavior = GetBlock(iStartX, iStartY, iStartZ).behaviorInstance;
+
+                blockBehavior = BlockMetaDatabase.GetBlockBehaviorByCode(
+                    GetBlock(iStartX, iStartY, iStartZ).blockCode);
                 if (blockBehavior.CanRaycast() && 
                     (hit = blockBehavior.GetAABB(iStartX, iStartY, iStartZ).Raycast(start, end)) != null)
                 {
@@ -730,7 +737,8 @@ namespace Block2nd.World
                         AABB blockBox;
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
-                            aabb.Intersects(blockBox = block.behaviorInstance.GetAABB(new IntVector3(x, y, z))))
+                            aabb.Intersects(blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
+                                .GetAABB(new IntVector3(x, y, z))))
                         {
                             result.Add(blockBox);
                         }

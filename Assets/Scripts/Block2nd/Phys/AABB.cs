@@ -23,6 +23,18 @@ namespace Block2nd.Phys
             this.maxY = maxY;
             this.maxZ = maxZ;
         }
+        
+        public AABB Set(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+        {
+            this.minX = minX;
+            this.minY = minY;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.maxZ = maxZ;
+
+            return this;
+        }
 
         public void Move(float mx, float my, float mz)
         {

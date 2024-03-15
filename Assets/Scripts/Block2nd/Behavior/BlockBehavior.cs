@@ -11,12 +11,17 @@ namespace Block2nd.Behavior
         protected AABB aabb = AABB.LazyOneBox;
         public abstract BlockBehavior CreateInstance();
 
-        public virtual bool OnDestroy(Level level, Chunk chunk, Player player)
+        public virtual void OnInit(IntVector3 worldPos, Level level, Chunk chunk, Player player)
+        {
+            
+        }
+
+        public virtual bool OnDestroy(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
             return true;
         }
 
-        public virtual void OnTick(IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public virtual void OnTick(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
             
         }
@@ -36,26 +41,26 @@ namespace Block2nd.Behavior
             return aabb.CopyWithOffset(x, y, z);
         }
 
-        public virtual void OnPlace(ref IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public virtual void OnPlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
         }
 
-        public virtual bool OnInteract(IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public virtual bool OnInteract(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
             return true;
         }
         
-        public virtual void OnUpdate(IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public virtual void OnUpdate(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
             
         }
 
-        public virtual bool OnHurt(IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public virtual bool OnHurt(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
             return true;
         }
 
-        public virtual BlockMesh OnRender()
+        public virtual BlockMesh OnRender(IntVector3 worldPos)
         {
             return null;
         }

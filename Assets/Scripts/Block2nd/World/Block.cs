@@ -19,15 +19,15 @@ namespace Block2nd.World
     }
 
     [Serializable]
-    public class ChunkBlockData
+    public struct ChunkBlockData
     {
         public int blockCode;
-        public BlockBehavior behaviorInstance = new StaticBlockBehavior();
+        public byte blockState;
 
         public static ChunkBlockData EMPTY = new ChunkBlockData
         {
             blockCode = 0,
-            behaviorInstance = new StaticBlockBehavior()
+            blockState = 0,
         };
 
         public bool Transparent()

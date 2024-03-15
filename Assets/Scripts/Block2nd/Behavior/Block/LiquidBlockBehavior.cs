@@ -7,26 +7,25 @@ namespace Block2nd.Behavior.Block
 {
     public abstract class LiquidBlockBehavior : BlockBehavior
     {
-        public static readonly int defaultIterCount = 8;
-        public int iterCount;
-        public IntVector3 source;
-        public bool inLoss = false;
-
-        public LiquidBlockBehavior()
-        {
-            iterCount = defaultIterCount;
-        }
-
+        private static readonly byte DefaultIterCount = 8;
+        
         protected abstract int GetSelfBlockCode();
 
-        public override void OnPlace(ref IntVector3 originalPos, Level level, Chunk chunk, Player player)
+        public override void OnPlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
-            OnUpdate(originalPos, level, chunk, player);
+            var local = chunk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
+            chunk.SetBlockState(local.x, local.y, local.z, DefaultIterCount, false, false);
+            OnUpdate(worldPos, level, chunk, player);
         }
 
         public override void OnUpdate(IntVector3 originalPos, Level level, Chunk chunk, Player player)
         {
-            if (iterCount <= 0)
+            byte state = chunk.GetBlock(originalPos).blockState;
+            byte iterCount = (byte) (state & 16);
+            
+            Debug.Log(iterCount);
+            
+            if (iterCount == 0)
             {
                 return;
             }
@@ -35,100 +34,75 @@ namespace Block2nd.Behavior.Block
             var y = originalPos.y;
             var z = originalPos.z;
 
-            var source = iterCount != defaultIterCount ? this.source : originalPos;
-
             Chunk cp;
+
+            byte newState = (byte) (state - 1);
             
             if (y > 0 && level.GetBlock(x, y - 1, z, out cp).blockCode == 0)
             {
-                var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x, y - 1, z, false);
+                level.SetBlock(
+                    GetSelfBlockCode(), x, y - 1, z, false, state: newState);
 
-                if (behavior is LiquidBlockBehavior blockBehavior)
+                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
                 {
-                    blockBehavior.iterCount = iterCount;
-                    blockBehavior.source = source;
-                    level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
-                    {
-                        chunk = cp,
-                        pos = new IntVector3(x, y - 1, z),
-                        onlyUpdateCenterBlock = true
-                    });
-                }
+                    chunk = cp,
+                    pos = new IntVector3(x, y - 1, z),
+                    onlyUpdateCenterBlock = true
+                });
                 
                 return;
             }
             
             if (level.GetBlock(x, y, z + 1, out cp).blockCode == 0)
             {
-                var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x, y, z + 1, false);
+                level.SetBlock(
+                    GetSelfBlockCode(), x, y, z + 1, false, state: newState);
 
-                if (behavior is LiquidBlockBehavior blockBehavior)
+                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
                 {
-                    blockBehavior.iterCount = iterCount - 1;
-                    blockBehavior.source = source;
-                    level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
-                    {
-                        chunk = cp,
-                        pos = new IntVector3(x, y, z + 1),
-                        onlyUpdateCenterBlock = true
-                    });
-                }
+                    chunk = cp,
+                    pos = new IntVector3(x, y, z + 1),
+                    onlyUpdateCenterBlock = true
+                });
             }
             
             if (level.GetBlock(x, y, z - 1, out cp).blockCode == 0)
             {
-                var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x, y, z - 1, false);
+                level.SetBlock(
+                    GetSelfBlockCode(), x, y, z - 1, false, state: newState);
 
-                if (behavior is LiquidBlockBehavior blockBehavior)
+                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
                 {
-                    blockBehavior.iterCount = iterCount - 1;
-                    blockBehavior.source = source;
-                    level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
-                    {
-                        chunk = cp,
-                        pos = new IntVector3(x, y, z - 1),
-                        onlyUpdateCenterBlock = true
-                    });
-                }
+                    chunk = cp,
+                    pos = new IntVector3(x, y, z - 1),
+                    onlyUpdateCenterBlock = true
+                });
             }
             
             if (level.GetBlock(x + 1, y, z, out cp).blockCode == 0)
             {
-                var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x + 1, y, z, false);
+                level.SetBlock(
+                    GetSelfBlockCode(), x + 1, y, z, false, state: newState);
 
-                if (behavior is LiquidBlockBehavior blockBehavior)
+                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
                 {
-                    blockBehavior.iterCount = iterCount - 1;
-                    blockBehavior.source = source;
-                    level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
-                    {
-                        chunk = cp,
-                        pos = new IntVector3(x + 1, y, z),
-                        onlyUpdateCenterBlock = true
-                    });
-                }
+                    chunk = cp,
+                    pos = new IntVector3(x + 1, y, z),
+                    onlyUpdateCenterBlock = true
+                });
             }
             
             if (level.GetBlock(x - 1, y, z, out cp).blockCode == 0)
             {
-                var behavior = level.SetBlock(
-                    GetSelfBlockCode(), x - 1, y, z, false);
+                level.SetBlock(
+                    GetSelfBlockCode(), x - 1, y, z, false, state: newState);
 
-                if (behavior is LiquidBlockBehavior blockBehavior)
+                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
                 {
-                    blockBehavior.iterCount = iterCount - 1;
-                    blockBehavior.source = source;
-                    level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
-                    {
-                        chunk = cp,
-                        pos = new IntVector3(x - 1, y, z),
-                        onlyUpdateCenterBlock = true
-                    });
-                }
+                    chunk = cp,
+                    pos = new IntVector3(x - 1, y, z),
+                    onlyUpdateCenterBlock = true
+                });
             }
         }
     }

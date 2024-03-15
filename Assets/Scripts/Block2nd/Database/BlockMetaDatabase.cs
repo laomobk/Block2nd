@@ -335,7 +335,7 @@ namespace Block2nd.Database
 				shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(14)),
 				transparent = true,
 				behavior = new WaterBlockBehavior(),
-				liquid = true
+				liquid = true,
 			});
 		}
 	}
