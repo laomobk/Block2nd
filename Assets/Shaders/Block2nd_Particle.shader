@@ -49,7 +49,7 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				// sample the texture
-				fixed4 col = tex2D(_MainTex, _Texcoord + i.uv / 64 + float2(1 / 48.0, 1 / 48.0));
+				fixed4 col = tex2D(_MainTex, _Texcoord + i.uv / 64 + float2(1 / 24.0, 1 / 24.0));
 				if (col.a == 0)
 					discard;
 				return col;

@@ -81,14 +81,12 @@ namespace Block2nd.GamePlay
             gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
             
             selectBox.gameObject.SetActive(raycastBlockHit != null);
+            
+            if (gameClient.GameClientState == GameClientState.GAME && playerController.OnGround)
+                bobbingTime += Time.deltaTime;
 
             if (gameClient.GameClientState == GameClientState.GAME && !gameClient.gameSettings.mobileControl)
             {
-                if (playerController.OnGround)
-                {
-                    bobbingTime += Time.deltaTime;
-                }
-                
                 if (Input.GetMouseButtonDown(0))
                 {
                     if (raycastBlockHit != null)
@@ -260,6 +258,9 @@ namespace Block2nd.GamePlay
 
         public void DestroyBlock()
         {
+            if (raycastBlockHit == null)
+                return;
+            
             var level = gameClient.GetCurrentLevel();
             level.CreateBlockParticle(raycastBlockHit.ToIntVector3().ToUnityVector3());
             level.SetBlock(0, 
@@ -275,16 +276,18 @@ namespace Block2nd.GamePlay
             {
                 var speedVector = playerController.playerSpeed;
                 speedVector.y = 0;
+                var vLength = Mathf.Min(speedVector.magnitude, playerController.GetSpeedRatio());
 
-                var t = bobbingTime * 2.5f + (1 + speedVector.magnitude / 2.5f);
+                var t = bobbingTime * 2.5f + (1 + vLength / 2.5f);
                 var bobbing = new Vector3(Mathf.Sin(-3.14159f * t) * 
-                                          Mathf.Min(1, speedVector.magnitude / 5f) * 0.3f,
+                                          Mathf.Min(1, vLength / 5f) * 0.3f,
                     1 + -Mathf.Abs(Mathf.Cos(-t * 3.14159f)), 0f);
 
                 posOfs = pos + playerCamera.transform.localToWorldMatrix.MultiplyVector(
-                    Vector3.Lerp(Vector3.zero, bobbing * 0.13f, speedVector.magnitude / 5));
+                    Vector3.Lerp(Vector3.zero, bobbing * 0.13f, vLength / 5));
                 
-                zAngle = 0.1f * Mathf.Sin(-3.14159f * t) * Mathf.Min(1, speedVector.magnitude / 5);
+                zAngle = 0.1f * Mathf.Sin(-3.14159f * t) * Mathf.Min(1, vLength / 5);
+                
                 return;
             }
             posOfs = pos;

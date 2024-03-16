@@ -4,7 +4,7 @@ namespace Block2nd.Phys
 {
     public static class LuckyPool
     {
-        private static readonly int MaxPoolCount;
+        private static readonly int MaxPoolCount = 100;
         private static List<AABB> aabbPool = new List<AABB>();
         private static int pointer = 0;
 

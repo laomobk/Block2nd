@@ -38,7 +38,8 @@ namespace Block2nd.Behavior
         
         public virtual AABB GetAABB(int x, int y, int z)
         {
-            return aabb.CopyWithOffset(x, y, z);
+            return LuckyPool.GetAABBFromPool(aabb.minX + x, aabb.minY + y, aabb.minZ + z,
+                                             aabb.maxX + x, aabb.maxY + y, aabb.maxZ + z);
         }
 
         public virtual void OnBeforePlace(ref IntVector3 worldPos, Level level, Chunk chunk, Player player)

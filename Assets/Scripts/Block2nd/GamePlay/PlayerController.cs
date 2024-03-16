@@ -149,6 +149,11 @@ namespace Block2nd.GamePlay
             }
         }
 
+        public float GetSpeedRatio()
+        {
+            return playerState == PlayerState.WALK ? walkSpeedRatio : runSpeedRatio;
+        }
+
         public void JumpWithCheck()
         {
             var canJump = Physics.Raycast(transform.position, -transform.up, 1f);
@@ -167,13 +172,17 @@ namespace Block2nd.GamePlay
         private void UpdateCameraLerp()
         {
             var fieldOfView = playerCamera.fieldOfView;
-            fieldOfView = (fieldOfView + (targetCameraFov - fieldOfView) * 0.135f);
+            fieldOfView = (fieldOfView + (targetCameraFov - fieldOfView) * 0.15f);
             playerCamera.fieldOfView = fieldOfView;
+        }
+
+        private void FixedUpdate()
+        {
+            UpdateCameraLerp();
         }
 
         void Update()
         {
-            UpdateCameraLerp();
 
             if (gameClient.GameClientState == GameClientState.GAME)
             {

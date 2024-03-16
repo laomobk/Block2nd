@@ -78,12 +78,29 @@ namespace Block2nd.World
         {
             Debug.Log("BGM Coroutine Started.");
             var audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
-            
 
+            var played = new List<int>();
+            
             while (true)
             {
                 yield return new WaitForSeconds(random.Next(1, 4));
-                var song = random.Next(0, 4);
+                var song = 0;
+
+                if (played.Count != 5)
+                {
+                    int count = 0;
+                    do
+                    {
+                        song = random.Next(0, 4);
+                        count++;
+                    } while (!played.Contains(song) && count < 6);
+                }
+                else
+                {
+                    song = random.Next(0, 4);
+                    played.Clear();
+                }
+
                 float length = 0;
                 switch (song)
                 {
@@ -105,6 +122,8 @@ namespace Block2nd.World
                 }
 
                 yield return new WaitForSeconds(length);
+                
+                played.Add(song);
             }
         }
 
