@@ -90,22 +90,6 @@ namespace Block2nd.World
 
             return 1f;
         }
-
-        private void ReplaceOrAdd<T>(ref List<T> list, T val, ref bool overflowed, ref int count)
-        {
-            if (rendered && !overflowed)
-            {
-                list[count++] = val;
-                if (count >= list.Count)
-                {
-                    overflowed = true;
-                }
-            }
-            else
-            {
-                list.Add(val);
-            }
-        }
         
         public void BakeHeightMap()
         {
