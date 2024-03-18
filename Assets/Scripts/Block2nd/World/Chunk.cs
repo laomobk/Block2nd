@@ -33,7 +33,10 @@ namespace Block2nd.World
 
         private bool instanced = false;
 
+        public bool empty = true;
         public bool dirty = false;
+
+        [HideInInspector] public bool isVisible = true;
         
         private List<Vector3> opVert = new List<Vector3>();
         private List<Vector2> opUvs = new List<Vector2>();
@@ -75,6 +78,37 @@ namespace Block2nd.World
         {
             DestroyImmediate(GetComponent<MeshFilter>().sharedMesh, true);
             DestroyImmediate(subTransparentChunk.GetComponent<MeshFilter>().sharedMesh, true);
+        }
+
+        /*
+        private void Update()
+        {
+            var visible = CheckVisible();
+            GetComponent<MeshRenderer>().enabled = visible;
+            subLiquidChunk.GetComponent<MeshRenderer>().enabled = visible;
+            subTransparentChunk.GetComponent<MeshRenderer>().enabled = visible;
+        }
+        */
+
+        public bool CheckVisible()
+        {
+            var width = chunkBlocks.GetLength(0);
+            var player = gameClient.player;
+
+            if (MathHelper.DistancePlane(player.transform.position, aabb.center) < width * 3 
+                || ChunkFrustumTest())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool ChunkFrustumTest()
+        {
+            Plane[] planes = new Plane[6];
+            GeometryUtility.CalculateFrustumPlanes(gameClient.player.playerCamera, planes);
+            return GeometryUtility.TestPlanesAABB(planes, aabb);
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)

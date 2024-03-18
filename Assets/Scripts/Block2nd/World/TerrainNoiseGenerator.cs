@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Block2nd.World
 {
-    public class TerrainGenerator
+    public class TerrainNoiseGenerator
     {
-        public int waterLevel = 13;
+        public int waterLevel = 10;
         public int baseHeight = 10;
         
         public int seed = 10727;
@@ -19,7 +19,7 @@ namespace Block2nd.World
 
         private Vector2 sampleOffset;
 
-        public TerrainGenerator(WorldSettings worldSettings)
+        public TerrainNoiseGenerator(WorldSettings worldSettings)
         {
             Noise2d.Reseed();
             seed += rand.Next(1000000, 9999999);
@@ -133,9 +133,9 @@ namespace Block2nd.World
         }
     }
 
-    public class HonkaiTerrainGenerator : TerrainGenerator
+    public class HonkaiTerrainNoiseGenerator : TerrainNoiseGenerator
     {
-        public HonkaiTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
+        public HonkaiTerrainNoiseGenerator(WorldSettings worldSettings) : base(worldSettings)
         { }
 
         public override float GetHeight(float x, float z)
@@ -144,9 +144,9 @@ namespace Block2nd.World
         }
     }
     
-    public class FlatTerrainGenerator : TerrainGenerator
+    public class FlatTerrainNoiseGenerator : TerrainNoiseGenerator
     {
-        public FlatTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
+        public FlatTerrainNoiseGenerator(WorldSettings worldSettings) : base(worldSettings)
         { }
 
         public override float GetHeight(float x, float z)
@@ -155,9 +155,9 @@ namespace Block2nd.World
         }
     }
 
-    public class TestTerrainGenerator : FlatTerrainGenerator
+    public class TestTerrainNoiseGenerator : FlatTerrainNoiseGenerator
     {
-        public TestTerrainGenerator(WorldSettings worldSettings) : base(worldSettings)
+        public TestTerrainNoiseGenerator(WorldSettings worldSettings) : base(worldSettings)
         {
         }
 

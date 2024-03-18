@@ -48,5 +48,10 @@ namespace Block2nd.MathUtil
         {
             return "(" + x + ", " + y + ", " + z + ")";
         }
+
+        public static IntVector3 NewWithFloorToChunkGridCoord(Vector3 v)
+        {
+            return new IntVector3(MathHelper.FloorInt(v.x / 16), 0, MathHelper.FloorInt(v.z / 16));
+        }
     }
 }

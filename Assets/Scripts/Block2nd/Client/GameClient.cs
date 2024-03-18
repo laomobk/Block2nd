@@ -167,7 +167,7 @@ namespace Block2nd.Client
 		private void ClientStart()
 		{
 			SyncGameSettings();
-			GenerateWorld(/* new TestTerrainGenerator(worldSettings) */);
+			GenerateWorld(/* new TestTerrainNoiseGenerator(worldSettings) */);
 		}
 
 		private void SetLightingWithGameSetting()
@@ -248,7 +248,7 @@ namespace Block2nd.Client
 			StartCoroutine(level.ChunkManager.ChunkManagementWorkerCoroutine());
 		}
 
-		public void GenerateWorld(TerrainGenerator terrainGenerator = null)
+		public void GenerateWorld(TerrainNoiseGenerator terrainNoiseGenerator = null)
 		{
 			CloseMenu();
 			
@@ -259,7 +259,7 @@ namespace Block2nd.Client
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
 			
-			StartCoroutine(currentLevel.GetComponent<Level>().CreateLevelCoroutine(terrainGenerator));
+			StartCoroutine(currentLevel.GetComponent<Level>().CreateLevelCoroutine(terrainNoiseGenerator));
 		}
 
 		public Level GetCurrentLevel()

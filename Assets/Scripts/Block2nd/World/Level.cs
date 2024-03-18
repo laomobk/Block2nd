@@ -23,14 +23,14 @@ namespace Block2nd.World
         public System.Random random = new System.Random();
 
         private ChunkManager chunkManager;
-        private TerrainGenerator terrain;
+        private TerrainNoiseGenerator terrainNoise;
 
         public WorldSettings worldSettings;
 
         public GameObject blockParticlePrefab;
         public GameObject chunkPrefab;
 
-        public TerrainGenerator TerrainGenerator => terrain;
+        public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
         public Func<int, int, float> terrainHeightFunc;
 
@@ -54,7 +54,7 @@ namespace Block2nd.World
         {
             client = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
             chunkManager = new ChunkManager(chunkPrefab, transform, worldSettings, client);
-            terrain = new TerrainGenerator(worldSettings);
+            terrainNoise = new TerrainNoiseGenerator(worldSettings);
         }
         
         private void OnDestroy()
@@ -127,11 +127,11 @@ namespace Block2nd.World
             }
         }
 
-        public IEnumerator CreateLevelCoroutine(TerrainGenerator generator = null)
+        public IEnumerator CreateLevelCoroutine(TerrainNoiseGenerator noiseGenerator = null)
         {
-            if (generator != null)
+            if (noiseGenerator != null)
             {
-                this.terrain = generator;
+                this.terrainNoise = noiseGenerator;
             }
             
             Resources.UnloadUnusedAssets();
@@ -145,7 +145,7 @@ namespace Block2nd.World
             
             progressUI.gameObject.SetActive(true);
             
-            progressUI.SetTitle("Generating terrain...");
+            progressUI.SetTitle("Generating terrainNoise...");
 
             yield return null;
             
@@ -153,20 +153,20 @@ namespace Block2nd.World
             
             progressUI.SetTitle("Making rivers...");
             
-            if (!(terrain is FlatTerrainGenerator) && !(terrain is HonkaiTerrainGenerator))
+            if (!(terrainNoise is FlatTerrainNoiseGenerator) && !(terrainNoise is HonkaiTerrainNoiseGenerator))
                 yield return GenerateRiverCoroutine();
             
             progressUI.SetTitle("Planting trees...");
 
             yield return null;
-            if (!(terrain is TestTerrainGenerator))
+            if (!(terrainNoise is TestTerrainNoiseGenerator))
                 yield return GenerateTrees();
             
             progressUI.SetTitle("Generating relics...");
 
             yield return null;
             
-            if (!(terrain is TestTerrainGenerator))
+            if (!(terrainNoise is TestTerrainNoiseGenerator))
                 yield return GeneratePyramids();
             
             var chunk = chunkManager.FindChunk(x, z);
@@ -191,23 +191,6 @@ namespace Block2nd.World
             chunkManagementCoroutine = coroutine;
 
             StartCoroutine(BGMPlayCoroutine());
-
-            /*
-            
-            yield return chunkManager.RenderAllChunkMesh(() =>
-            {
-            });
-            
-            */
-
-            /*
-            yield return null;
-
-            yield return null;
-            
-            yield return new WaitForSeconds(0.5f);
-            */
-            // chunkManager.BakeAllChunkHeightMap();
         }
 
         private IEnumerator GeneratePyramids()
@@ -220,7 +203,7 @@ namespace Block2nd.World
             var chunk = chunkManager.FindChunk(x, z);
             var chunkLocalPos = chunk.WorldToLocal(x, z);
                 
-            var y = terrain is FlatTerrainGenerator ? 5 : 10;
+            var y = terrainNoise is FlatTerrainNoiseGenerator ? 5 : 10;
             
             var redBrickCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/red_brick").blockCode;
 
@@ -246,7 +229,7 @@ namespace Block2nd.World
             
             chunkManager.BakeAllChunkHeightMap();
 
-            var nTree = terrain is FlatTerrainGenerator ? 200 : 425;
+            var nTree = terrainNoise is FlatTerrainNoiseGenerator ? 200 : 425;
             
             for (int i = 0; i < nTree; ++i)
             {
@@ -406,21 +389,21 @@ namespace Block2nd.World
                 {
                     for (int cz = 0; cz < chunkWidth; ++cz)
                     {
-                        if (entry.chunk.heightMap[cx, cz] > terrain.waterLevel)
+                        if (entry.chunk.heightMap[cx, cz] > terrainNoise.waterLevel)
                             continue;
 
-                        var rawHeight = terrain.GetHeight((cCoord.x + cx) / 384f, (cCoord.z + cz) / 384f);
+                        var rawHeight = terrainNoise.GetHeight((cCoord.x + cx) / 384f, (cCoord.z + cz) / 384f);
 
                         for (int cy = chunkHeight - 1; cy >= 0; --cy)
                         {
-                            if (cy > terrain.waterLevel)
+                            if (cy > terrainNoise.waterLevel)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = 0;
-                            } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz] && 
-                                       terrain.waterLevel - rawHeight < 0.005f)
+                            } else if (cy <= terrainNoise.waterLevel && cy >= entry.chunk.heightMap[cx, cz] && 
+                                       terrainNoise.waterLevel - rawHeight < 0.005f)
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Sand;
-                            } else if (cy <= terrain.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
+                            } else if (cy <= terrainNoise.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
                             {
                                 chunkBlocks[cx, cy, cz].blockCode = waterCode;
                                 chunkBlocks[cx, cy, cz].blockState = LiquidBlockBehavior.DefaultIterCount;
@@ -540,7 +523,7 @@ namespace Block2nd.World
 
         private int GetHeight(float x, float z)
         {
-            return (int)terrain.GetHeight(x / 384, z / 384);
+            return (int)terrainNoise.GetHeight(x / 384, z / 384);
         }
 
         int GetBlockCodeFromGenerator(float x, float y, float z)

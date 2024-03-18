@@ -211,6 +211,64 @@ namespace Block2nd.World
             }
         }
 
+        public List<IntVector3> GetAllChunkCoordsInFrustum()
+        {
+            var chunkWidth = worldSettings.chunkWidth;
+            var chunkHeight = worldSettings.chunkWidth;
+            
+            var viewDistance = gameClient.gameSettings.viewDistance;
+            var playerCamera = gameClient.player.playerCamera;
+            var cameraPos = playerCamera.transform.position;
+            var forward = playerCamera.transform.forward;
+            var right = playerCamera.transform.right;
+
+            var coords = new List<IntVector3>();
+
+            Vector3 currentPos = cameraPos;
+
+            Bounds aabb = new Bounds(Vector3.zero, new Vector3(chunkWidth, chunkHeight, chunkWidth));
+
+            for (int i = 0; i < viewDistance; ++i)
+            {
+                aabb.center = currentPos;
+                if (!IsBoundsInFrustum(aabb))
+                {
+                    continue;
+                }
+                coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+
+                for (;;)
+                {
+                    aabb.center += right;
+                    if (!IsBoundsInFrustum(aabb))
+                    {
+                        break;
+                    }
+                    coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+                }
+
+                aabb.center = currentPos;
+                for (;;)
+                {
+                    aabb.center -= right;
+                    if (!IsBoundsInFrustum(aabb))
+                    {
+                        break;
+                    }
+                    coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+                }
+            }
+
+            return coords;
+        }
+        
+        public bool IsBoundsInFrustum(Bounds aabb)
+        {
+            Plane[] planes = new Plane[6];
+            GeometryUtility.CalculateFrustumPlanes(gameClient.player.playerCamera, planes);
+            return GeometryUtility.TestPlanesAABB(planes, aabb);
+        }
+
         public void UpdateDirtyChunkCoroutine()
         {
             foreach (var entries in chunkEntries)
@@ -326,13 +384,6 @@ namespace Block2nd.World
         public void ForceBeginChunksManagement()
         {
             forceManagement = true;
-        }
-
-        public bool ChunkFrustumTest(Bounds aabb)
-        {
-            Plane[] planes = new Plane[6];
-            GeometryUtility.CalculateFrustumPlanes(gameClient.player.playerCamera, planes);
-            return GeometryUtility.TestPlanesAABB(planes, aabb);
         }
 
         public int PerformChunkUpdate()

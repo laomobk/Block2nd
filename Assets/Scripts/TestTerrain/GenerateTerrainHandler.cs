@@ -28,7 +28,7 @@ namespace TestTerrain
             
             var levelWidth = worldSettings.levelWidth;
             
-            var generator = new TerrainGenerator(worldSettings);
+            var generator = new TerrainNoiseGenerator(worldSettings);
 
             for (int x = 0; x < levelWidth; ++x)
             {

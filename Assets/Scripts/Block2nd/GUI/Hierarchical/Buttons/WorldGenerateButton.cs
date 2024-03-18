@@ -14,10 +14,10 @@ namespace Block2nd.GUI.Hierarchical.Buttons
             gameClient = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
         }
 
-        public void GenerateWorld(int levelWidth, TerrainGenerator terrainGenerator = null)
+        public void GenerateWorld(int levelWidth, TerrainNoiseGenerator terrainNoiseGenerator = null)
         {
             gameClient.worldSettings.levelWidth = levelWidth;
-            gameClient.GenerateWorld(terrainGenerator);
+            gameClient.GenerateWorld(terrainNoiseGenerator);
         }
 
         public void GenerateWorldNormal()
@@ -37,12 +37,12 @@ namespace Block2nd.GUI.Hierarchical.Buttons
 
         public void GenerateWorldHonkai()
         {
-            GenerateWorld(384, new HonkaiTerrainGenerator(gameClient.worldSettings));
+            GenerateWorld(384, new HonkaiTerrainNoiseGenerator(gameClient.worldSettings));
         }
         
         public void GenerateWorldFlat()
         {
-            GenerateWorld(384, new FlatTerrainGenerator(gameClient.worldSettings));
+            GenerateWorld(384, new FlatTerrainNoiseGenerator(gameClient.worldSettings));
         }
     }
 }
