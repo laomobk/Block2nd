@@ -3,8 +3,6 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-
-		_Strength ("Strength", range(1, 100)) = 10
 	}
 	SubShader
 	{
@@ -42,7 +40,8 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			float _Strength;
+
+			float3 _PlayerPos;
 			
 			v2f vert (appdata v)
 			{
@@ -58,20 +57,18 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				float u = i.uv.x;
-				float v = i.uv.y;
+				i.uv.x += _Time.x / 100;
+				i.uv.x -= _PlayerPos.x / 3000;
+				i.uv.y -= _PlayerPos.z / 3000;
 
-				u = (1 / _Strength)* round(u / (1 / _Strength));
-				v = (1 / _Strength)* round(v / (1 / _Strength));
+				fixed4 col = tex2D(_MainTex, i.uv);
 
-				fixed4 col = tex2D(_MainTex, float2(u, v));
-
-				float val = step(col.x, 0.6);
-
-				if (val < 0.1)
+				if (col.a < 0.1)
 					discard;
+
+				UNITY_APPLY_FOG(i.fogCoord, col);
 				
-				return fixed4(val, val, val, 1);
+				return col;
 			}
 			ENDCG
 		}
