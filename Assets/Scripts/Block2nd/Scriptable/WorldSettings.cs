@@ -9,7 +9,6 @@ namespace Block2nd.Database
     [Serializable]
     public class WorldSettings : ScriptableObject
     {
-        public int chunkWidth = 16;
         public int chunkHeight = 128;
 
         public int levelWidth = 256;

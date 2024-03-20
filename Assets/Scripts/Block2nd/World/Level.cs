@@ -53,7 +53,7 @@ namespace Block2nd.World
         private void Awake()
         {
             client = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
-            chunkManager = new ChunkManager(chunkPrefab, transform, worldSettings, client);
+            chunkManager = new ChunkManager(this, chunkPrefab, transform, worldSettings, client);
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
         }
         
@@ -332,11 +332,11 @@ namespace Block2nd.World
 
             yield return null;
 
-            for (int x = 0; x < width; x += worldSettings.chunkWidth)
+            for (int x = 0; x < width; x += 16)
             {
-                for (int z = 0; z < width; z += worldSettings.chunkWidth)
+                for (int z = 0; z < width; z += 16)
                 {
-                    var chunk = chunkManager.AddNewChunkGameObject(x, z);
+                    var chunk = AllocNewChunkGameObject(x, z);
                     var chunkBlocks = chunk.chunkBlocks;
                     var chunkWidth = chunkBlocks.GetLength(0);
                     var chunkHeight = chunkBlocks.GetLength(1);
@@ -748,6 +748,23 @@ namespace Block2nd.World
             }
             
             return null;
+        }
+
+        public Chunk AllocNewChunkGameObject(int chunkX, int chunkZ)
+        {
+            var chunkHeight = worldSettings.chunkHeight;
+            
+            var chunkGameObject = Instantiate(chunkPrefab, transform);
+            var chunk = chunkGameObject.GetComponent<Chunk>();
+
+            var worldX = chunkX << 4;
+            var worldZ = chunkZ << 4;
+
+            chunk.aabb = new Bounds(
+                new Vector3(worldX + 8, chunkHeight / 2, worldZ + 8),
+                new Vector3(16, chunkHeight, 16));
+
+            return chunk;
         }
 
         public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)

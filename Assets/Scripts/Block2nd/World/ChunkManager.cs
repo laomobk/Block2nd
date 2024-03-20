@@ -38,6 +38,7 @@ namespace Block2nd.World
 
         public GameClient gameClient;
 
+        private Level level;
         private WorldSettings worldSettings;
         private bool forceManagement = false;
         private Queue<ChunkUpdateContext> chunkUpdateQueue = new Queue<ChunkUpdateContext>();
@@ -47,7 +48,7 @@ namespace Block2nd.World
         private IntVector3 lastChunkListSortIntPos;
         private int maxEachUpdateCount = 30;
 
-        public ChunkManager(GameObject chunkPrefabObject, Transform levelTransform,
+        public ChunkManager(Level Level, GameObject chunkPrefabObject, Transform levelTransform,
             WorldSettings worldSettings, GameClient gameClient)
         {
             this.chunkPrefabObject = chunkPrefabObject;
@@ -56,12 +57,10 @@ namespace Block2nd.World
             this.gameClient = gameClient;
         }
 
-        private void CalcChunkGridPos(int x, int z, out int ox, out int oz)
+        private static void CalcChunkGridPos(int x, int z, out int ox, out int oz)
         {
-            var chunkWidth = worldSettings.chunkWidth;
-
-            ox = (x / chunkWidth + (x < 0 ? -1 : 0)) * chunkWidth;
-            oz = (z / chunkWidth + (z < 0 ? -1 : 0)) * chunkWidth;
+            ox = x >> 4;
+            oz = z >> 4;
         }
 
         public void AddUpdateToNextTick(ChunkUpdateContext ctx)
@@ -76,51 +75,24 @@ namespace Block2nd.World
             return key;
         }
 
-        public Chunk AddNewChunkGameObject(int x, int z)
+        public long RegisterChunk(Chunk chunk)
         {
-            var chunkWidth = worldSettings.chunkWidth;
-            var chunkHeight = worldSettings.chunkWidth;
-
-            var chunkGameObject = GameObject.Instantiate(chunkPrefabObject, levelTransform);
-            var chunk = chunkGameObject.GetComponent<Chunk>();
-            chunk.worldBasePosition = new IntVector3(x, 0, z);
-            chunk.aabb = new Bounds(
-                new Vector3(
-                    x + chunkWidth / 2f,
-                    chunkHeight / 2f,
-                    z + chunkWidth / 2f),
-                new Vector3(chunkWidth, chunkHeight, chunkWidth));
-            chunk.SetLocatedLevel(this);
-
-            chunk.chunkBlocks = new ChunkBlockData[worldSettings.chunkWidth,
-                worldSettings.chunkHeight,
-                worldSettings.chunkWidth];
-            chunk.heightMap = new int[worldSettings.chunkWidth, worldSettings.chunkWidth];
-            chunk.ambientOcclusionMap = new byte[worldSettings.chunkWidth,
-                worldSettings.chunkHeight,
-                worldSettings.chunkWidth];
-
-            chunk.gameObject.name = "_Chunk_" + x + "_" + z;
-            chunkGameObject.transform.position = new Vector3(x, 0, z);
-
             var entry = new ChunkEntry
             {
                 chunk = chunk,
-                basePos = new IntVector3(x, 0, z)
+                basePos = new IntVector3(chunk.worldBasePosition.x, 0, chunk.worldBasePosition.z)
             };
 
-            chunkDict.Add(ChunkCoordsToLongKey(chunk.worldBasePosition), chunk);
+            var key = ChunkCoordsToLongKey(chunk.worldBasePosition);
+            chunkDict.Add(key, chunk);
             chunkEntries.Add(entry);
 
-            // Debug.Log("ChunkManager: request new chunk at (" + x + ", " + z + ")");
-
-            return chunk;
+            return key;
         }
 
         public Chunk FindChunk(int x, int z)
         {
-            Chunk chunk;
-            if (chunkDict.TryGetValue(ChunkCoordsToLongKey(new IntVector3(x, 0, z)), out chunk))
+            if (chunkDict.TryGetValue(ChunkCoordsToLongKey(new IntVector3(x, 0, z)), out var chunk))
             {
                 return chunk;
             }
@@ -154,7 +126,7 @@ namespace Block2nd.World
             {
                 int cx, cz;
                 CalcChunkGridPos(x, z, out cx, out cz);
-                chunk = AddNewChunkGameObject(cx, cz);
+                chunk = level.AllocNewChunkGameObject(cx, cz);
             }
 
             chunk.SetBlock(blockCode, x, y, z, true,
@@ -180,7 +152,7 @@ namespace Block2nd.World
             {
                 int cx, cz;
                 CalcChunkGridPos(x, z, out cx, out cz);
-                chunk = AddNewChunkGameObject(cx, cz);
+                chunk = level.AllocNewChunkGameObject(cx, cz);
             }
             
             chunk.SetBlockState(x, y, z, state, true, updateMesh);
@@ -213,8 +185,7 @@ namespace Block2nd.World
 
         public List<IntVector3> GetAllChunkCoordsInFrustum()
         {
-            var chunkWidth = worldSettings.chunkWidth;
-            var chunkHeight = worldSettings.chunkWidth;
+            var chunkHeight = worldSettings.chunkHeight;
             
             var viewDistance = gameClient.gameSettings.viewDistance;
             var playerCamera = gameClient.player.playerCamera;
@@ -226,7 +197,7 @@ namespace Block2nd.World
 
             Vector3 currentPos = cameraPos;
 
-            Bounds aabb = new Bounds(Vector3.zero, new Vector3(chunkWidth, chunkHeight, chunkWidth));
+            Bounds aabb = new Bounds(Vector3.zero, new Vector3(16, chunkHeight, 16));
 
             for (int i = 0; i < viewDistance; ++i)
             {
@@ -440,7 +411,6 @@ namespace Block2nd.World
         public IEnumerator ChunkManagementWorkerCoroutine()
         {
             var player = gameClient.player;
-            var chunkWidth = gameClient.worldSettings.chunkWidth;
 
             chunkWorkerRunning = true;
 
@@ -461,13 +431,13 @@ namespace Block2nd.World
                     var entry = chunkEntries[i];
 
                     if (playerIntPos.PlaneDistanceSqure(lastChunkListSortIntPos) >
-                        chunkWidth * gameClient.gameSettings.viewDistance)
+                        gameClient.gameSettings.viewDistance << 4)
                     {
                         SortChunksByDistance(player.transform.position);
                         break;
                     }
 
-                    if (CheckIsActiveChunk(entry.chunk, playerIntPos, chunkWidth))
+                    if (CheckIsActiveChunk(entry.chunk, playerIntPos, 16))
                     {
                         entry.chunk.gameObject.SetActive(true);
                         if (entry.chunk.dirty || !entry.chunk.rendered)

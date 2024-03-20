@@ -174,7 +174,7 @@ namespace Block2nd.Client
 		{
 			var viewDistance = gameSettings.viewDistance;
 
-			RenderSettings.fogEndDistance = (viewDistance - 2) * worldSettings.chunkWidth;
+			RenderSettings.fogEndDistance = (viewDistance - 2) << 4;
 
 			if (RenderSettings.fogEndDistance < 10)
 				RenderSettings.fogEndDistance = 10;
@@ -200,52 +200,6 @@ namespace Block2nd.Client
 				gameClientState = GameClientState.GAME;
 				guiCanvasManager.gameMenu.CloseMenu();
 			}
-		}
-
-		public void SaveWorld()
-		{
-			gameSaveManager.SaveLevel(player, currentLevel.GetComponent<Level>());
-		}
-
-		public void LoadWorld()
-		{
-			var levelName = currentLevel.GetComponent<Level>().levelName;
-			var saveData = gameSaveManager.LoadSave(levelName);
-
-			var playerPos = new Vector3(
-				saveData.playerPosition[0],
-				saveData.playerPosition[1],
-				saveData.playerPosition[2]);
-
-			player.transform.position = playerPos;
-			player.horAngle = saveData.playerViewHorAngel;
-			player.rotAngle = saveData.playerViewRotAngel;
-			
-			if (currentLevel != null)
-			{
-				DestroyImmediate(currentLevel);
-			}
-			
-			currentLevel = Instantiate(levelPrefab, worldTransform);
-			var level = currentLevel.GetComponent<Level>();
-
-			level.levelName = levelName;
-			level.ChunkManager.chunkEntries = new List<ChunkEntry>();
-
-			var entries = level.ChunkManager.chunkEntries;
-
-			for (int i = 0; i < saveData.chunkEntries.Length; ++i)
-			{
-				var basePos = saveData.chunkEntries[i].basePos;
-				var chunk = level.ChunkManager.AddNewChunkGameObject(basePos.x, basePos.z);
-				entries.Add(new ChunkEntry
-				{
-					chunk = chunk,
-					basePos = basePos
-				});
-			}
-
-			StartCoroutine(level.ChunkManager.ChunkManagementWorkerCoroutine());
 		}
 
 		public void GenerateWorld(TerrainNoiseGenerator terrainNoiseGenerator = null)
