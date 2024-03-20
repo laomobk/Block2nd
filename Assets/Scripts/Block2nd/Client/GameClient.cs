@@ -51,6 +51,8 @@ namespace Block2nd.Client
 
 		public IGameGUI currentGUI;
 
+		private int playerTickCount = 0;
+
 		private void Awake()
 		{
 			gameSaveManager = new GameSaveManager(Application.persistentDataPath);
@@ -141,6 +143,8 @@ namespace Block2nd.Client
 			}
 
 			SetLightingWithGameSetting();
+			
+			ClientTick();
 		}
 
 		public void OpenAllItems()
@@ -168,6 +172,11 @@ namespace Block2nd.Client
 		{
 			SyncGameSettings();
 			GenerateWorld(/* new TestTerrainNoiseGenerator(worldSettings) */);
+		}
+
+		private void ClientTick()
+		{
+			
 		}
 
 		private void SetLightingWithGameSetting()
@@ -213,7 +222,7 @@ namespace Block2nd.Client
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
 			
-			StartCoroutine(currentLevel.GetComponent<Level>().CreateLevelCoroutine(terrainNoiseGenerator));
+			// StartCoroutine(currentLevel.GetComponent<Level>().CreateLevelCoroutine(terrainNoiseGenerator));
 		}
 
 		public Level GetCurrentLevel()

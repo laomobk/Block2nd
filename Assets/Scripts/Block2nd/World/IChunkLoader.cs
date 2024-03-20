@@ -2,6 +2,6 @@ namespace Block2nd.World
 {
     public interface IChunkLoader
     {
-        Chunk TryLoadChunk(int chunkX, int chunkY);
+        Chunk TryLoadChunk(int chunkX, int chunkZ);
     }
 }

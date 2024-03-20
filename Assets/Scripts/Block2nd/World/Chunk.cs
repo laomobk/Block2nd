@@ -14,101 +14,24 @@ using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
-    public class Chunk : MonoBehaviour
+    public class Chunk
     {
+        private ChunkManager chunkManager;
+        
         public IntVector3 worldBasePosition;
         public Bounds aabb;
-        
-        public bool rendered = false;
-        
+
         public ChunkBlockData[,,] chunkBlocks;
         public int[,] heightMap;
         public byte[,,] ambientOcclusionMap;
 
-        private ChunkManager locatedChunkManager;
-
-        private GameClient gameClient;
-        private GameObject subTransparentChunk;
-        private GameObject subLiquidChunk;
-
-        private bool instanced = false;
-
         public bool empty = true;
         public bool dirty = false;
 
-        [HideInInspector] public bool isVisible = true;
-        
-        private List<Vector3> opVert = new List<Vector3>();
-        private List<Vector2> opUvs = new List<Vector2>();
-        private List<Color> opColors = new List<Color>();
-        private List<int> opTris = new List<int>();
-            
-        private List<Vector3> trVert = new List<Vector3>();
-        private List<Vector2> trUvs = new List<Vector2>();
-        private List<Color> trColors = new List<Color>();
-        private List<int> trTris = new List<int>();
-        
-        private List<Vector3> lqVert = new List<Vector3>();
-        private List<Vector2> lqUvs = new List<Vector2>();
-        private List<Color> lqColors = new List<Color>();
-        private List<int> lqTris = new List<int>();
-
-        // private FastBuffer<Vector3> opVert = new FastBuffer<Vector3>();
-        // private FastBuffer<Vector2> opUvs = new FastBuffer<Vector2>();
-        // private FastBuffer<Color> opColors = new FastBuffer<Color>();
-        // private FastBuffer<int> opTris = new FastBuffer<int>();
-        
-        // private FastBuffer<Vector3> trVert = new FastBuffer<Vector3>();
-        // private FastBuffer<Vector2> trUvs = new FastBuffer<Vector2>();
-        // private FastBuffer<Color> trColors = new FastBuffer<Color>();
-        // private FastBuffer<int> trTris = new FastBuffer<int>();
-
-        private void Awake()
+        public Chunk(ChunkManager chunkManager, int chunkX, int chunkZ)
         {
-            subTransparentChunk = transform.GetChild(0).gameObject;
-            subLiquidChunk = transform.GetChild(1).gameObject;
-        }
-
-        private void Start()
-        {
-            gameClient = FindObjectOfType<GameClient>();
-        }
-
-        private void OnDestroy()
-        {
-            DestroyImmediate(GetComponent<MeshFilter>().sharedMesh, true);
-            DestroyImmediate(subTransparentChunk.GetComponent<MeshFilter>().sharedMesh, true);
-        }
-
-        /*
-        private void Update()
-        {
-            var visible = CheckVisible();
-            GetComponent<MeshRenderer>().enabled = visible;
-            subLiquidChunk.GetComponent<MeshRenderer>().enabled = visible;
-            subTransparentChunk.GetComponent<MeshRenderer>().enabled = visible;
-        }
-        */
-
-        public bool CheckVisible()
-        {
-            var width = chunkBlocks.GetLength(0);
-            var player = gameClient.player;
-
-            if (MathHelper.DistancePlane(player.transform.position, aabb.center) < width * 3 
-                || ChunkFrustumTest())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool ChunkFrustumTest()
-        {
-            Plane[] planes = new Plane[6];
-            GeometryUtility.CalculateFrustumPlanes(gameClient.player.playerCamera, planes);
-            return GeometryUtility.TestPlanesAABB(planes, aabb);
+            this.chunkManager = chunkManager;
+            worldBasePosition = new IntVector3(chunkX, 0, chunkZ);
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)
@@ -236,143 +159,6 @@ namespace Block2nd.World
             Profiler.EndSample();
         }
         
-        public void UpdateChuckMesh()
-        {
-            BakeHeightMap();
-            
-            var opMesh = new Mesh();
-            var trMesh = new Mesh();
-            var lqMesh = new Mesh();
-            
-            var width = chunkBlocks.GetLength(0);
-            var height = chunkBlocks.GetLength(1);
-            
-            trColors.Clear();
-            trTris.Clear();
-            trUvs.Clear();
-            trVert.Clear();
-            opColors.Clear();
-            opTris.Clear();
-            opUvs.Clear();
-            opVert.Clear();
-            lqColors.Clear();
-            lqTris.Clear();
-            lqUvs.Clear();
-            lqVert.Clear();
-            
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    for (int z = 0; z < width; z++)
-                    {
-                        var block = GetBlock(x, y, z);
-                        int code = block.blockCode;
-                        var meta = BlockMetaDatabase.GetBlockMetaByCode(code);
-                        var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(code);
-
-                        var tris = opTris;
-                        var uvs = opUvs;
-                        var colors = opColors;
-                        var vert = opVert;
-                        
-                        if (meta != null)
-                        {
-                            if (meta.liquid)
-                            {
-                                tris = lqTris;
-                                uvs = lqUvs;
-                                colors = lqColors;
-                                vert = lqVert;
-                            } else if (meta.transparent)
-                            {
-                                tris = trTris;
-                                uvs = trUvs;
-                                colors = trColors;
-                                vert = trVert;
-                            }
-                            
-                            var blockMesh = behavior.OnRender(LocalToWorld(x, y, z));
-                            if (blockMesh == null)
-                                blockMesh = meta.shape.GetShapeMesh(
-                                    meta.forceRenderAllFace ? 255 : (meta.transparent ? 
-                                        GetExposedFaceTransparent(x, y, z, meta.blockCode) :
-                                        GetExposedFace(x, y, z)),
-                                    GetLightAttenuation(x, y, z));
-                            var triangleStartIdx = vert.Count;
-
-                            for (int i = 0; i < blockMesh.triangleCount; ++i)
-                            {
-                                tris.Add(triangleStartIdx + blockMesh.triangles[i]);
-                            }
-
-                            for (int i = 0; i < blockMesh.positionCount; ++i)
-                            {
-                                vert.Add(blockMesh.positions[i] + new Vector3(x, y, z));
-                            }
-
-                            for (int i = 0; i < blockMesh.texcoordCount; ++i)
-                            {
-                                uvs.Add(blockMesh.texcoords[i]);
-                            }
-
-                            for (int i = 0; i < blockMesh.colorsCount; ++i)
-                            {
-                                colors.Add(blockMesh.colors[i]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            opMesh.vertices = opVert.ToArray();
-            opMesh.uv = opUvs.ToArray();
-            opMesh.SetColors(opColors);
-            opMesh.triangles = opTris.ToArray();
-            opMesh.RecalculateNormals();
-            opMesh.RecalculateBounds();
-            
-            trMesh.vertices = trVert.ToArray();
-            trMesh.uv = trUvs.ToArray();
-            trMesh.SetColors(trColors);
-            trMesh.triangles = trTris.ToArray();
-            trMesh.RecalculateNormals();
-            trMesh.RecalculateBounds();
-
-            lqMesh.vertices = lqVert.ToArray();
-            lqMesh.uv = lqUvs.ToArray();
-            lqMesh.SetColors(lqColors);
-            lqMesh.triangles = lqTris.ToArray();
-            lqMesh.RecalculateNormals();
-            lqMesh.RecalculateBounds();
-
-            var curTrMesh = subTransparentChunk.GetComponent<MeshFilter>().sharedMesh;
-            var curLqMesh = subLiquidChunk.GetComponent<MeshFilter>().sharedMesh;
-            var curOpMesh = GetComponent<MeshFilter>().sharedMesh;
-            DestroyImmediate(curOpMesh, true);
-            DestroyImmediate(curTrMesh, true);
-            DestroyImmediate(curLqMesh, true);
-            
-            GetComponent<MeshFilter>().sharedMesh = opMesh;
-
-            subTransparentChunk.GetComponent<MeshFilter>().sharedMesh = trMesh;
-
-            subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
-
-            rendered = true;
-            dirty = false;
-        }
-
-        public void SetChunkBlockData(ChunkBlockData[,,] data)
-        {
-            chunkBlocks = data;
-        }
-
-        public void SetLocatedLevel(ChunkManager chunkManager)
-        {
-            locatedChunkManager = chunkManager;
-        }
-
         public ChunkBlockData GetBlockWorldPos(int x, int y, int z, bool searchHoldLevel)
         {
             return GetBlock(
@@ -396,9 +182,9 @@ namespace Block2nd.World
                         
             BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnUpdate(
                 v, 
-                locatedChunkManager.gameClient.CurrentLevel,
+                chunkManager.gameClient.CurrentLevel,
                 this,
-                locatedChunkManager.gameClient.player);
+                chunkManager.gameClient.player);
         }
 
         public void ChunkUpdate(int cx, int cy, int cz, int width)
@@ -420,7 +206,7 @@ namespace Block2nd.World
             if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= width)
             {
                 if (searchLevel)
-                    return locatedChunkManager.GetBlock(worldBasePosition.x + x, 
+                    return chunkManager.GetBlock(worldBasePosition.x + x, 
                                                  worldBasePosition.y + y, 
                                                  worldBasePosition.z + z);
                 return ChunkBlockData.EMPTY;
@@ -482,9 +268,6 @@ namespace Block2nd.World
             }
 
             dirty = true;
-            
-            if (updateMesh)
-                UpdateChuckMesh();
         }
 
         public void SetBlockState(int x, int y, int z, byte state, bool worldPos, bool updateMesh)
@@ -510,9 +293,6 @@ namespace Block2nd.World
             chunkBlocks[x, y, z].blockState = state;
 
             dirty = true;
-            
-            if (updateMesh)
-                UpdateChuckMesh();
         }
         
         public int GetExposedFace(int x, int y, int z)

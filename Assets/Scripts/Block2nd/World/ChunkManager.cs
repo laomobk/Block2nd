@@ -240,53 +240,6 @@ namespace Block2nd.World
             return GeometryUtility.TestPlanesAABB(planes, aabb);
         }
 
-        public void UpdateDirtyChunkCoroutine()
-        {
-            foreach (var entries in chunkEntries)
-            {
-                if (entries.chunk.dirty)
-                {
-                    entries.chunk.UpdateChuckMesh();
-                }
-            }
-        }
-
-        public IEnumerator RenderAllChunkMesh(Action callback)
-        {
-            var progressUI = gameClient.guiCanvasManager.worldGeneratingProgressUI;
-
-            int count = 1;
-            float totalChunkCount = chunkEntries.Count;
-
-            float headChunkCount = totalChunkCount > 16 ? 16 : totalChunkCount;
-
-            foreach (var entry in chunkEntries)
-            {
-                if (count == 16)
-                {
-                    progressUI.SetTitle("Ready");
-
-                    progressUI.SetProgress("Very soon !! ");
-
-                    yield return new WaitForSeconds(0.3f);
-
-                    callback();
-                }
-
-                entry.chunk.UpdateChuckMesh();
-
-                progressUI.SetProgress(count / headChunkCount);
-                count++;
-
-                yield return null;
-            }
-
-            if (totalChunkCount < 16)
-            {
-                callback();
-            }
-        }
-
         private int CompareChunks(Chunk a, Chunk b, IntVector3 intPoint)
         {
             var distanceA = a.worldBasePosition.PlaneDistanceSqure(intPoint);
@@ -435,17 +388,6 @@ namespace Block2nd.World
                     {
                         SortChunksByDistance(player.transform.position);
                         break;
-                    }
-
-                    if (CheckIsActiveChunk(entry.chunk, playerIntPos, 16))
-                    {
-                        entry.chunk.gameObject.SetActive(true);
-                        if (entry.chunk.dirty || !entry.chunk.rendered)
-                            entry.chunk.UpdateChuckMesh();
-                    }
-                    else
-                    {
-                        entry.chunk.gameObject.SetActive(false);
                     }
 
                     if (yieldTick > 1)

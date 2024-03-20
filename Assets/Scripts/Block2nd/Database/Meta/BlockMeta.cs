@@ -78,6 +78,8 @@ namespace Block2nd.Database.Meta
         public bool liquid;
         public bool transparent;
         public bool forceRenderAllFace;
+
+        public byte initState;
         
         public BlockBehavior behavior = new StaticBlockBehavior();
         public AABB aabb = AABB.One();

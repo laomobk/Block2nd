@@ -42,6 +42,8 @@ namespace Block2nd.World
 
         public Vector3 gravity = new Vector3(0, -0.98f, 0);
 
+        public IChunkProvider chunkProvider;
+
         public ChunkManager ChunkManager
         {
             get
@@ -55,8 +57,22 @@ namespace Block2nd.World
             client = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
             chunkManager = new ChunkManager(this, chunkPrefab, transform, worldSettings, client);
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
+
+            chunkProvider = new WorldProviderGenerateOrLoad(
+                new SaveChunkLoader(), 
+                new EarthChunkGenerator(worldSettings, terrainNoise));
         }
-        
+
+        private void Start()
+        {
+            
+        }
+
+        private void Update()
+        {
+            
+        }
+
         private void OnDestroy()
         {
             chunkManager.chunkWorkerRunning = false;
@@ -127,6 +143,43 @@ namespace Block2nd.World
             }
         }
 
+        private IEnumerator LevelTickCoroutine()
+        {
+            while (true)
+            {
+                LevelTick();
+
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+
+        private void LevelTick()
+        {
+            var playerPos = client.player.transform.position;
+            
+            ProvideChunksSurrounding(playerPos);
+        }
+
+        private void ProvideChunksSurrounding(Vector3 position, int radius = 3)
+        {
+            int pointChunkX = (int) position.x >> 4;
+            int pointChunkZ = (int) position.z >> 4;
+
+            for (int cx = pointChunkX - radius; cx < pointChunkX + radius; ++cx)
+            {
+                for (int cz = pointChunkZ - radius; cz < pointChunkZ + radius; ++cz)
+                {
+                    chunkProvider.ProvideChunk(this, cx, cz);
+                }
+            } 
+        }
+
+        public void ResetChunkProvider(IChunkProvider chunkProvider)
+        {
+            this.chunkProvider = chunkProvider;
+        }
+        
+        /*
         public IEnumerator CreateLevelCoroutine(TerrainNoiseGenerator noiseGenerator = null)
         {
             if (noiseGenerator != null)
@@ -149,7 +202,7 @@ namespace Block2nd.World
 
             yield return null;
             
-            yield return GenerateLevelBlocksCoroutine();
+            // yield return GenerateLevelBlocksCoroutine();
             
             progressUI.SetTitle("Making rivers...");
             
@@ -192,6 +245,7 @@ namespace Block2nd.World
 
             StartCoroutine(BGMPlayCoroutine());
         }
+        */
 
         private IEnumerator GeneratePyramids()
         {
@@ -320,44 +374,6 @@ namespace Block2nd.World
                     progressUI.SetProgress((i + 1f) / nTree);
                     yield return null;
                 }
-            }
-        }
-
-        private IEnumerator GenerateLevelBlocksCoroutine()
-        {
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
-            
-            var width = worldSettings.levelWidth;
-            var height = worldSettings.chunkHeight;
-
-            yield return null;
-
-            for (int x = 0; x < width; x += 16)
-            {
-                for (int z = 0; z < width; z += 16)
-                {
-                    var chunk = AllocNewChunkGameObject(x, z);
-                    var chunkBlocks = chunk.chunkBlocks;
-                    var chunkWidth = chunkBlocks.GetLength(0);
-                    var chunkHeight = chunkBlocks.GetLength(1);
-
-                    for (int cx = 0; cx < chunkWidth; ++cx)
-                    {
-                        for (int cz = 0; cz < chunkWidth; ++cz)
-                        {
-                            for (int cy = 0; cy < chunkHeight; ++cy)
-                            {
-                                var blockCode = GetBlockCodeFromGenerator(x + cx, cy, z + cz);
-                                chunkBlocks[cx, cy, cz] = new ChunkBlockData
-                                {
-                                    blockCode = blockCode
-                                };
-                            }
-                        }
-                    }
-                }
-                progressUI.SetProgress((float) x / width);
-                yield return null;
             }
         }
 
@@ -520,35 +536,7 @@ namespace Block2nd.World
 
             return exposed;
         }
-
-        private int GetHeight(float x, float z)
-        {
-            return (int)terrainNoise.GetHeight(x / 384, z / 384);
-        }
-
-        int GetBlockCodeFromGenerator(float x, float y, float z)
-        {
-            float height = GetHeight(x, z);
-            float curY = y;
-
-            if (curY > height)
-            {
-                return 0;
-            }
-            else if (curY == height)
-            {
-                return BlockMetaDatabase.BuiltinBlockCode.Grass;
-            }
-            else if (curY >= height - random.Next(0, 2))
-            {
-                return BlockMetaDatabase.BuiltinBlockCode.Dirt;
-            }
-            else
-            {
-                return BlockMetaDatabase.BuiltinBlockCode.Stone;
-            }
-        }
-
+        
         public static bool Check(GameObject obj)
         {
             return obj.name == "Chuck";

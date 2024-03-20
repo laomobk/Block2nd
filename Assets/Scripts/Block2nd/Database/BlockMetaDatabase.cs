@@ -326,6 +326,7 @@ namespace Block2nd.Database
                 transparent = true,
                 behavior = new WaterBlockBehavior(),
                 liquid = true,
+                initState = 8
             });
         }
     }

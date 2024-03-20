@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 23591897845799652}
   - component: {fileID: 114274603141629468}
   m_Layer: 9
-  m_Name: Chunk
+  m_Name: ChunkRenderEntity
   m_TagString: WorldDetectBox
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -89,18 +89,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1353389129824702}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e349dcfcb064c36bde35b15f4335bf8, type: 3}
+  m_Script: {fileID: 11500000, guid: 5eb859cab80449d6914e8637322c273c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldBasePosition:
-    x: 0
-    y: 0
-    z: 0
-  aabb:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  rendered: 0
-  dirty: 0
 --- !u!1 &6611021062038168089
 GameObject:
   m_ObjectHideFlags: 0
