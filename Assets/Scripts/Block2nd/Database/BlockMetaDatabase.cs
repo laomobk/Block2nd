@@ -71,6 +71,7 @@ namespace Block2nd.Database
             public static readonly int Wood = 4;
             public static readonly int Dirt = 5;
             public static readonly int Sand = 6;
+            public static readonly int Water = GetBlockCodeById("b2nd:block/water");
         }
 
         public static void AddBlock(BlockMeta meta)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Block2nd.CommandLine;
 using Block2nd.Database;
 using Block2nd.GamePlay;
 using Block2nd.GUI;
@@ -15,7 +16,8 @@ namespace Block2nd.Client
 	{
 		MENU,
 		GUI,
-		GAME
+		GAME,
+		CHAT,
 	}
 	
 	public class GameClient : MonoBehaviour
@@ -39,15 +41,17 @@ namespace Block2nd.Client
 		private bool cursorLocked;
 		private GameSaveManager gameSaveManager;
 
+		private CommandRuntime commandRuntime;
+
 		public GameClientState GameClientState => gameClientState;
 
 		public Level CurrentLevel => currentLevel.GetComponent<Level>();
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.1.8.4a";
+		public string GameVersion => "0.2.0a";
 
-		public string GameVersionSubject => "Indev";
+		public string GameVersionSubject => "Infdev";
 
 		public IGameGUI currentGUI;
 
@@ -55,6 +59,7 @@ namespace Block2nd.Client
 
 		private void Awake()
 		{
+			commandRuntime = new CommandRuntime(this);
 			gameSaveManager = new GameSaveManager(Application.persistentDataPath);
 		}
 
@@ -81,19 +86,53 @@ namespace Block2nd.Client
 
 		private void Update()
 		{
-			if (Input.GetKeyDown(KeyCode.G)) 
+			if (gameClientState == GameClientState.GAME)
 			{
-				GenerateWorld();
-			}
+				if (Input.GetKeyDown(KeyCode.G))
+				{
+					EnterWorld();
+				}
+
+				if (Input.GetKeyDown(KeyCode.L))
+				{
+					SwitchShader();
+				}
+
+				if (Input.GetKeyDown(KeyCode.K))
+				{
+					SwitchDistance();
+				}
+
+				if (Input.GetKeyDown(KeyCode.Slash))
+				{
+					gameClientState = GameClientState.CHAT;
+					SetChatUIState(true, "/");
+				}
 			
-			if (Input.GetKeyDown(KeyCode.L)) 
-			{
-				SwitchShader();
+				if (Input.GetKeyDown(KeyCode.E) && !gameSettings.mobileControl)
+				{
+					if (currentGUI is AllItemUI)
+					{
+						guiCanvasManager.SetGUIBackgroundState(false);
+						gameClientState = GameClientState.GAME;
+						currentGUI.OnCloseGUI();
+						currentGUI = null;
+					}
+					else
+					{
+						OpenAllItems();
+					}
+				}
 			}
-			
-			if (Input.GetKeyDown(KeyCode.K)) 
+
+			if (gameClientState == GameClientState.CHAT)
 			{
-				SwitchDistance();
+				if (Input.GetKeyDown(KeyCode.Return))
+				{
+					ClientSendMessage(guiCanvasManager.chatUI.GetInputText());
+					SetChatUIState(false);
+					gameClientState = GameClientState.GAME;
+				}
 			}
 
 			if (Input.GetKeyDown(KeyCode.Escape) && !gameSettings.mobileControl)
@@ -116,21 +155,10 @@ namespace Block2nd.Client
 							currentGUI = null;
 						}
 						break;
-				}
-			}
-			
-			if (Input.GetKeyDown(KeyCode.E) && !gameSettings.mobileControl)
-			{
-				if (currentGUI is AllItemUI)
-				{
-					guiCanvasManager.SetGUIBackgroundState(false);
-					gameClientState = GameClientState.GAME;
-					currentGUI.OnCloseGUI();
-					currentGUI = null;
-				}
-				else
-				{
-					OpenAllItems();
+					case GameClientState.CHAT:
+						SetChatUIState(false);
+						gameClientState = GameClientState.GAME;
+						break;
 				}
 			}
 
@@ -146,37 +174,32 @@ namespace Block2nd.Client
 			
 			ClientTick();
 		}
-
-		public void OpenAllItems()
-		{
-			gameClientState = GameClientState.GUI;
-			currentGUI = guiCanvasManager.allItemUI;
-			currentGUI.OnOpenGUI();
-		}
-
-		public void ToggleSelectItemGUI()
-		{
-			if (currentGUI is AllItemUI)
-			{
-				gameClientState = GameClientState.GAME;
-				currentGUI.OnCloseGUI();
-				currentGUI = null;
-			}
-			else
-			{
-				OpenAllItems();
-			}
-		}
-
+		
 		private void ClientStart()
 		{
 			SyncGameSettings();
-			GenerateWorld(/* new TestTerrainNoiseGenerator(worldSettings) */);
+			EnterWorld(/* new TestTerrainNoiseGenerator(worldSettings) */);
 		}
 
 		private void ClientTick()
 		{
 			
+		}
+
+		public void ClientSendMessage(string message)
+		{
+			if (message.StartsWith("/"))
+			{
+				var err = commandRuntime.ExecuteCommandRaw(message);
+				if (err != null)
+				{
+					UnityEngine.Debug.Log(err.ToString());
+				}
+			}
+			else
+			{
+				UnityEngine.Debug.Log("Send message: " + message);
+			}
 		}
 
 		private void SetLightingWithGameSetting()
@@ -211,9 +234,36 @@ namespace Block2nd.Client
 			}
 		}
 
-		public void GenerateWorld(TerrainNoiseGenerator terrainNoiseGenerator = null)
+		public void OpenAllItems()
+		{
+			gameClientState = GameClientState.GUI;
+			currentGUI = guiCanvasManager.allItemUI;
+			currentGUI.OnOpenGUI();
+		}
+
+		public void ToggleSelectItemGUI()
+		{
+			if (currentGUI is AllItemUI)
+			{
+				gameClientState = GameClientState.GAME;
+				currentGUI.OnCloseGUI();
+				currentGUI = null;
+			}
+			else
+			{
+				OpenAllItems();
+			}
+		}
+
+		public void EnterWorld(TerrainNoiseGenerator terrainNoiseGenerator = null)
 		{
 			CloseMenu();
+
+			var progressUI = guiCanvasManager.worldGeneratingProgressUI;
+			
+			progressUI.gameObject.SetActive(true);
+			progressUI.SetTitle("Generating terrain...");
+			progressUI.SetProgress("");
 			
 			if (currentLevel != null)
 			{
@@ -221,13 +271,43 @@ namespace Block2nd.Client
 			}
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
+			var level = currentLevel.GetComponent<Level>();
 			
-			// StartCoroutine(currentLevel.GetComponent<Level>().CreateLevelCoroutine(terrainNoiseGenerator));
+			var point = SpawnPlayer(level);
+			
+			progressUI.gameObject.SetActive(false);
+			
+			StartCoroutine(level.RenderChunksSurrounding(point));
+			
+			StartCoroutine(level.LevelTickCoroutine());
+		}
+
+		public Vector3 SpawnPlayer(Level level)
+		{
+			var point = new Vector3(10727.5f, 0, 10727.5f);
+			level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true);
+			point.y = level.GetHeight((int) point.x, (int) point.z) + 3;
+			
+			player.ResetPlayer(point);
+
+			return point;
 		}
 
 		public Level GetCurrentLevel()
 		{
 			return currentLevel != null ? currentLevel.GetComponent<Level>() : null;
+		}
+
+		public void SetChatUIState(bool state, string initText = "")
+		{
+			guiCanvasManager.chatUI.gameObject.SetActive(state);
+			
+			if (state)
+			{
+				guiCanvasManager.chatUI.Clear();
+				guiCanvasManager.chatUI.Focus();
+				guiCanvasManager.chatUI.Set(initText);
+			}
 		}
 
 		public int SwitchDistance()

@@ -33,15 +33,16 @@ namespace Block2nd.GamePlay
         private bool externalFloatKeyState = false;
         private float targetCameraFov;
 
+        private float lastSpacePressTime = 0f;
+        public bool flying = false;
+
         private bool inWater;
         public bool InWater => inWater;
         public bool OnGround => entity.OnGround;
         public PlayerEntity PlayerEntity => entity;
-
         public PlayerState playerState = PlayerState.WALK;
-
         public Camera playerCamera;
-
+        
         private Queue<Vector3> impulseForceQueue = new Queue<Vector3>();
         
         private void Awake()
@@ -138,14 +139,26 @@ namespace Block2nd.GamePlay
                 speedRatio = runSpeedRatio;
                 playerState = PlayerState.RUN;
 
-                targetCameraFov = gameClient.gameSettings.cameraFov + 5;
+                UpdateCameraFov();
             }
             else
             {
                 speedRatio = walkSpeedRatio;
                 playerState = PlayerState.WALK;
                 
-                targetCameraFov = gameClient.gameSettings.cameraFov;
+                UpdateCameraFov();
+            }
+        }
+
+        private void UpdateCameraFov()
+        {
+            if (playerState == PlayerState.RUN)
+            {
+                targetCameraFov = gameClient.gameSettings.cameraFov + 5 + (flying ? 10 : 0);
+            }
+            else
+            {
+                targetCameraFov = gameClient.gameSettings.cameraFov + (flying ? 10 : 0);
             }
         }
 
@@ -232,38 +245,74 @@ namespace Block2nd.GamePlay
 
                 var onGround = entity.OnGround && !inWater;
 
-                if (inWater)
+                if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    if (Input.GetKey(KeyCode.Space) || externalFloatKeyState)
+                    if (Time.time - lastSpacePressTime > 0.1f && Time.time - lastSpacePressTime < 0.35f)
                     {
-                        Float();
-                    } else {
-                        floatBegin = true;
-                        playerSpeed.y = -3f;
+                        playerSpeed.y = 0;
+                        flying = !flying;
+                        UpdateCameraFov();
                     }
-                } else if (entity.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
-                {
-                    Jump();
-                }
-                playerSpeed.x *= onGround ? 1 : 0.8f;
-                playerSpeed.z *= onGround ? 1 : 0.8f;
 
-                if (!onGround)
+                    lastSpacePressTime = Time.time;
+                }
+
+                if (!flying)
                 {
-                    if (!inWater)
+                    if (inWater)
                     {
-                        playerSpeed.y -= 30f * Time.deltaTime;
+                        if (Input.GetKey(KeyCode.Space) || externalFloatKeyState)
+                        {
+                            Float();
+                        }
+                        else
+                        {
+                            floatBegin = true;
+                            playerSpeed.y = -3f;
+                        }
+                    }
+                    else if (entity.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
+                    {
+                        Jump();
                     }
                 }
                 else
                 {
-                    if (!jumpBegin)
+                    if (Input.GetKey(KeyCode.LeftControl))
                     {
-                        playerSpeed.y = -1f;
+                        playerSpeed.y = -5;
+                    } else if (Input.GetKey(KeyCode.Space) || externalFloatKeyState)
+                    {
+                        playerSpeed.y = 5;
                     }
                     else
                     {
-                        jumpBegin = false;
+                        playerSpeed.y = 0;
+                    }
+                }
+
+                playerSpeed.x *= onGround ? 1 : 0.8f;
+                playerSpeed.z *= onGround ? 1 : 0.8f;
+
+                if (!flying)
+                {
+                    if (!onGround)
+                    {
+                        if (!inWater)
+                        {
+                            playerSpeed.y -= 30f * Time.deltaTime;
+                        }
+                    }
+                    else
+                    {
+                        if (!jumpBegin)
+                        {
+                            playerSpeed.y = -1f;
+                        }
+                        else
+                        {
+                            jumpBegin = false;
+                        }
                     }
                 }
 

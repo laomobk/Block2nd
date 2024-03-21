@@ -37,5 +37,10 @@ namespace Block2nd.World
                 return meta.transparent;
             return true;
         }
+
+        public override string ToString()
+        {
+            return blockCode.ToString();
+        }
     }
 }

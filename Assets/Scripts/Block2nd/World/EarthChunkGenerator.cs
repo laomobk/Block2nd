@@ -1,5 +1,6 @@
 using Block2nd.Database;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Random = System.Random;
 
 namespace Block2nd.World
@@ -24,25 +25,34 @@ namespace Block2nd.World
 
         int GetBlockCodeFromGenerator(float x, float y, float z)
         {
+            var waterLevel = noiseGenerator.waterLevel;
+
             float height = GetHeight(x, z);
             float curY = y;
 
-            if (curY > height)
+            if (curY > Mathf.Max(height, waterLevel))
             {
                 return 0;
             }
-            else if (curY == height)
+
+            if (curY <= waterLevel && curY > height)
             {
+                return BlockMetaDatabase.BuiltinBlockCode.Water;
+            }
+            
+            if (curY == height)
+            {
+                if (curY < waterLevel)
+                    return BlockMetaDatabase.BuiltinBlockCode.Dirt;
                 return BlockMetaDatabase.BuiltinBlockCode.Grass;
             }
-            else if (curY >= height - random.Next(0, 2))
+            
+            if (curY >= height - random.Next(0, 2))
             {
                 return BlockMetaDatabase.BuiltinBlockCode.Dirt;
             }
-            else
-            {
-                return BlockMetaDatabase.BuiltinBlockCode.Stone;
-            }
+            
+            return BlockMetaDatabase.BuiltinBlockCode.Stone;
         }
 
         private void GenerateBasicTerrain(ChunkBlockData[,,] blocks, int chunkX, int chunkZ)
@@ -51,14 +61,16 @@ namespace Block2nd.World
             var worldX = chunkX << 4;
             var worldZ = chunkZ << 4;
             
-            for (int x = 0; x < 16; x += 16)
+            for (int x = 0; x < 16; ++x)
             {
-                for (int z = 0; z < 16; z += 16)
+                for (int z = 0; z < 16; ++z)
                 {
                     for (int y = 0; y < height; ++y)
                     {
                         var blockCode = GetBlockCodeFromGenerator(worldX + x, y, worldZ + z);
-                        byte initState = BlockMetaDatabase.GetBlockMetaByCode(blockCode).initState;
+                        byte initState = blockCode > 0 ? 
+                                            BlockMetaDatabase.GetBlockMetaByCode(blockCode).initState : 
+                                            (byte)0;
                         blocks[x, y, z] = new ChunkBlockData
                         {
                             blockCode = blockCode,
@@ -76,7 +88,7 @@ namespace Block2nd.World
             ChunkBlockData[,,] blocks = new ChunkBlockData[16, worldSettings.chunkHeight, 16];
             GenerateBasicTerrain(blocks, chunkX, chunkZ);
 
-            Chunk chunk = new Chunk(level.ChunkManager, chunkX, chunkZ);
+            Chunk chunk = new Chunk(level, chunkX, chunkZ);
             chunk.chunkBlocks = blocks;
             chunk.aabb = new Bounds(
                 new Vector3(8, height / 2f, 8),

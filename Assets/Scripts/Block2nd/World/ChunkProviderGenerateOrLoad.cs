@@ -1,33 +1,27 @@
 ﻿using System.Collections.Generic;
 using Block2nd.MathUtil;
+using UnityEngine;
 
 namespace Block2nd.World
 {
-    public class WorldProviderGenerateOrLoad : IChunkProvider
+    public class ChunkProviderGenerateOrLoad : IChunkProvider
     {
         private readonly IChunkLoader chunkLoader;
         private readonly IChunkGenerator chunkGenerator;
 
-        private Dictionary<long, Chunk> chunkDict;
+        private Dictionary<ulong, Chunk> chunkDict = new Dictionary<ulong, Chunk>();
 
-        public WorldProviderGenerateOrLoad(IChunkLoader chunkLoader, IChunkGenerator chunkGenerator)
+        public ChunkProviderGenerateOrLoad(IChunkLoader chunkLoader, IChunkGenerator chunkGenerator)
         {
             this.chunkLoader = chunkLoader;
             this.chunkGenerator = chunkGenerator;
         }
-
-        public long ChunkCoordsToLongKey(int chunkX, int chunkZ)
-        {
-            long key = (long) (chunkX >> 4) << 32 | (uint) (chunkZ >> 4);
-
-            return key;
-        }
-
+        
         public Chunk ProvideChunk(Level level, int chunkX, int chunkZ)
         {
-            var key = ChunkCoordsToLongKey(chunkX, chunkZ);
+            var key = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
             Chunk chunk;
-            
+
             if (chunkDict.TryGetValue(key, out chunk))
             {
                 return chunk;
@@ -37,7 +31,7 @@ namespace Block2nd.World
 
             if (chunk != null)
                 return chunk;
-
+            
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
             chunkDict.Add(key, chunk);
 

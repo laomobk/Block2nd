@@ -16,22 +16,25 @@ namespace Block2nd.World
 {
     public class Chunk
     {
-        private ChunkManager chunkManager;
-        
+        private Level level;
+
         public IntVector3 worldBasePosition;
         public Bounds aabb;
 
         public ChunkBlockData[,,] chunkBlocks;
-        public int[,] heightMap;
+        public int[,] heightMap = new int[16, 16];
         public byte[,,] ambientOcclusionMap;
 
         public bool empty = true;
-        public bool dirty = false;
+        public bool dirty = true;
 
-        public Chunk(ChunkManager chunkManager, int chunkX, int chunkZ)
+        public ulong CoordKey { get; }
+
+        public Chunk(Level level, int chunkX, int chunkZ)
         {
-            this.chunkManager = chunkManager;
-            worldBasePosition = new IntVector3(chunkX, 0, chunkZ);
+            this.level = level;
+            worldBasePosition = new IntVector3(chunkX * 16, 0, chunkZ * 16);
+            CoordKey = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)
@@ -182,9 +185,9 @@ namespace Block2nd.World
                         
             BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnUpdate(
                 v, 
-                chunkManager.gameClient.CurrentLevel,
+                level,
                 this,
-                chunkManager.gameClient.player);
+                level.Player);
         }
 
         public void ChunkUpdate(int cx, int cy, int cz, int width)
@@ -206,7 +209,7 @@ namespace Block2nd.World
             if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= width)
             {
                 if (searchLevel)
-                    return chunkManager.GetBlock(worldBasePosition.x + x, 
+                    return level.GetBlock(worldBasePosition.x + x, 
                                                  worldBasePosition.y + y, 
                                                  worldBasePosition.z + z);
                 return ChunkBlockData.EMPTY;

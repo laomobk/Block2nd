@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Block2nd.GUI.GameGUI;
 using Block2nd.GUI.Hierarchical;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Block2nd.GUI
@@ -18,6 +19,7 @@ namespace Block2nd.GUI
         public GameObject mobileUICanvas;
         public InventoryUI inventoryUI;
         public AllItemUI allItemUI;
+        public ChatUI chatUI;
 
         private float holdingItemNameTextAlpha;
 

@@ -24,12 +24,15 @@ namespace Block2nd.World
 
         private ChunkManager chunkManager;
         private TerrainNoiseGenerator terrainNoise;
+        
+        private Queue<ChunkUpdateContext> chunkUpdateQueue = new Queue<ChunkUpdateContext>();
 
         public WorldSettings worldSettings;
 
         public GameObject blockParticlePrefab;
         public GameObject chunkPrefab;
 
+        public Player Player => client.player;
         public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
         public Func<int, int, float> terrainHeightFunc;
@@ -39,10 +42,15 @@ namespace Block2nd.World
 
         private float tickInterval = 0.3f;
         private float lastTickTime = -10f;
+        private int maxEachUpdateCount = 50;
 
+        private bool providingLock = false;
+        
         public Vector3 gravity = new Vector3(0, -0.98f, 0);
 
         public IChunkProvider chunkProvider;
+
+        private ChunkRenderEntityManager chunkRenderEntityManager;
 
         public ChunkManager ChunkManager
         {
@@ -58,9 +66,11 @@ namespace Block2nd.World
             chunkManager = new ChunkManager(this, chunkPrefab, transform, worldSettings, client);
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
 
-            chunkProvider = new WorldProviderGenerateOrLoad(
+            chunkProvider = new ChunkProviderGenerateOrLoad(
                 new SaveChunkLoader(), 
                 new EarthChunkGenerator(worldSettings, terrainNoise));
+
+            chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
         }
 
         private void Start()
@@ -84,10 +94,44 @@ namespace Block2nd.World
         {
             if (Time.time - lastTickTime > tickInterval)
             {
-                var nUpdate = chunkManager.PerformChunkUpdate();
+                var nUpdate = PerformChunkUpdate();
                 lastTickTime = Time.time;
                 client.guiCanvasManager.SetUpdateText(nUpdate);
             }
+        }
+
+        public int PerformChunkUpdate()
+        {
+            if (chunkUpdateQueue.Count <= 0)
+                return 0;
+            
+            var length = 0;
+
+            var ctxArray = new ChunkUpdateContext[maxEachUpdateCount];
+            for (; chunkUpdateQueue.Count > 0 && length < maxEachUpdateCount; ++length)
+                ctxArray[length] = chunkUpdateQueue.Dequeue();
+            
+            var player = client.player;
+
+            for (int i = 0; i < length; ++i)
+            {
+                var ctx = ctxArray[i];
+                var pos = ctx.pos;
+
+                pos = ctx.chunk.WorldToLocal(pos.x, pos.y, pos.z);
+                
+                if (ctx.onlyUpdateCenterBlock)
+                    ctx.chunk.UpdateBlock(pos.x, pos.y, pos.z);
+                else
+                    ctx.chunk.ChunkUpdate(pos.x, pos.y, pos.z, ctx.size);
+            }
+            
+            return length;
+        }
+
+        public void AddUpdateToNextTick(ChunkUpdateContext ctx)
+        {
+            chunkUpdateQueue.Enqueue(ctx);
         }
 
         private IEnumerator BGMPlayCoroutine()
@@ -143,7 +187,7 @@ namespace Block2nd.World
             }
         }
 
-        private IEnumerator LevelTickCoroutine()
+        public IEnumerator LevelTickCoroutine()
         {
             while (true)
             {
@@ -158,20 +202,66 @@ namespace Block2nd.World
             var playerPos = client.player.transform.position;
             
             ProvideChunksSurrounding(playerPos);
+            chunkRenderEntityManager.Tick();
         }
 
-        private void ProvideChunksSurrounding(Vector3 position, int radius = 3)
+        public void ProvideChunksSurrounding(
+                        Vector3 position, int radius = 3, bool renderImmediately = true, 
+                        bool waitForProviding = false)
         {
+            var coroutine = ProvideChunksSurroundingCoroutine(position, radius);
+                
+            if (waitForProviding)
+            {
+                while (coroutine.MoveNext()) ;
+            }
+            else
+            {
+                if (!providingLock)
+                    StartCoroutine(coroutine);
+            }
+            
+            if (renderImmediately)
+                StartCoroutine(RenderChunksSurrounding(position, radius));
+        }
+
+        public IEnumerator ProvideChunksSurroundingCoroutine(
+                        Vector3 position, int radius = 3)
+        {
+            providingLock = true;
+            
+            int pointChunkX = (int) position.x >> 4;
+            int pointChunkZ = (int) position.z >> 4;
+            
+            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+            {
+                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                {
+                    chunkProvider.ProvideChunk(this, cx, cz);
+
+                    yield return null;
+                }
+            }
+
+            providingLock = false;
+        }
+
+        public IEnumerator RenderChunksSurrounding(Vector3 position, int radius = 3)
+        {
+            
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
 
-            for (int cx = pointChunkX - radius; cx < pointChunkX + radius; ++cx)
+            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
             {
-                for (int cz = pointChunkZ - radius; cz < pointChunkZ + radius; ++cz)
+                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
                 {
-                    chunkProvider.ProvideChunk(this, cx, cz);
+                    var chunk = chunkProvider.ProvideChunk(this, cx, cz);
+                    chunkRenderEntityManager.RenderChunk(chunk);
+
+                    yield return null;
                 }
-            } 
+            }
         }
 
         public void ResetChunkProvider(IChunkProvider chunkProvider)
@@ -494,9 +584,12 @@ namespace Block2nd.World
 
         public int GetHeight(int x, int z)
         {
-            var chunk = chunkManager.FindChunk(x, z);
+            var chunk = GetChunkFromCoord(x >> 4, z >> 4);
             var chunkLocalPos = chunk.WorldToLocal(x, z);
-                
+            
+            if (chunk.dirty)
+                chunk.BakeHeightMap();
+            
             return chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z];
         }
         
@@ -536,22 +629,12 @@ namespace Block2nd.World
 
             return exposed;
         }
-        
-        public static bool Check(GameObject obj)
-        {
-            return obj.name == "Chuck";
-        }
 
         public ChunkBlockData GetBlock(Vector3 pos)
         {
             return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out Chunk _);
         }
         
-        public ChunkBlockData GetBlock(Vector3 pos, out Chunk locatedChunk)
-        {
-            return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out locatedChunk);
-        }
-
         public ChunkBlockData GetBlock(int x, int y, int z)
         {
             return GetBlock(x, y, z, out Chunk _);
@@ -559,29 +642,82 @@ namespace Block2nd.World
 
         public ChunkBlockData GetBlock(int x, int y, int z, out Chunk locatedChunk)
         {
-            return chunkManager.GetBlock(x, y, z, out locatedChunk);
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+
+            var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            var local = chunk.WorldToLocal(x, y, z);
+
+            locatedChunk = chunk;
+            
+            if (y < 0 || y >= worldSettings.chunkHeight)
+                return ChunkBlockData.EMPTY;
+
+            return chunk.chunkBlocks[local.x, local.y, local.z];
+        }
+
+        public Chunk GetChunkFromCoord(int chunkX, int chunkZ)
+        {
+            return chunkProvider.ProvideChunk(this, chunkX, chunkZ);
         }
 
         public void SetBlockState(int x, int y, int z, byte state, bool updateMesh)
         {
-            chunkManager.SetBlockState(x, y, z, state, updateMesh);
-        }
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
 
-        public void SetBlock(int blockCode, Vector3 pos, bool update,
-                                        bool updateHeightmap = true, bool triggerUpdate = true,
-                                        byte state = 0)
-        {
-            var intPos = new IntVector3(pos);
-            
-            chunkManager.SetBlock(blockCode, intPos.x, intPos.y, intPos.z, 
-                update, updateHeightmap, triggerUpdate, state);
+            var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            var local = chunk.WorldToLocal(x, y, z);
+
+            chunk.chunkBlocks[local.x, local.y, local.z].blockState = state;
         }
         
         public void SetBlock(int blockCode, int x, int y, int z, 
                                         bool updateMesh, bool updateHeightmap = true,
-                                        bool triggerUpdate = false, byte state = 0)
+                                        bool notify = false, bool useInitState = true, byte state = 0)
         {
-            chunkManager.SetBlock(blockCode, x, y, z, updateMesh, updateHeightmap, triggerUpdate, state);
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+
+            var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            var local = chunk.WorldToLocal(x, y, z);
+
+            var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
+
+            if (y >= worldSettings.chunkHeight || y < 0)
+                return;
+
+            if (useInitState && blockCode > 0)
+                state = meta.initState;
+            
+            chunk.chunkBlocks[local.x, local.y, local.z] = new ChunkBlockData
+            {
+                blockCode = blockCode,
+                blockState = state
+            };
+            
+            if (blockCode > 0)
+                meta.behavior.OnInit(new IntVector3(x, y, z), this, chunk, client.player);
+
+            chunk.dirty = true;
+            
+            if (notify)
+            {
+                AddUpdateToNextTick(new ChunkUpdateContext
+                {
+                    chunk = chunk,
+                    pos = new IntVector3(x, y, z)
+                });
+            }
+
+            if (updateMesh)
+            {
+                chunkRenderEntityManager.RenderChunk(chunk);
+            }
+
+            if (updateHeightmap)
+                chunk.BakeHeightMap();
+
         }
 
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
@@ -738,23 +874,6 @@ namespace Block2nd.World
             return null;
         }
 
-        public Chunk AllocNewChunkGameObject(int chunkX, int chunkZ)
-        {
-            var chunkHeight = worldSettings.chunkHeight;
-            
-            var chunkGameObject = Instantiate(chunkPrefab, transform);
-            var chunk = chunkGameObject.GetComponent<Chunk>();
-
-            var worldX = chunkX << 4;
-            var worldZ = chunkZ << 4;
-
-            chunk.aabb = new Bounds(
-                new Vector3(worldX + 8, chunkHeight / 2, worldZ + 8),
-                new Vector3(16, chunkHeight, 16));
-
-            return chunk;
-        }
-
         public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)
         {
             var x0 = (int) aabb.minX;
@@ -772,7 +891,7 @@ namespace Block2nd.World
 
             if (z0 < 0)
                 z0--;
-
+            
             var result = new List<AABB>();
 
             for (int x = x0; x < x1; ++x)
@@ -783,6 +902,7 @@ namespace Block2nd.World
                     {
                         var block = GetBlock(x, y, z);
                         AABB blockBox;
+                        
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
                             aabb.Intersects(blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
@@ -793,6 +913,8 @@ namespace Block2nd.World
                     }
                 }
             }
+            
+            // Debug.Log(result.Count + ", " + aabb.Center);
 
             return result;
         } 

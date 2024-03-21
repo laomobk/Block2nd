@@ -75,10 +75,6 @@ namespace Block2nd.GamePlay
             Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * 10);
             
             UpdateSelectedBox();
-            HandleFunctionalKey();
-            HandleItemKey();
-            
-            gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
             
             selectBox.gameObject.SetActive(raycastBlockHit != null);
             
@@ -87,6 +83,11 @@ namespace Block2nd.GamePlay
 
             if (gameClient.GameClientState == GameClientState.GAME && !gameClient.gameSettings.mobileControl)
             {
+                HandleFunctionalKey();
+                HandleItemKey();
+            
+                gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
+                
                 if (Input.GetMouseButtonDown(0))
                 {
                     if (raycastBlockHit != null)
@@ -112,9 +113,14 @@ namespace Block2nd.GamePlay
             float zAngle;
             ApplyViewBobbing(transform.localPosition + Vector3.up * 0.8f, out var camPos, out zAngle);
 
+            float t = 0.3f;
+
+            if ((camPos - playerCamera.transform.localPosition).magnitude > 10)
+                t = 1;
+
             playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition,
                                                                 camPos,
-                                                                0.3f);
+                                                                t);
             var localEulerAngles = playerCamera.transform.localEulerAngles;
             localEulerAngles.z = zAngle;
             playerCamera.transform.localEulerAngles = localEulerAngles;
@@ -122,19 +128,7 @@ namespace Block2nd.GamePlay
 
         public void ResetPlayer()
         {
-            var levelWidth = gameClient.worldSettings.levelWidth;
-            
-            int x = levelWidth / 2;
-            int z = levelWidth / 2;
-            
-            gameClient.CurrentLevel.ChunkManager.BakeAllChunkHeightMap();
-            
-            var chunk = gameClient.CurrentLevel.ChunkManager.FindChunk(x, z);
-            var chunkLocalPos = chunk.WorldToLocal(x, z);
-            
-            var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 5;
-            
-            ResetPlayer(new Vector3(x, y, z));
+            gameClient.SpawnPlayer(gameClient.CurrentLevel);
         }
 
         public void RandomTeleportPlayer()
@@ -146,7 +140,7 @@ namespace Block2nd.GamePlay
             
             gameClient.CurrentLevel.ChunkManager.BakeAllChunkHeightMap();
             
-            var chunk = gameClient.CurrentLevel.ChunkManager.FindChunk(x, z);
+            var chunk = gameClient.CurrentLevel.GetChunkFromCoord(x >> 4, z >> 4);
             var chunkLocalPos = chunk.WorldToLocal(x, z);
             
             var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 5;
@@ -266,7 +260,7 @@ namespace Block2nd.GamePlay
             level.SetBlock(0, 
                 raycastBlockHit.blockX, 
                 raycastBlockHit.blockY, 
-                raycastBlockHit.blockZ, true, triggerUpdate: true);
+                raycastBlockHit.blockZ, true, notify: true);
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 

@@ -43,9 +43,9 @@ namespace Block2nd.Behavior.Block
             if (y > 0 && level.GetBlock(x, y - 1, z, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x, y - 1, z, false, state: newState);
+                    GetSelfBlockCode(), x, y - 1, z, false, state: newState, useInitState: false);
 
-                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
+                level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
                     chunk = cp,
                     pos = new IntVector3(x, y - 1, z),
@@ -58,9 +58,9 @@ namespace Block2nd.Behavior.Block
             if (level.GetBlock(x, y, z + 1, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x, y, z + 1, false, state: newState);
+                    GetSelfBlockCode(), x, y, z + 1, false, state: newState, useInitState: false);
 
-                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
+                level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
                     chunk = cp,
                     pos = new IntVector3(x, y, z + 1),
@@ -71,9 +71,9 @@ namespace Block2nd.Behavior.Block
             if (level.GetBlock(x, y, z - 1, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x, y, z - 1, false, state: newState);
+                    GetSelfBlockCode(), x, y, z - 1, false, state: newState, useInitState: false);
 
-                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
+                level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
                     chunk = cp,
                     pos = new IntVector3(x, y, z - 1),
@@ -84,9 +84,9 @@ namespace Block2nd.Behavior.Block
             if (level.GetBlock(x + 1, y, z, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x + 1, y, z, false, state: newState);
+                    GetSelfBlockCode(), x + 1, y, z, false, state: newState, useInitState: false);
 
-                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
+                level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
                     chunk = cp,
                     pos = new IntVector3(x + 1, y, z),
@@ -97,9 +97,9 @@ namespace Block2nd.Behavior.Block
             if (level.GetBlock(x - 1, y, z, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x - 1, y, z, false, state: newState);
+                    GetSelfBlockCode(), x - 1, y, z, false, state: newState, useInitState: false);
 
-                level.ChunkManager.AddUpdateToNextTick(new ChunkUpdateContext
+                level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
                     chunk = cp,
                     pos = new IntVector3(x - 1, y, z),

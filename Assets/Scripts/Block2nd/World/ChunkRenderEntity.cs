@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Block2nd.Database;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
@@ -8,6 +9,8 @@ namespace Block2nd.World
     {
         private GameObject subTransparentChunk;
         private GameObject subLiquidChunk;
+
+        private bool visible = false;
         
         private List<Vector3> opVert = new List<Vector3>();
         private List<Vector2> opUvs = new List<Vector2>();
@@ -23,6 +26,10 @@ namespace Block2nd.World
         private List<Vector2> lqUvs = new List<Vector2>();
         private List<Color> lqColors = new List<Color>();
         private List<int> lqTris = new List<int>();
+
+        [HideInInspector] public ulong currentCoordKey;
+        [HideInInspector] public int freeCount = 0;
+        [HideInInspector] public bool brandNew = true;
         
         private void Awake()
         {
@@ -36,9 +43,31 @@ namespace Block2nd.World
             DestroyImmediate(subTransparentChunk.GetComponent<MeshFilter>().sharedMesh, true);
             DestroyImmediate(subLiquidChunk.GetComponent<MeshFilter>().sharedMesh, true);
         }
+
+        public void SetVisible(bool state)
+        {
+            if (state != visible)
+                visible = state;
+            else
+                return;
+            
+            GetComponent<MeshRenderer>().enabled = state;
+            subTransparentChunk.GetComponent<MeshRenderer>().enabled = state;
+            subLiquidChunk.GetComponent<MeshRenderer>().enabled = state;
+        }
         
         public void RenderChunk(Chunk chunk)
         {
+            if (!chunk.dirty && chunk.CoordKey == currentCoordKey)
+            {
+                SetVisible(true);
+                return;
+            }
+
+            currentCoordKey = chunk.CoordKey;
+
+            Profiler.BeginSample("Render Chunk Mesh");
+            
             var chunkBlocks = chunk.chunkBlocks;
             
             var opMesh = new Mesh();
@@ -159,6 +188,13 @@ namespace Block2nd.World
             subTransparentChunk.GetComponent<MeshFilter>().sharedMesh = trMesh;
 
             subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
+
+            chunk.dirty = false;
+            brandNew = false;
+            
+            SetVisible(true);
+
+            Profiler.EndSample();
         }
     }
 }

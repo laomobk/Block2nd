@@ -17,7 +17,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
         public void GenerateWorld(int levelWidth, TerrainNoiseGenerator terrainNoiseGenerator = null)
         {
             gameClient.worldSettings.levelWidth = levelWidth;
-            gameClient.GenerateWorld(terrainNoiseGenerator);
+            gameClient.EnterWorld(terrainNoiseGenerator);
         }
 
         public void GenerateWorldNormal()

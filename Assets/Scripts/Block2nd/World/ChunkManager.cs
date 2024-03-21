@@ -41,12 +41,10 @@ namespace Block2nd.World
         private Level level;
         private WorldSettings worldSettings;
         private bool forceManagement = false;
-        private Queue<ChunkUpdateContext> chunkUpdateQueue = new Queue<ChunkUpdateContext>();
         
         private float lastSortTime = -10;
         private float minSortInterval = 5f;
         private IntVector3 lastChunkListSortIntPos;
-        private int maxEachUpdateCount = 30;
 
         public ChunkManager(Level Level, GameObject chunkPrefabObject, Transform levelTransform,
             WorldSettings worldSettings, GameClient gameClient)
@@ -61,11 +59,6 @@ namespace Block2nd.World
         {
             ox = x >> 4;
             oz = z >> 4;
-        }
-
-        public void AddUpdateToNextTick(ChunkUpdateContext ctx)
-        {
-            chunkUpdateQueue.Enqueue(ctx);
         }
 
         public long ChunkCoordsToLongKey(IntVector3 pos)
@@ -126,7 +119,7 @@ namespace Block2nd.World
             {
                 int cx, cz;
                 CalcChunkGridPos(x, z, out cx, out cz);
-                chunk = level.AllocNewChunkGameObject(cx, cz);
+                // chunk = level.AllocNewChunkGameObject(cx, cz);
             }
 
             chunk.SetBlock(blockCode, x, y, z, true,
@@ -135,14 +128,6 @@ namespace Block2nd.World
             BlockMetaDatabase.GetBlockBehaviorByCode(blockCode).OnInit(
                 new IntVector3(x, y, z), gameClient.CurrentLevel, chunk, gameClient.player);
 
-            if (triggerUpdate)
-            {
-                AddUpdateToNextTick(new ChunkUpdateContext
-                {
-                    chunk = chunk,
-                    pos = new IntVector3(x, y, z)
-                });
-            }
         }
 
         public void SetBlockState(int x, int y, int z, byte state, bool updateMesh)
@@ -152,7 +137,7 @@ namespace Block2nd.World
             {
                 int cx, cz;
                 CalcChunkGridPos(x, z, out cx, out cz);
-                chunk = level.AllocNewChunkGameObject(cx, cz);
+                // chunk = level.AllocNewChunkGameObject(cx, cz);
             }
             
             chunk.SetBlockState(x, y, z, state, true, updateMesh);
@@ -308,41 +293,6 @@ namespace Block2nd.World
         public void ForceBeginChunksManagement()
         {
             forceManagement = true;
-        }
-
-        public int PerformChunkUpdate()
-        {
-            if (chunkUpdateQueue.Count <= 0)
-                return 0;
-            
-            var length = 0;
-
-            var ctxArray = new ChunkUpdateContext[maxEachUpdateCount];
-            for (; chunkUpdateQueue.Count > 0 && length < maxEachUpdateCount; ++length)
-                ctxArray[length] = chunkUpdateQueue.Dequeue();
-            
-            var player = gameClient.player;
-
-            for (int i = 0; i < length; ++i)
-            {
-                var ctx = ctxArray[i];
-                var pos = ctx.pos;
-
-                pos = ctx.chunk.WorldToLocal(pos.x, pos.y, pos.z);
-                
-                if (ctx.onlyUpdateCenterBlock)
-                    ctx.chunk.UpdateBlock(pos.x, pos.y, pos.z);
-                else
-                    ctx.chunk.ChunkUpdate(pos.x, pos.y, pos.z, ctx.size);
-            }
-            
-            if (length > 0)
-            {
-                SortChunksByDistance(player.transform.position);
-                ForceBeginChunksManagement();
-            }
-            
-            return length;
         }
 
         public bool CheckIsActiveChunk(Chunk chunk, IntVector3 playerIntPos, int chunkWidth)
