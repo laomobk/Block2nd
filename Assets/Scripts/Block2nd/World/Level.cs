@@ -8,6 +8,7 @@ using Block2nd.Client;
 using Block2nd.Render;
 using Block2nd.Database;
 using Block2nd.Database.Meta;
+using Block2nd.DebugUtil;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
 using Block2nd.Phys;
@@ -209,6 +210,8 @@ namespace Block2nd.World
                         Vector3 position, int radius = 3, bool renderImmediately = true, 
                         bool waitForProviding = false)
         {
+            
+            
             var coroutine = ProvideChunksSurroundingCoroutine(position, radius);
                 
             if (waitForProviding)
@@ -262,6 +265,63 @@ namespace Block2nd.World
                     yield return null;
                 }
             }
+        }
+        
+        private bool IsBoundsInFrustum(Bounds aabb)
+        {
+            Plane[] planes = new Plane[6];
+            GeometryUtility.CalculateFrustumPlanes(client.player.playerCamera, planes);
+            return GeometryUtility.TestPlanesAABB(planes, aabb);
+        }
+
+        public List<IntVector3> GetAllChunkCoordsInFrustum()
+        {
+            var chunkHeight = worldSettings.chunkHeight;
+            
+            var viewDistance = client.gameSettings.viewDistance;
+            var playerCamera = client.player.playerCamera;
+            var cameraPos = playerCamera.transform.position;
+            var forward = playerCamera.transform.forward;
+            var right = playerCamera.transform.right;
+
+            var coords = new List<IntVector3>();
+
+            Vector3 currentPos = cameraPos;
+
+            Bounds aabb = new Bounds(Vector3.zero, new Vector3(16, chunkHeight, 16));
+
+            for (int i = 0; i < viewDistance; ++i)
+            {
+                aabb.center = currentPos;
+                if (!IsBoundsInFrustum(aabb))
+                {
+                    continue;
+                }
+                coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+
+                for (;;)
+                {
+                    aabb.center += right;
+                    if (!IsBoundsInFrustum(aabb))
+                    {
+                        break;
+                    }
+                    coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+                }
+
+                aabb.center = currentPos;
+                for (;;)
+                {
+                    aabb.center -= right;
+                    if (!IsBoundsInFrustum(aabb))
+                    {
+                        break;
+                    }
+                    coords.Add(IntVector3.NewWithFloorToChunkGridCoord(aabb.center));
+                }
+            }
+
+            return coords;
         }
 
         public void ResetChunkProvider(IChunkProvider chunkProvider)
@@ -864,8 +924,12 @@ namespace Block2nd.World
 
                 blockBehavior = BlockMetaDatabase.GetBlockBehaviorByCode(
                     GetBlock(iStartX, iStartY, iStartZ).blockCode);
+                var aabb = blockBehavior.GetAABB(iStartX, iStartY, iStartZ);
+                
+                DebugAABB.DrawAABBInSceneView(aabb, Color.red);
+                
                 if (blockBehavior.CanRaycast() && 
-                    (hit = blockBehavior.GetAABB(iStartX, iStartY, iStartZ).Raycast(start, end)) != null)
+                    (hit = aabb.Raycast(start, end)) != null)
                 {
                     return hit;
                 }
@@ -876,22 +940,13 @@ namespace Block2nd.World
 
         public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)
         {
-            var x0 = (int) aabb.minX;
-            var x1 = (int) aabb.maxX + 1;
-            var y0 = (int) aabb.minY;
-            var y1 = (int) aabb.maxY + 1;
-            var z0 = (int) aabb.minZ;
-            var z1 = (int) aabb.maxZ + 1;
+            var x0 = MathHelper.FloorInt(aabb.minX);
+            var x1 = MathHelper.FloorInt(aabb.maxX) + 1;
+            var y0 = MathHelper.FloorInt(aabb.minY);
+            var y1 = MathHelper.FloorInt(aabb.maxY) + 1;
+            var z0 = MathHelper.FloorInt(aabb.minZ);
+            var z1 = MathHelper.FloorInt(aabb.maxZ) + 1;
 
-            if (x0 < 0)
-                x0--;
-
-            if (y0 < 0)
-                y0--;
-
-            if (z0 < 0)
-                z0--;
-            
             var result = new List<AABB>();
 
             for (int x = x0; x < x1; ++x)
@@ -901,12 +956,15 @@ namespace Block2nd.World
                     for (int z = z0; z < z1; ++z)
                     {
                         var block = GetBlock(x, y, z);
-                        AABB blockBox;
+                        AABB blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
+                                            .GetAABB(new IntVector3(x, y, z));
+                        
+                        // DebugAABB.DrawAABBInSceneView(blockBox, Color.red);
+                        // DebugAABB.DrawAABBInSceneView(aabb, Color.yellow);
                         
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
-                            aabb.Intersects(blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
-                                .GetAABB(new IntVector3(x, y, z))))
+                            aabb.Intersects(blockBox))
                         {
                             result.Add(blockBox);
                         }

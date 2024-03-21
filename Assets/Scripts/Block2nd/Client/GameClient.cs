@@ -284,7 +284,7 @@ namespace Block2nd.Client
 
 		public Vector3 SpawnPlayer(Level level)
 		{
-			var point = new Vector3(10727.5f, 0, 10727.5f);
+			var point = new Vector3(0.10727f, 0, 0.10727f);
 			level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true);
 			point.y = level.GetHeight((int) point.x, (int) point.z) + 3;
 			
