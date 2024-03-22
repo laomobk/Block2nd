@@ -814,7 +814,7 @@ namespace Block2nd.World
                 {
                     return null;
                 }
-
+                
                 if (iEndX > iStartX)
                 {
                     newX = iStartX + 1;
@@ -926,7 +926,7 @@ namespace Block2nd.World
                     GetBlock(iStartX, iStartY, iStartZ).blockCode);
                 var aabb = blockBehavior.GetAABB(iStartX, iStartY, iStartZ);
                 
-                DebugAABB.DrawAABBInSceneView(aabb, Color.red);
+                DebugAABB.DrawAABBInSceneView(aabb, new Color(0, blockTraceCount / 100f, 0));
                 
                 if (blockBehavior.CanRaycast() && 
                     (hit = aabb.Raycast(start, end)) != null)
@@ -934,7 +934,7 @@ namespace Block2nd.World
                     return hit;
                 }
             }
-            
+
             return null;
         }
 
