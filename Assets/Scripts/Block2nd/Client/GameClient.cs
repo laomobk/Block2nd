@@ -36,7 +36,7 @@ namespace Block2nd.Client
 		public int[] viewDistanceCandidates = new int[]{4, 8, 16, 32};
 
 		private GameClientState gameClientState = GameClientState.GAME;
-		private int viewDistanceCandidateIdx = 2;
+		private int viewDistanceCandidateIdx = 1;
 		private int shaderCandidateIdx = 0;
 		private bool cursorLocked;
 		private GameSaveManager gameSaveManager;
@@ -49,7 +49,7 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.2.0a";
+		public string GameVersion => "0.2.1a";
 
 		public string GameVersionSubject => "Infdev";
 
@@ -277,15 +277,13 @@ namespace Block2nd.Client
 			
 			progressUI.gameObject.SetActive(false);
 			
-			StartCoroutine(level.RenderChunksSurrounding(point));
-			
 			StartCoroutine(level.LevelTickCoroutine());
 		}
 
 		public Vector3 SpawnPlayer(Level level)
 		{
 			var point = new Vector3(0.10727f, 0, 0.10727f);
-			level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true);
+			level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true, radius: 2);
 			point.y = level.GetHeight((int) point.x, (int) point.z) + 3;
 			
 			player.ResetPlayer(point);

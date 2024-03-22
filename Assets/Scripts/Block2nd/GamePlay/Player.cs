@@ -36,6 +36,9 @@ namespace Block2nd.GamePlay
 
         private ChunkBlockData selectedBlock;
         private SelectBox selectBox;
+        
+        private Vector3 dampCameraMotionVelocity = Vector3.zero;
+        private Vector3 dampCameraBobblingVelocity = Vector3.zero;
 
         [HideInInspector] public PlayerController playerController;
 
@@ -113,14 +116,10 @@ namespace Block2nd.GamePlay
             float zAngle;
             ApplyViewBobbing(transform.localPosition + Vector3.up * 0.8f, out var camPos, out zAngle);
 
-            float t = 0.3f;
-
-            if ((camPos - playerCamera.transform.localPosition).magnitude > 10)
-                t = 1;
-
-            playerCamera.transform.localPosition = Vector3.Lerp(playerCamera.transform.localPosition,
+            playerCamera.transform.localPosition = Vector3.SmoothDamp(playerCamera.transform.localPosition,
                                                                 camPos,
-                                                                t);
+                                                                ref dampCameraMotionVelocity, 0.02f);
+            
             var localEulerAngles = playerCamera.transform.localEulerAngles;
             localEulerAngles.z = zAngle;
             playerCamera.transform.localEulerAngles = localEulerAngles;
@@ -278,7 +277,9 @@ namespace Block2nd.GamePlay
                     1 + -Mathf.Abs(Mathf.Cos(-t * 3.14159f)), 0f);
 
                 posOfs = pos + playerCamera.transform.localToWorldMatrix.MultiplyVector(
-                    Vector3.Lerp(Vector3.zero, bobbing * 0.13f, vLength / 5));
+                    Vector3.SmoothDamp(Vector3.zero, 
+                        bobbing * 0.13f * vLength / playerController.GetSpeedRatio(), 
+                        ref dampCameraBobblingVelocity, 0.05f));
                 
                 zAngle = 0.1f * Mathf.Sin(-3.14159f * t) * Mathf.Min(1, vLength / 5);
                 

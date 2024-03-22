@@ -20,6 +20,7 @@ namespace Block2nd.GUI
         public InventoryUI inventoryUI;
         public AllItemUI allItemUI;
         public ChatUI chatUI;
+        public ChunkStatText chunkStatText;
 
         private float holdingItemNameTextAlpha;
 

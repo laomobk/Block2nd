@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Block2nd.Client;
 using Block2nd.GamePlay;
 using UnityEngine;
 
@@ -9,18 +10,33 @@ namespace Block2nd.World
     {
         public GameObject chunkRenderEntityPrefab;
 
+        private GameClient gameClient;
         private Player player;
         private List<ChunkRenderEntity> renderEntityPool = new List<ChunkRenderEntity>();
-        private Dictionary<ulong, ChunkRenderEntity> renderEntityDict = new Dictionary<ulong, ChunkRenderEntity>();
+        private Dictionary<ulong, ChunkRenderEntity> entityInUseDict = new Dictionary<ulong, ChunkRenderEntity>();
 
         private void Awake()
         {
+            gameClient = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
             player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         }
 
+        public void TryRenderChunk(Chunk chunk)
+        {
+            if (chunk == null)
+            {
+                return;
+            }
+            
+            RenderChunk(chunk);
+        }
+
         public void RenderChunk(Chunk chunk)
-        {;
-            if (renderEntityDict.TryGetValue(chunk.CoordKey, out var entity))
+        {
+            if (!IsInRenderDistance(chunk.worldBasePosition.ToUnityVector3()))
+                return;
+            
+            if (entityInUseDict.TryGetValue(chunk.CoordKey, out var entity))
             {
                 entity.freeCount = 0;
                 entity.RenderChunk(chunk);
@@ -31,7 +47,7 @@ namespace Block2nd.World
             entity.freeCount = 0;
             entity.transform.position = chunk.worldBasePosition.ToUnityVector3();
             entity.RenderChunk(chunk);
-            renderEntityDict.Add(chunk.CoordKey, entity);
+            entityInUseDict.Add(chunk.CoordKey, entity);
         }
 
         public void Tick()
@@ -43,17 +59,22 @@ namespace Block2nd.World
                 else
                     entity.freeCount = 0;
             }
+            
+            gameClient.guiCanvasManager.chunkStatText.SetChunksInRender(entityInUseDict.Count);
+        }
+
+        private bool IsInRenderDistance(Vector3 pos)
+        {
+            var playerPos = player.transform.position;
+            /* a circle which r = view distance * 16 * sqrt(2) */
+            return (playerPos - pos).magnitude < gameClient.gameSettings.viewDistance * 22.6262624;
         }
 
         private bool CanThisEntityBeFree(ChunkRenderEntity entity)
         {
             var entityPos = entity.transform.position + new Vector3(8, 0, 8);
-            var playerPos = player.transform.position;
-
-            var dir = entityPos - playerPos;
-            dir.y = 0;
             
-            if (dir.magnitude < 32 || Vector3.Dot(player.playerCamera.transform.forward, dir.normalized) > 0)
+            if (IsInRenderDistance(entityPos))
             {
                 return false;
             }
@@ -77,9 +98,9 @@ namespace Block2nd.World
                 else
                     entity.freeCount = 0;
                 
-                if (entity.freeCount > 2)
+                if (entity.freeCount > 10)
                 {
-                    renderEntityDict.Remove(entity.currentCoordKey);
+                    entityInUseDict.Remove(entity.currentCoordKey);
                     return entity;
                 }
             }

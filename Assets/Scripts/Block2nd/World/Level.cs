@@ -39,13 +39,14 @@ namespace Block2nd.World
         public Func<int, int, float> terrainHeightFunc;
 
         private GameClient client;
-        private Coroutine chunkManagementCoroutine;
 
         private float tickInterval = 0.3f;
         private float lastTickTime = -10f;
         private int maxEachUpdateCount = 50;
 
-        private bool providingLock = false;
+        private bool chunkProvideLock;
+        private bool chunkRenderLock;
+        private Vector3 lastChunkProvidePosition = Vector3.positiveInfinity;
         
         public Vector3 gravity = new Vector3(0, -0.98f, 0);
 
@@ -82,13 +83,6 @@ namespace Block2nd.World
         private void Update()
         {
             
-        }
-
-        private void OnDestroy()
-        {
-            chunkManager.chunkWorkerRunning = false;
-            if (chunkManagementCoroutine != null)
-                StopCoroutine(chunkManagementCoroutine);
         }
 
         private void LateUpdate()
@@ -203,15 +197,27 @@ namespace Block2nd.World
             var playerPos = client.player.transform.position;
             
             ProvideChunksSurrounding(playerPos);
+            
+            client.guiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
             chunkRenderEntityManager.Tick();
         }
 
         public void ProvideChunksSurrounding(
-                        Vector3 position, int radius = 3, bool renderImmediately = true, 
+                        Vector3 position, int radius = 0, bool renderImmediately = true, 
                         bool waitForProviding = false)
         {
-            
-            
+            if (!waitForProviding && renderImmediately && !chunkProvideLock)
+            {
+                if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                {
+                    return;
+                }
+
+                lastChunkProvidePosition = client.player.transform.position;
+
+                StartCoroutine(SyncChunkProvideAndRenderCoroutine(position, radius));
+            }
+
             var coroutine = ProvideChunksSurroundingCoroutine(position, radius);
                 
             if (waitForProviding)
@@ -220,18 +226,30 @@ namespace Block2nd.World
             }
             else
             {
-                if (!providingLock)
+                if (!chunkProvideLock)
                     StartCoroutine(coroutine);
             }
             
-            if (renderImmediately)
+            if (renderImmediately && !chunkRenderLock)
                 StartCoroutine(RenderChunksSurrounding(position, radius));
         }
 
-        public IEnumerator ProvideChunksSurroundingCoroutine(
-                        Vector3 position, int radius = 3)
+        public IEnumerator SyncChunkProvideAndRenderCoroutine(Vector3 position, int radius)
         {
-            providingLock = true;
+            yield return StartCoroutine(ProvideChunksSurroundingCoroutine(position, radius));
+
+            yield return StartCoroutine(RenderChunksSurrounding(position, radius));
+        }
+
+        public IEnumerator ProvideChunksSurroundingCoroutine(
+                        Vector3 position, int radius)
+        {
+            if (radius == 0)
+            {
+                radius = client.gameSettings.viewDistance;
+            }
+            
+            chunkProvideLock = true;
             
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
@@ -246,25 +264,83 @@ namespace Block2nd.World
                 }
             }
 
-            providingLock = false;
+            chunkProvideLock = false;
         }
 
-        public IEnumerator RenderChunksSurrounding(Vector3 position, int radius = 3)
+        public IEnumerator RenderChunksSurrounding(Vector3 position, int distance)
         {
+            chunkRenderLock = true;
+            if (distance == 0)
+                distance = client.gameSettings.viewDistance;
+
+            var startChunkX = Mathf.FloorToInt(position.x) >> 4;
+            var startChunkZ = Mathf.FloorToInt(position.z) >> 4;
+
+            int cx = startChunkX, cz = startChunkZ;
             
-            int pointChunkX = (int) position.x >> 4;
-            int pointChunkZ = (int) position.z >> 4;
+            chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+            yield return null;
 
-            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+            for (int i = 1; i <= distance; ++i)
             {
-                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                // dir Z+
+                cz = startChunkZ + i;
+                cx = startChunkX;
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                for (int j = 1; j <= i; ++j)
                 {
-                    var chunk = chunkProvider.ProvideChunk(this, cx, cz);
-                    chunkRenderEntityManager.RenderChunk(chunk);
-
+                    cx = startChunkX + j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                    cx = startChunkX - j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                }
+                
+                // dir Z-
+                cz = startChunkZ - i;
+                cx = startChunkX;
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                for (int j = 1; j <= i; ++j)
+                {
+                    cx = startChunkX + j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                    cx = startChunkX - j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                }
+                
+                // dir X+
+                cz = startChunkZ;
+                cx = startChunkX + i;
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                for (int j = 1; j <= i; ++j)
+                {
+                    cz = startChunkZ + j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                    cz = startChunkZ - j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                }
+                
+                // dir X-
+                cz = startChunkZ;
+                cx = startChunkX - i;
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                for (int j = 1; j <= i; ++j)
+                {
+                    cz = startChunkZ + j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    yield return null;
+                    cz = startChunkZ - j;
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
                     yield return null;
                 }
             }
+            
+            chunkRenderLock = false;
         }
         
         private bool IsBoundsInFrustum(Bounds aabb)
@@ -772,6 +848,7 @@ namespace Block2nd.World
 
             if (updateMesh)
             {
+                chunk.BakeHeightMap();
                 chunkRenderEntityManager.RenderChunk(chunk);
             }
 
@@ -926,8 +1003,6 @@ namespace Block2nd.World
                 blockBehavior = BlockMetaDatabase.GetBlockBehaviorByCode(
                     GetBlock(iStartX, iStartY, iStartZ).blockCode);
                 var aabb = blockBehavior.GetAABB(iStartX, iStartY, iStartZ);
-                
-                DebugAABB.DrawAABBInSceneView(aabb, new Color(0, blockTraceCount / 100f, 0));
                 
                 if (blockBehavior.CanRaycast() && 
                     (hit = aabb.Raycast(start, end)) != null)

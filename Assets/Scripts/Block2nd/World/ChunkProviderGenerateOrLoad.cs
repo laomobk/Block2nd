@@ -37,5 +37,28 @@ namespace Block2nd.World
 
             return chunk;
         }
+
+        public Chunk TryGetChunk(int chunkX, int chunkZ)
+        {
+            var key = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
+            Chunk chunk;
+
+            if (chunkDict.TryGetValue(key, out chunk))
+            {
+                return chunk;
+            }
+            
+            chunk = chunkLoader.TryLoadChunk(chunkX, chunkZ);
+
+            if (chunk != null)
+                return chunk;
+
+            return null;
+        }
+
+        public int GetChunkCacheCount()
+        {
+            return chunkDict.Count;
+        }
     }
 }
