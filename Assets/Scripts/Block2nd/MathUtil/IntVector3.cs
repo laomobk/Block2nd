@@ -12,9 +12,9 @@ namespace Block2nd.MathUtil
 
         public IntVector3(Vector3 vector3)
         {
-            x = (int) vector3.x;
-            y = (int) vector3.y;
-            z = (int) vector3.z;
+            x = Mathf.FloorToInt(vector3.x);
+            y = Mathf.FloorToInt(vector3.y);
+            z = Mathf.FloorToInt(vector3.z);
         }
 
         public IntVector3(float x, float y, float z)
@@ -51,7 +51,7 @@ namespace Block2nd.MathUtil
 
         public static IntVector3 NewWithFloorToChunkGridCoord(Vector3 v)
         {
-            return new IntVector3(MathHelper.FloorInt(v.x / 16), 0, MathHelper.FloorInt(v.z / 16));
+            return new IntVector3(Mathf.FloorToInt(v.x / 16), 0, Mathf.FloorToInt(v.z / 16));
         }
     }
 }

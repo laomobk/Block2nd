@@ -783,12 +783,12 @@ namespace Block2nd.World
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
         {
             start += new Vector3(5e-5f, 5e-5f, -5e-5f);
-            int iStartX = MathHelper.FloorInt(start.x);
-            int iStartY = MathHelper.FloorInt(start.y);
-            int iStartZ = MathHelper.FloorInt(start.z);
-            int iEndX = MathHelper.FloorInt(end.x);
-            int iEndY = MathHelper.FloorInt(end.y);
-            int iEndZ = MathHelper.FloorInt(end.z);
+            int iStartX = Mathf.FloorToInt(start.x);
+            int iStartY = Mathf.FloorToInt(start.y);
+            int iStartZ = Mathf.FloorToInt(start.z);
+            int iEndX = Mathf.FloorToInt(end.x);
+            int iEndY = Mathf.FloorToInt(end.y);
+            int iEndZ = Mathf.FloorToInt(end.z);
 
             RayHit hit;
             ChunkBlockData block = GetBlock(iStartX, iStartY, iStartZ);
@@ -799,6 +799,8 @@ namespace Block2nd.World
             {
                 return hit;
             }
+
+            byte normalDirection = 255;
 
             int blockTraceCount = 100;
 
@@ -853,15 +855,14 @@ namespace Block2nd.World
                 {
                     zMoved = false;
                 }
-
-                byte normalDirection;
+                
                 float dx = end.x - start.x;
                 float dy = end.y - start.y;
                 float dz = end.z - start.z;
                 float ratioX = xMoved ? (newX - start.x) / dx : 1000f;
                 float ratioY = yMoved ? (newY - start.y) / dy : 1000f;
                 float ratioZ = zMoved ? (newZ - start.z) / dz : 1000f;
-
+                
                 if (ratioX < ratioY && ratioX < ratioZ) // x direction is closest
                 {
                     if (iStartX < iEndX)
@@ -909,9 +910,9 @@ namespace Block2nd.World
                 }
 
                 // reset new int start xyz.
-                iStartX = MathHelper.FloorInt(start.x);
-                iStartY = MathHelper.FloorInt(start.y);
-                iStartZ = MathHelper.FloorInt(start.z);
+                iStartX = Mathf.FloorToInt(start.x);
+                iStartY = Mathf.FloorToInt(start.y);
+                iStartZ = Mathf.FloorToInt(start.z);
 
                 if (normalDirection == RayHitNormalDirection.Right)
                     iStartX--;
@@ -940,12 +941,12 @@ namespace Block2nd.World
 
         public List<AABB> GetWorldCollideBoxIntersect(AABB aabb)
         {
-            var x0 = MathHelper.FloorInt(aabb.minX);
-            var x1 = MathHelper.FloorInt(aabb.maxX) + 1;
-            var y0 = MathHelper.FloorInt(aabb.minY);
-            var y1 = MathHelper.FloorInt(aabb.maxY) + 1;
-            var z0 = MathHelper.FloorInt(aabb.minZ);
-            var z1 = MathHelper.FloorInt(aabb.maxZ) + 1;
+            var x0 = Mathf.FloorToInt(aabb.minX);
+            var x1 = Mathf.FloorToInt(aabb.maxX) + 1;
+            var y0 = Mathf.FloorToInt(aabb.minY);
+            var y1 = Mathf.FloorToInt(aabb.maxY) + 1;
+            var z0 = Mathf.FloorToInt(aabb.minZ);
+            var z1 = Mathf.FloorToInt(aabb.maxZ) + 1;
 
             var result = new List<AABB>();
 
