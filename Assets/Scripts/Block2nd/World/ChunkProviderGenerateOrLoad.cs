@@ -33,7 +33,10 @@ namespace Block2nd.World
                 return chunk;
             
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
+                
             chunkDict.Add(key, chunk);
+            
+            chunkGenerator.PopulateChunk(level, chunkX, chunkZ);
 
             return chunk;
         }

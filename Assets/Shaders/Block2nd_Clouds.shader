@@ -14,7 +14,6 @@
 		Pass
 		{
 		    Cull off
-		    // Offset -2, -2
 		
 			CGPROGRAM
 			#pragma vertex vert
@@ -65,8 +64,10 @@
 
 				if (col.a < 0.1)
 					discard;
-
+				
 				UNITY_APPLY_FOG(i.fogCoord, col);
+
+				col.a = 0.75f;
 				
 				return col;
 			}

@@ -38,6 +38,9 @@ namespace Block2nd.World
 
         public Func<int, int, float> terrainHeightFunc;
 
+        public bool breakChunkRender;
+        private bool chunkProvideIgnoreDistance;
+
         private GameClient client;
 
         private float tickInterval = 0.3f;
@@ -46,6 +49,7 @@ namespace Block2nd.World
 
         private bool chunkProvideLock;
         private bool chunkRenderLock;
+        private bool syncProvideAndRenderLock;
         private Vector3 lastChunkProvidePosition = Vector3.positiveInfinity;
         
         public Vector3 gravity = new Vector3(0, -0.98f, 0);
@@ -77,7 +81,7 @@ namespace Block2nd.World
 
         private void Start()
         {
-            
+            GeneratePyramids();
         }
 
         private void Update()
@@ -206,11 +210,18 @@ namespace Block2nd.World
                         Vector3 position, int radius = 0, bool renderImmediately = true, 
                         bool waitForProviding = false)
         {
-            if (!waitForProviding && renderImmediately && !chunkProvideLock)
+            if (!waitForProviding && renderImmediately && !chunkProvideLock && !syncProvideAndRenderLock)
             {
-                if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                if (!chunkProvideIgnoreDistance)
                 {
-                    return;
+                    if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    chunkProvideIgnoreDistance = false;
                 }
 
                 lastChunkProvidePosition = client.player.transform.position;
@@ -236,9 +247,12 @@ namespace Block2nd.World
 
         public IEnumerator SyncChunkProvideAndRenderCoroutine(Vector3 position, int radius)
         {
+            syncProvideAndRenderLock = true;
+            
             yield return StartCoroutine(ProvideChunksSurroundingCoroutine(position, radius));
-
             yield return StartCoroutine(RenderChunksSurrounding(position, radius));
+            
+            syncProvideAndRenderLock = false;
         }
 
         public IEnumerator ProvideChunksSurroundingCoroutine(
@@ -286,57 +300,64 @@ namespace Block2nd.World
                 // dir Z+
                 cz = startChunkZ + i;
                 cx = startChunkX;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                     cx = startChunkX - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                 }
                 
                 // dir Z-
                 cz = startChunkZ - i;
                 cx = startChunkX;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                     cx = startChunkX - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                 }
                 
                 // dir X+
                 cz = startChunkZ;
                 cx = startChunkX + i;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                     cz = startChunkZ - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                 }
                 
                 // dir X-
                 cz = startChunkZ;
                 cx = startChunkX - i;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
                     cz = startChunkZ - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
                     yield return null;
+                }
+
+                if (breakChunkRender)
+                {
+                    breakChunkRender = false;
+                    chunkProvideIgnoreDistance = true;
+                    break;
                 }
             }
             
@@ -473,134 +494,117 @@ namespace Block2nd.World
         }
         */
 
-        private IEnumerator GeneratePyramids()
+        private void GeneratePyramids()
         {
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
-            
-            var x = random.Next(40, worldSettings.levelWidth - 40);
-            var z = random.Next(40, worldSettings.levelWidth - 40);
+            var x = 500;
+            var z = 500;
 
-            var chunk = chunkManager.FindChunk(x, z);
-            var chunkLocalPos = chunk.WorldToLocal(x, z);
-                
-            var y = terrainNoise is FlatTerrainNoiseGenerator ? 5 : 10;
+            var y = 10;
             
             var redBrickCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/red_brick").blockCode;
 
-            for (int h = 0; h < 32; ++h)
+            for (int h = 0; h < 64; ++h)
             {
-                for (int px = -32 + h; px < 32 - h; ++px)
+                for (int px = -64 + h; px < 64 - h; ++px)
                 {
-                    for (int pz = -32 + h; pz < 32 - h; ++pz)
+                    for (int pz = -64 + h; pz < 64 - h; ++pz)
                     {
-                        SetBlock(redBrickCode, x + px, y + h, z + pz, false);
+                        SetBlock(redBrickCode, x + px, y + h, z + pz, false, false);
                     }
                 }
-             
-                progressUI.SetProgress((h + 1) / 32f);
-                yield return null;   
             }
         }
 
-        private IEnumerator GenerateTrees()
+        public void GrowTree(int worldX, int worldY, bool check = true)
         {
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
             var waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
-            
+
             chunkManager.BakeAllChunkHeightMap();
 
-            var nTree = terrainNoise is FlatTerrainNoiseGenerator ? 200 : 425;
+            var x = worldX;
+            var z = worldY;
+
+            var chunk = GetChunkFromCoord(worldX >> 4, worldY >> 4);
+            chunk.BakeHeightMap();
             
-            for (int i = 0; i < nTree; ++i)
-            {
-                var x = random.Next(5, worldSettings.levelWidth - 5);
-                var z = random.Next(5, worldSettings.levelWidth - 5);
+            var chunkLocalPos = chunk.WorldToLocal(x, z);
 
-                var chunk = chunkManager.FindChunk(x, z);
-                var chunkLocalPos = chunk.WorldToLocal(x, z);
-                
-                var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z];
-                
-                if (GetBlock(x, y, z).blockCode == waterCode)
-                    continue;
+            var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z];
+            var baseBlock = GetBlock(x, y, z);
 
-                var orkCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/ork").blockCode;
-                var leavesCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/leaves").blockCode;
+            if (check && baseBlock.blockCode != BlockMetaDatabase.BuiltinBlockCode.Grass)
+                return;
 
-                SetBlock(orkCode, x, ++y, z, false, false);
-                SetBlock(orkCode, x, ++y, z, false, false);
-                SetBlock(orkCode, x, ++y, z, false, false);
+            var orkCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/ork").blockCode;
+            var leavesCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/leaves").blockCode;
 
-                SetBlock(leavesCode, x - 1, y, z - 1, false, false);
-                SetBlock(leavesCode, x, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 1, y, z - 1, false, false);
-                SetBlock(leavesCode, x - 1, y, z, false, false);
-                SetBlock(leavesCode, x + 1, y, z, false, false);
-                SetBlock(leavesCode, x - 1, y, z + 1, false, false);
-                SetBlock(leavesCode, x, y, z + 1, false, false);
-                SetBlock(leavesCode, x + 1, y, z + 1, false, false);
-                
-                SetBlock(leavesCode, x + 2, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 2, y, z, false, false);
-                SetBlock(leavesCode, x + 2, y, z + 1, false, false);
-                
-                SetBlock(leavesCode, x - 2, y, z + 1, false, false);
-                SetBlock(leavesCode, x - 2, y, z, false, false);
-                SetBlock(leavesCode, x - 2, y, z - 1, false, false);
-                
-                SetBlock(leavesCode, x - 1, y, z + 2, false, false);
-                SetBlock(leavesCode, x, y, z + 2, false, false);
-                SetBlock(leavesCode, x + 1, y, z + 2, false, false);
-                
-                SetBlock(leavesCode, x - 1, y, z - 2, false, false);
-                SetBlock(leavesCode, x, y, z - 2, false, false);
-                SetBlock(leavesCode, x + 1, y, z - 2, false, false);
-                
-                SetBlock(orkCode, x, ++y, z, false, false);
-                
-                SetBlock(leavesCode, x, y, z + 1, false, false);
-                SetBlock(leavesCode, x, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 1, y, z, false, false);
-                SetBlock(leavesCode, x - 1, y, z, false, false);
-                
-                SetBlock(leavesCode, x + 2, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 2, y, z, false, false);
-                SetBlock(leavesCode, x + 2, y, z + 1, false, false);
-                
-                SetBlock(leavesCode, x - 2, y, z + 1, false, false);
-                SetBlock(leavesCode, x - 2, y, z, false, false);
-                SetBlock(leavesCode, x - 2, y, z - 1, false, false);
-                
-                SetBlock(leavesCode, x - 1, y, z + 2, false, false);
-                SetBlock(leavesCode, x, y, z + 2, false, false);
-                SetBlock(leavesCode, x + 1, y, z + 2, false, false);
-                
-                SetBlock(leavesCode, x - 1, y, z - 2, false, false);
-                SetBlock(leavesCode, x, y, z - 2, false, false);
-                SetBlock(leavesCode, x + 1, y, z - 2, false, false);
-                
-                SetBlock(orkCode, x, ++y, z, false, false);
-                
-                SetBlock(leavesCode, x, y, z + 1, false, false);
-                SetBlock(leavesCode, x, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 1, y, z, false, false);
-                SetBlock(leavesCode, x - 1, y, z, false, false);
-                SetBlock(leavesCode, x, y, z, false, false);
-                
-                SetBlock(orkCode, x, ++y, z, false, false);
-                
-                SetBlock(leavesCode, x, y, z + 1, false, false);
-                SetBlock(leavesCode, x, y, z - 1, false, false);
-                SetBlock(leavesCode, x + 1, y, z, false, false);
-                SetBlock(leavesCode, x - 1, y, z, false, false);
-                SetBlock(leavesCode, x, y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false);
 
-                if (i % 55 == 0)
-                {
-                    progressUI.SetProgress((i + 1f) / nTree);
-                    yield return null;
-                }
-            }
+            SetBlock(leavesCode, x - 1, y, z - 1, false, false);
+            SetBlock(leavesCode, x, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 1, y, z - 1, false, false);
+            SetBlock(leavesCode, x - 1, y, z, false, false);
+            SetBlock(leavesCode, x + 1, y, z, false, false);
+            SetBlock(leavesCode, x - 1, y, z + 1, false, false);
+            SetBlock(leavesCode, x, y, z + 1, false, false);
+            SetBlock(leavesCode, x + 1, y, z + 1, false, false);
+
+            SetBlock(leavesCode, x + 2, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 2, y, z, false, false);
+            SetBlock(leavesCode, x + 2, y, z + 1, false, false);
+
+            SetBlock(leavesCode, x - 2, y, z + 1, false, false);
+            SetBlock(leavesCode, x - 2, y, z, false, false);
+            SetBlock(leavesCode, x - 2, y, z - 1, false, false);
+
+            SetBlock(leavesCode, x - 1, y, z + 2, false, false);
+            SetBlock(leavesCode, x, y, z + 2, false, false);
+            SetBlock(leavesCode, x + 1, y, z + 2, false, false);
+
+            SetBlock(leavesCode, x - 1, y, z - 2, false, false);
+            SetBlock(leavesCode, x, y, z - 2, false, false);
+            SetBlock(leavesCode, x + 1, y, z - 2, false, false);
+
+            SetBlock(orkCode, x, ++y, z, false, false);
+
+            SetBlock(leavesCode, x, y, z + 1, false, false);
+            SetBlock(leavesCode, x, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 1, y, z, false, false);
+            SetBlock(leavesCode, x - 1, y, z, false, false);
+
+            SetBlock(leavesCode, x + 2, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 2, y, z, false, false);
+            SetBlock(leavesCode, x + 2, y, z + 1, false, false);
+
+            SetBlock(leavesCode, x - 2, y, z + 1, false, false);
+            SetBlock(leavesCode, x - 2, y, z, false, false);
+            SetBlock(leavesCode, x - 2, y, z - 1, false, false);
+
+            SetBlock(leavesCode, x - 1, y, z + 2, false, false);
+            SetBlock(leavesCode, x, y, z + 2, false, false);
+            SetBlock(leavesCode, x + 1, y, z + 2, false, false);
+
+            SetBlock(leavesCode, x - 1, y, z - 2, false, false);
+            SetBlock(leavesCode, x, y, z - 2, false, false);
+            SetBlock(leavesCode, x + 1, y, z - 2, false, false);
+
+            SetBlock(orkCode, x, ++y, z, false, false);
+
+            SetBlock(leavesCode, x, y, z + 1, false, false);
+            SetBlock(leavesCode, x, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 1, y, z, false, false);
+            SetBlock(leavesCode, x - 1, y, z, false, false);
+            SetBlock(leavesCode, x, y, z, false, false);
+
+            SetBlock(orkCode, x, ++y, z, false, false);
+
+            SetBlock(leavesCode, x, y, z + 1, false, false);
+            SetBlock(leavesCode, x, y, z - 1, false, false);
+            SetBlock(leavesCode, x + 1, y, z, false, false);
+            SetBlock(leavesCode, x - 1, y, z, false, false);
+            SetBlock(leavesCode, x, y, z, false, false);
         }
 
         private IEnumerator GenerateRiverCoroutine()

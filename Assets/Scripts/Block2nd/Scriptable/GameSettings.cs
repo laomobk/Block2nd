@@ -14,5 +14,6 @@ namespace Block2nd.Database
 		public int viewDistance = 16;
 		public bool infiniteJump = true;
 		public bool ambientOcclusion = true;
+		public bool fog = true;
 	}
 }

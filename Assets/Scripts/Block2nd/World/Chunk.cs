@@ -53,6 +53,9 @@ namespace Block2nd.World
         
         public void BakeHeightMap()
         {
+            if (!dirty)
+                return;
+
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
             

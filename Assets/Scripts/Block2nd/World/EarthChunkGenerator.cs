@@ -12,10 +12,14 @@ namespace Block2nd.World
         private WorldSettings worldSettings;
         private TerrainNoiseGenerator noiseGenerator;
 
+        private IBiome biome;
+
         public EarthChunkGenerator(WorldSettings worldSettings, TerrainNoiseGenerator noiseGenerator)
         {
             this.worldSettings = worldSettings;
             this.noiseGenerator = noiseGenerator;
+
+            biome = new BiomePlain();
         }
         
         private int GetHeight(float x, float z)
@@ -39,6 +43,11 @@ namespace Block2nd.World
             {
                 return BlockMetaDatabase.BuiltinBlockCode.Water;
             }
+
+            if (curY >= waterLevel && height >= waterLevel && height - waterLevel < 1f)
+            {
+                return BlockMetaDatabase.BuiltinBlockCode.Sand;
+            } 
             
             if (curY == height)
             {
@@ -97,6 +106,11 @@ namespace Block2nd.World
             chunk.BakeHeightMap();
 
             return chunk;
+        }
+
+        public void PopulateChunk(Level level, int chunkX, int chunkZ)
+        {
+            biome.Decorate(level, chunkX << 4, chunkZ << 4);
         }
     }
 }

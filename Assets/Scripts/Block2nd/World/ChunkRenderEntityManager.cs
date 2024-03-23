@@ -67,7 +67,7 @@ namespace Block2nd.World
         {
             var playerPos = player.transform.position;
             /* a circle which r = view distance * 16 * sqrt(2) */
-            return (playerPos - pos).magnitude < gameClient.gameSettings.viewDistance * 22.6262624;
+            return (playerPos - pos).magnitude < gameClient.gameSettings.viewDistance * 24;
         }
 
         private bool CanThisEntityBeFree(ChunkRenderEntity entity)

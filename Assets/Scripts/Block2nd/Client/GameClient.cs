@@ -36,7 +36,7 @@ namespace Block2nd.Client
 		public int[] viewDistanceCandidates = new int[]{4, 8, 16, 32};
 
 		private GameClientState gameClientState = GameClientState.GAME;
-		private int viewDistanceCandidateIdx = 1;
+		private int viewDistanceCandidateIdx = 2;
 		private int shaderCandidateIdx = 0;
 		private bool cursorLocked;
 		private GameSaveManager gameSaveManager;
@@ -49,7 +49,7 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.2.1a";
+		public string GameVersion => "0.2.2a";
 
 		public string GameVersionSubject => "Infdev";
 
@@ -101,6 +101,11 @@ namespace Block2nd.Client
 				if (Input.GetKeyDown(KeyCode.K))
 				{
 					SwitchDistance();
+				}
+
+				if (Input.GetKeyDown(KeyCode.F))
+				{
+					SetFogState(!RenderSettings.fog);
 				}
 
 				if (Input.GetKeyDown(KeyCode.Slash))
@@ -217,6 +222,7 @@ namespace Block2nd.Client
 			gameSettings.viewDistance = viewDistanceCandidates[viewDistanceCandidateIdx];
 			var shader = shaderCandidates[shaderCandidateIdx];
 			terrainMaterial.shader = shader;
+			SetFogState(gameSettings.fog);
 		}
 
 		public void OpenMenu()
@@ -315,12 +321,16 @@ namespace Block2nd.Client
 				viewDistanceCandidateIdx = (viewDistanceCandidateIdx + 1) % viewDistanceCandidates.Length;
 				gameSettings.viewDistance = viewDistanceCandidates[viewDistanceCandidateIdx];
 			}
-			
-			GetCurrentLevel().ChunkManager.SortChunksByDistance(player.transform.position, 
-				viewDistanceCandidateIdx == 0);  // 当从远视距转到进视距时反转排序顺序
-			GetCurrentLevel().ChunkManager.ForceBeginChunksManagement();
+
+			GetCurrentLevel().breakChunkRender = true;
 
 			return viewDistanceCandidateIdx;
+		}
+
+		public void SetFogState(bool state)
+		{
+			RenderSettings.fog = state;
+			gameSettings.fog = state;
 		}
 
 		public int SwitchShader()
