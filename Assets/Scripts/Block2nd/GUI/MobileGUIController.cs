@@ -8,6 +8,7 @@ namespace Block2nd.GUI
     public class MobileGUIController : MonoBehaviour
     {
         public GameObject floatButton;
+        public GameObject flyButtons;
         
         private PlayerController playerController;
 
@@ -18,7 +19,8 @@ namespace Block2nd.GUI
         
         private void Update()
         {
-            floatButton.SetActive(playerController.InWater);
+            floatButton.SetActive(playerController.InWater && !playerController.flying);
+            flyButtons.SetActive(playerController.flying);
 
             if (!playerController.InWater)
             {

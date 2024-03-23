@@ -7,14 +7,14 @@ namespace Block2nd.World
     public class ChunkProviderGenerateOrLoad : IChunkProvider
     {
         private readonly IChunkLoader chunkLoader;
-        private readonly IChunkGenerator chunkGenerator;
+        private readonly ChunkGeneratorBase chunkGeneratorBase;
 
         private Dictionary<ulong, Chunk> chunkDict = new Dictionary<ulong, Chunk>();
 
-        public ChunkProviderGenerateOrLoad(IChunkLoader chunkLoader, IChunkGenerator chunkGenerator)
+        public ChunkProviderGenerateOrLoad(IChunkLoader chunkLoader, ChunkGeneratorBase chunkGeneratorBase)
         {
             this.chunkLoader = chunkLoader;
-            this.chunkGenerator = chunkGenerator;
+            this.chunkGeneratorBase = chunkGeneratorBase;
         }
         
         public Chunk ProvideChunk(Level level, int chunkX, int chunkZ)
@@ -32,11 +32,13 @@ namespace Block2nd.World
             if (chunk != null)
                 return chunk;
             
-            chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
+            chunk = chunkGeneratorBase.GenerateChunk(level, chunkX, chunkZ);
                 
             chunkDict.Add(key, chunk);
             
-            chunkGenerator.PopulateChunk(level, chunkX, chunkZ);
+            chunkGeneratorBase.PopulateChunk(level, chunkX, chunkZ);
+            
+            chunk.BakeHeightMap();
 
             return chunk;
         }

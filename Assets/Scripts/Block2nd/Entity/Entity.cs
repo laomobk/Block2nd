@@ -14,6 +14,11 @@ namespace Block2nd.Entity
         protected GameClient gameClient;
 
         public abstract AABB GetAABB();
+
+        public virtual AABB GetStandardAABB()
+        {
+            return GetAABB();
+        }
         
         public bool OnGround => onGround;
 
@@ -24,11 +29,12 @@ namespace Block2nd.Entity
         
         public void MoveAABBToWorldPosition()
         {
+            var standardAABB = GetStandardAABB();
             var aabb = GetAABB();
             
-            var halfX = (aabb.maxX - aabb.minX) / 2f;
-            var halfY = (aabb.maxY - aabb.minY) / 2f;
-            var halfZ = (aabb.maxZ - aabb.minZ) / 2f;
+            var halfX = (standardAABB.maxX - standardAABB.minX) / 2f;
+            var halfY = (standardAABB.maxY - standardAABB.minY) / 2f;
+            var halfZ = (standardAABB.maxZ - standardAABB.minZ) / 2f;
             var worldPos = transform.position;
 
             aabb.minX = worldPos.x - halfX;
@@ -45,7 +51,7 @@ namespace Block2nd.Entity
         }
         
         public void MoveWorld(Vector3 dir)
-        {   
+        {
             float wantX = dir.x;
             float wantY = dir.y;
             float wantZ = dir.z;

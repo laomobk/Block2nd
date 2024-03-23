@@ -24,9 +24,18 @@ namespace Block2nd.Render
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
-            postMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
-                player.playerCamera.transform.position).blockCode == waterCode ? 1 : 0);
-            Graphics.Blit(src, dest, postMaterial);
+            if (client.CurrentLevel != null)
+            {
+                postMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
+                    player.playerCamera.transform.position).blockCode == waterCode
+                    ? 1
+                    : 0);
+                Graphics.Blit(src, dest, postMaterial);
+            }
+            else
+            {
+                Graphics.Blit(src, dest);
+            }
         }
     }
 }

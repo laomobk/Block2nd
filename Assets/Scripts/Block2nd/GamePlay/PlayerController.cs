@@ -35,6 +35,7 @@ namespace Block2nd.GamePlay
 
         private float lastSpacePressTime = 0f;
         public bool flying = false;
+        public float flySpeed;
 
         private bool inWater;
         public bool InWater => inWater;
@@ -96,8 +97,9 @@ namespace Block2nd.GamePlay
             }
 
             floatBegin = false;
+            
             floating = true;
-            playerSpeed.y += 17f * Time.deltaTime;
+            playerSpeed.y += 30f * Time.deltaTime;
         }
 
         public void MoveForward()
@@ -194,10 +196,22 @@ namespace Block2nd.GamePlay
             UpdateCameraLerp();
         }
 
+        public void PressSpace()
+        {
+            if (Time.time - lastSpacePressTime > 0.1f && Time.time - lastSpacePressTime < 0.35f)
+            {
+                playerSpeed.y = 0;
+                flying = !flying;
+                UpdateCameraFov();
+            }
+
+            lastSpacePressTime = Time.time;
+        }
+
         void Update()
         {
 
-            if (gameClient.GameClientState == GameClientState.GAME)
+            if (gameClient.GameClientState == GameClientState.GAME && gameClient.CurrentLevel != null)
             {
                 floating = false;
                 
@@ -247,14 +261,7 @@ namespace Block2nd.GamePlay
 
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    if (Time.time - lastSpacePressTime > 0.1f && Time.time - lastSpacePressTime < 0.35f)
-                    {
-                        playerSpeed.y = 0;
-                        flying = !flying;
-                        UpdateCameraFov();
-                    }
-
-                    lastSpacePressTime = Time.time;
+                    PressSpace();
                 }
 
                 if (!flying)
@@ -280,15 +287,17 @@ namespace Block2nd.GamePlay
                 {
                     if (Input.GetKey(KeyCode.LeftControl))
                     {
-                        playerSpeed.y = -5;
+                        flySpeed = -5f;
                     } else if (Input.GetKey(KeyCode.Space) || externalFloatKeyState)
                     {
-                        playerSpeed.y = 5;
+                        flySpeed = 5;
                     }
-                    else
+                    else if (!gameClient.gameSettings.mobileControl)
                     {
-                        playerSpeed.y = 0;
+                        flySpeed = 0;
                     }
+
+                    playerSpeed.y = flySpeed;
                 }
 
                 playerSpeed.x *= onGround ? 1 : 0.8f;

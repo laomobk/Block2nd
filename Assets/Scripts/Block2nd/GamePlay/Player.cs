@@ -81,6 +81,8 @@ namespace Block2nd.GamePlay
             
             selectBox.gameObject.SetActive(raycastBlockHit != null);
             
+            gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
+            
             if (gameClient.GameClientState == GameClientState.GAME && playerController.OnGround)
                 bobbingTime += Time.deltaTime;
 
@@ -88,8 +90,6 @@ namespace Block2nd.GamePlay
             {
                 HandleFunctionalKey();
                 HandleItemKey();
-            
-                gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
                 
                 if (Input.GetMouseButtonDown(0))
                 {

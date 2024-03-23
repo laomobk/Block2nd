@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Block2nd.Audio;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Client;
@@ -36,7 +35,7 @@ namespace Block2nd.World
         public Player Player => client.player;
         public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
-        public Func<int, int, float> terrainHeightFunc;
+        private readonly Queue<Chunk> dirtyChunkPreFrameQueue = new Queue<Chunk>();
 
         public bool breakChunkRender;
         private bool chunkProvideIgnoreDistance;
@@ -79,24 +78,45 @@ namespace Block2nd.World
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
         }
 
-        private void Start()
-        {
-            GeneratePyramids();
-        }
-
         private void Update()
         {
             
         }
 
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
+
         private void LateUpdate()
         {
+            dirtyChunkPreFrameQueue.Clear();
+            
             if (Time.time - lastTickTime > tickInterval)
             {
                 var nUpdate = PerformChunkUpdate();
                 lastTickTime = Time.time;
                 client.guiCanvasManager.SetUpdateText(nUpdate);
             }
+        }
+
+        private void FlushDirtyChunkQueue(bool discard = false)
+        {
+            var n = dirtyChunkPreFrameQueue.Count;
+            
+            for (int i = 0; i < n; ++i)
+                if (!discard)
+                    chunkRenderEntityManager.TryRenderChunk(dirtyChunkPreFrameQueue.Dequeue());
+        }
+
+        public void SetChunkProvider(IChunkProvider chunkProvider)
+        {
+            this.chunkProvider = chunkProvider;
+        }
+
+        public void PrepareLevel()
+        {
+            GeneratePyramids();
         }
 
         public int PerformChunkUpdate()
@@ -111,7 +131,7 @@ namespace Block2nd.World
                 ctxArray[length] = chunkUpdateQueue.Dequeue();
             
             var player = client.player;
-
+            
             for (int i = 0; i < length; ++i)
             {
                 var ctx = ctxArray[i];
@@ -125,65 +145,14 @@ namespace Block2nd.World
                     ctx.chunk.ChunkUpdate(pos.x, pos.y, pos.z, ctx.size);
             }
             
+            FlushDirtyChunkQueue();
+
             return length;
         }
 
         public void AddUpdateToNextTick(ChunkUpdateContext ctx)
         {
             chunkUpdateQueue.Enqueue(ctx);
-        }
-
-        private IEnumerator BGMPlayCoroutine()
-        {
-            Debug.Log("BGM Coroutine Started.");
-            var audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
-
-            var played = new List<int>();
-            
-            while (true)
-            {
-                yield return new WaitForSeconds(random.Next(1, 4));
-                var song = 0;
-
-                if (played.Count != 5)
-                {
-                    int count = 0;
-                    do
-                    {
-                        song = random.Next(0, 4);
-                        count++;
-                    } while (!played.Contains(song) && count < 6);
-                }
-                else
-                {
-                    song = random.Next(0, 4);
-                    played.Clear();
-                }
-
-                float length = 0;
-                switch (song)
-                {
-                    case 0:
-                        length = audioManager.PlayBGM("newmusic/hal1");
-                        break;
-                    case 1:
-                        length = audioManager.PlayBGM("newmusic/piano2");
-                        break;
-                    case 2:
-                        length = audioManager.PlayBGM("music/calm1");
-                        break;
-                    case 3:
-                        length = audioManager.PlayBGM("newmusic/hal1");
-                        break;
-                    case 4:
-                        length = audioManager.PlayBGM("music/calm2");
-                        break;
-                }
-
-                yield return new WaitForSeconds(length);
-                
-                played.Add(song);
-            }
         }
 
         public IEnumerator LevelTickCoroutine()
@@ -227,6 +196,7 @@ namespace Block2nd.World
                 lastChunkProvidePosition = client.player.transform.position;
 
                 StartCoroutine(SyncChunkProvideAndRenderCoroutine(position, radius));
+                return;
             }
 
             var coroutine = ProvideChunksSurroundingCoroutine(position, radius);
@@ -276,6 +246,39 @@ namespace Block2nd.World
 
                     yield return null;
                 }
+            }
+
+            chunkProvideLock = false;
+        }
+        
+        // Only for the player first time enter the world.
+        public IEnumerator ProvideChunksSurroundingCoroutineWithReport(Vector3 position, int radius)
+        {
+            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
+			
+            progressUI.SetTitle("Building terrain...");
+            progressUI.SetProgress(0);
+            yield return null;
+
+            if (radius == 0)
+            {
+                radius = client.gameSettings.viewDistance;
+            }
+            
+            chunkProvideLock = true;
+            
+            int pointChunkX = (int) position.x >> 4;
+            int pointChunkZ = (int) position.z >> 4;
+            
+            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+            {
+                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                {
+                    chunkProvider.ProvideChunk(this, cx, cz);
+                }
+                
+                progressUI.SetProgress((cx + radius) / (2f * radius));
+                yield return null;
             }
 
             chunkProvideLock = false;
@@ -538,73 +541,73 @@ namespace Block2nd.World
             var orkCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/ork").blockCode;
             var leavesCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/leaves").blockCode;
 
-            SetBlock(orkCode, x, ++y, z, false, false);
-            SetBlock(orkCode, x, ++y, z, false, false);
-            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
 
-            SetBlock(leavesCode, x - 1, y, z - 1, false, false);
-            SetBlock(leavesCode, x, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 1, y, z - 1, false, false);
-            SetBlock(leavesCode, x - 1, y, z, false, false);
-            SetBlock(leavesCode, x + 1, y, z, false, false);
-            SetBlock(leavesCode, x - 1, y, z + 1, false, false);
-            SetBlock(leavesCode, x, y, z + 1, false, false);
-            SetBlock(leavesCode, x + 1, y, z + 1, false, false);
+            SetBlock(leavesCode, x - 1, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 1, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z + 1, false, false, record: false);
 
-            SetBlock(leavesCode, x + 2, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 2, y, z, false, false);
-            SetBlock(leavesCode, x + 2, y, z + 1, false, false);
+            SetBlock(leavesCode, x + 2, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 2, y, z, false, false, record: false);
+            SetBlock(leavesCode, x + 2, y, z + 1, false, false, record: false);
 
-            SetBlock(leavesCode, x - 2, y, z + 1, false, false);
-            SetBlock(leavesCode, x - 2, y, z, false, false);
-            SetBlock(leavesCode, x - 2, y, z - 1, false, false);
+            SetBlock(leavesCode, x - 2, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x - 2, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 2, y, z - 1, false, false, record: false);
 
-            SetBlock(leavesCode, x - 1, y, z + 2, false, false);
-            SetBlock(leavesCode, x, y, z + 2, false, false);
-            SetBlock(leavesCode, x + 1, y, z + 2, false, false);
+            SetBlock(leavesCode, x - 1, y, z + 2, false, false, record: false);
+            SetBlock(leavesCode, x, y, z + 2, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z + 2, false, false, record: false);
 
-            SetBlock(leavesCode, x - 1, y, z - 2, false, false);
-            SetBlock(leavesCode, x, y, z - 2, false, false);
-            SetBlock(leavesCode, x + 1, y, z - 2, false, false);
+            SetBlock(leavesCode, x - 1, y, z - 2, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 2, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z - 2, false, false, record: false);
 
-            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false);
-            SetBlock(leavesCode, x, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 1, y, z, false, false);
-            SetBlock(leavesCode, x - 1, y, z, false, false);
+            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
 
-            SetBlock(leavesCode, x + 2, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 2, y, z, false, false);
-            SetBlock(leavesCode, x + 2, y, z + 1, false, false);
+            SetBlock(leavesCode, x + 2, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 2, y, z, false, false, record: false);
+            SetBlock(leavesCode, x + 2, y, z + 1, false, false, record: false);
 
-            SetBlock(leavesCode, x - 2, y, z + 1, false, false);
-            SetBlock(leavesCode, x - 2, y, z, false, false);
-            SetBlock(leavesCode, x - 2, y, z - 1, false, false);
+            SetBlock(leavesCode, x - 2, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x - 2, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 2, y, z - 1, false, false, record: false);
 
-            SetBlock(leavesCode, x - 1, y, z + 2, false, false);
-            SetBlock(leavesCode, x, y, z + 2, false, false);
-            SetBlock(leavesCode, x + 1, y, z + 2, false, false);
+            SetBlock(leavesCode, x - 1, y, z + 2, false, false, record: false);
+            SetBlock(leavesCode, x, y, z + 2, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z + 2, false, false, record: false);
 
-            SetBlock(leavesCode, x - 1, y, z - 2, false, false);
-            SetBlock(leavesCode, x, y, z - 2, false, false);
-            SetBlock(leavesCode, x + 1, y, z - 2, false, false);
+            SetBlock(leavesCode, x - 1, y, z - 2, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 2, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z - 2, false, false, record: false);
 
-            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false);
-            SetBlock(leavesCode, x, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 1, y, z, false, false);
-            SetBlock(leavesCode, x - 1, y, z, false, false);
-            SetBlock(leavesCode, x, y, z, false, false);
+            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x, y, z, false, false, record: false);
 
-            SetBlock(orkCode, x, ++y, z, false, false);
+            SetBlock(orkCode, x, ++y, z, false, false, record: false);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false);
-            SetBlock(leavesCode, x, y, z - 1, false, false);
-            SetBlock(leavesCode, x + 1, y, z, false, false);
-            SetBlock(leavesCode, x - 1, y, z, false, false);
-            SetBlock(leavesCode, x, y, z, false, false);
+            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
+            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
+            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
+            SetBlock(leavesCode, x, y, z, false, false, record: false);
         }
 
         private IEnumerator GenerateRiverCoroutine()
@@ -718,8 +721,7 @@ namespace Block2nd.World
             var dir = client.player.transform.position - new Vector3(x, y, z);
             client.player.playerController.AddImpulseForse(dir.normalized * 300 / (1f + dir.magnitude));
             
-            chunkManager.SortChunksByDistance(client.player.transform.position);
-            chunkManager.ForceBeginChunksManagement();
+            FlushDirtyChunkQueue();
         }
 
         public int GetHeight(int x, int z)
@@ -790,7 +792,7 @@ namespace Block2nd.World
 
             locatedChunk = chunk;
             
-            if (y < 0 || y >= worldSettings.chunkHeight)
+            if (y < 0 || y >= worldSettings.chunkHeight || local.x < 0 || local.x >= 16 || local.z < 0 || local.z >= 16)
                 return ChunkBlockData.EMPTY;
 
             return chunk.chunkBlocks[local.x, local.y, local.z];
@@ -814,7 +816,8 @@ namespace Block2nd.World
         
         public void SetBlock(int blockCode, int x, int y, int z, 
                                         bool updateMesh, bool updateHeightmap = true,
-                                        bool notify = false, bool useInitState = true, byte state = 0)
+                                        bool notify = false, bool useInitState = true, byte state = 0,
+                                        bool record = true)
         {
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
@@ -854,6 +857,11 @@ namespace Block2nd.World
             {
                 chunk.BakeHeightMap();
                 chunkRenderEntityManager.RenderChunk(chunk);
+            }
+            else
+            {
+                if (!dirtyChunkPreFrameQueue.Contains(chunk) && record)
+                    dirtyChunkPreFrameQueue.Enqueue(chunk);
             }
 
             if (updateHeightmap)
@@ -1039,14 +1047,18 @@ namespace Block2nd.World
                         AABB blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
                                             .GetAABB(new IntVector3(x, y, z));
                         
-                        // DebugAABB.DrawAABBInSceneView(blockBox, Color.red);
-                        // DebugAABB.DrawAABBInSceneView(aabb, Color.yellow);
+                        DebugAABB.DrawAABBInSceneView(aabb, Color.yellow);
                         
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
                             aabb.Intersects(blockBox))
                         {
+                            DebugAABB.DrawAABBInSceneView(blockBox, Color.red);
                             result.Add(blockBox);
+                        }
+                        else
+                        {
+                            DebugAABB.DrawAABBInSceneView(blockBox, Color.magenta);
                         }
                     }
                 }

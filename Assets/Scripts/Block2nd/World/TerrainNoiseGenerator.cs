@@ -124,7 +124,7 @@ namespace Block2nd.World
 
         public int GetHeightFlat(float x, float z)
         {
-            return 5;
+            return 10;
         }
 
         public virtual float GetHeight(float x, float z)

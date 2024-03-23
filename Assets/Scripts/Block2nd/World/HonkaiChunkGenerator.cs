@@ -1,23 +1,17 @@
-using Block2nd.Database;
+﻿using Block2nd.Database;
 using UnityEngine;
-using UnityEngine.Profiling;
-using Random = System.Random;
 
 namespace Block2nd.World
 {
-    public class EarthChunkGenerator : ChunkGeneratorBase
+    public class HonkaiChunkGenerator: ChunkGeneratorBase
     {
         private WorldSettings worldSettings;
-        private TerrainNoiseGenerator noiseGenerator;
-
-        private IBiome biome;
-
-        public EarthChunkGenerator(WorldSettings worldSettings, TerrainNoiseGenerator noiseGenerator)
+        private HonkaiTerrainNoiseGenerator noiseGenerator;
+        
+        public HonkaiChunkGenerator(WorldSettings worldSettings)
         {
             this.worldSettings = worldSettings;
-            this.noiseGenerator = noiseGenerator;
-
-            biome = new BiomePlain();
+            noiseGenerator = new HonkaiTerrainNoiseGenerator(worldSettings);
         }
         
         public override Chunk GenerateChunk(Level level, int chunkX, int chunkZ)
@@ -25,7 +19,7 @@ namespace Block2nd.World
             int height = worldSettings.chunkHeight;
             
             ChunkBlockData[,,] blocks = new ChunkBlockData[16, worldSettings.chunkHeight, 16];
-            GenerateBasicTerrain(worldSettings, noiseGenerator, blocks, chunkX, chunkZ);
+            GenerateBasicTerrain(worldSettings, noiseGenerator, blocks, chunkX, chunkZ, false);
 
             Chunk chunk = new Chunk(level, chunkX, chunkZ);
             chunk.chunkBlocks = blocks;
@@ -40,7 +34,7 @@ namespace Block2nd.World
 
         public override void PopulateChunk(Level level, int chunkX, int chunkZ)
         {
-            biome.Decorate(level, chunkX << 4, chunkZ << 4);
+            
         }
     }
 }

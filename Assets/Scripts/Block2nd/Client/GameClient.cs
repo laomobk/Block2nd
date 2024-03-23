@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Block2nd.Client.Debug;
 using Block2nd.CommandLine;
 using Block2nd.Database;
 using Block2nd.GamePlay;
 using Block2nd.GUI;
 using Block2nd.GUI.GameGUI;
+using Block2nd.Phys;
 using Block2nd.World;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -29,7 +31,9 @@ namespace Block2nd.Client
 		public Transform worldTransform;
 		public Player player;
 		public int initWorldWidth = 256;
+		
 		private GameObject currentLevel;
+		private Coroutine levelTickCoroutine;
 		
 		public Material terrainMaterial;
 		public Shader[] shaderCandidates;
@@ -45,13 +49,13 @@ namespace Block2nd.Client
 
 		public GameClientState GameClientState => gameClientState;
 
-		public Level CurrentLevel => currentLevel.GetComponent<Level>();
+		public Level CurrentLevel => currentLevel != null ? currentLevel.GetComponent<Level>() : null;
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.2.2a";
+		public string GameVersion => "0.2.3";
 
-		public string GameVersionSubject => "Infdev";
+		public string GameVersionSubtitle => "Infdev";
 
 		public IGameGUI currentGUI;
 
@@ -72,7 +76,7 @@ namespace Block2nd.Client
 				Application.targetFrameRate = 120;
 			}
 
-			guiCanvasManager.SetGameVersionText(GameVersion + (" - " + GameVersionSubject));
+			guiCanvasManager.SetGameVersionText("Block2nd " + GameVersionSubtitle + " " + GameVersion);
 			
 			ClientStart();
 
@@ -90,7 +94,7 @@ namespace Block2nd.Client
 			{
 				if (Input.GetKeyDown(KeyCode.G))
 				{
-					EnterWorld();
+					EnterWorldCoroutine();
 				}
 
 				if (Input.GetKeyDown(KeyCode.L))
@@ -183,7 +187,8 @@ namespace Block2nd.Client
 		private void ClientStart()
 		{
 			SyncGameSettings();
-			EnterWorld(/* new TestTerrainNoiseGenerator(worldSettings) */);
+			StartCoroutine(GlobalMusicPlayer.BGMPlayCoroutine());
+			StartCoroutine(EnterWorldCoroutine(/* new TestTerrainNoiseGenerator(worldSettings) */));
 		}
 
 		private void ClientTick()
@@ -261,29 +266,55 @@ namespace Block2nd.Client
 			}
 		}
 
-		public void EnterWorld(TerrainNoiseGenerator terrainNoiseGenerator = null)
+		public void EnterWorld(IChunkProvider chunkProvider = null)
+		{
+			StartCoroutine(EnterWorldCoroutine(chunkProvider));
+		}
+
+		private IEnumerator EnterWorldCoroutine(IChunkProvider chunkProvider = null)
 		{
 			CloseMenu();
 
 			var progressUI = guiCanvasManager.worldGeneratingProgressUI;
 			
 			progressUI.gameObject.SetActive(true);
-			progressUI.SetTitle("Generating terrain...");
-			progressUI.SetProgress("");
+			
+			if (levelTickCoroutine != null)
+				StopCoroutine(levelTickCoroutine);
 			
 			if (currentLevel != null)
 			{
+				progressUI.SetTitle("Exiting World...");
+				progressUI.SetProgress("");
+				yield return null;
+				
 				DestroyImmediate(currentLevel);
 			}
+			
+			progressUI.SetTitle("Creating World...");
+			progressUI.SetProgress("");
+
+			yield return null;
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
 			var level = currentLevel.GetComponent<Level>();
 			
+			if (chunkProvider != null)
+				level.SetChunkProvider(chunkProvider);
+			
+			level.PrepareLevel();
+			
+			progressUI.SetTitle("Spawning player...");
+			progressUI.SetProgress("");
+			yield return null;
+
 			var point = SpawnPlayer(level);
+
+			yield return StartCoroutine(level.ProvideChunksSurroundingCoroutineWithReport(point, 6));
 			
 			progressUI.gameObject.SetActive(false);
 			
-			StartCoroutine(level.LevelTickCoroutine());
+			levelTickCoroutine = StartCoroutine(level.LevelTickCoroutine());
 		}
 
 		public Vector3 SpawnPlayer(Level level)
