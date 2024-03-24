@@ -43,7 +43,6 @@ namespace Block2nd.Client
 		private int viewDistanceCandidateIdx = 2;
 		private int shaderCandidateIdx = 0;
 		private bool cursorLocked;
-		private GameSaveManager gameSaveManager;
 
 		private CommandRuntime commandRuntime;
 
@@ -64,7 +63,6 @@ namespace Block2nd.Client
 		private void Awake()
 		{
 			commandRuntime = new CommandRuntime(this);
-			gameSaveManager = new GameSaveManager(Application.persistentDataPath);
 		}
 
 		private void Start()
