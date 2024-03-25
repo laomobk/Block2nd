@@ -43,7 +43,8 @@ namespace Block2nd.World
             var plain = Mathf.PerlinNoise(x * 10, z * 5) * 20;
             var plain2 = Mathf.Clamp(Mathf.PerlinNoise(x * 30, z * 30) - 0.1f, 0, 1) * 5;
             
-            var mountain = Mathf.Clamp(Mathf.PerlinNoise(3 * x, 3 * z) - 0.5f, 0, 1) * 80;
+            var mountainHuge = Mathf.Clamp(Mathf.PerlinNoise(1 * x, 1.5f * z) - 0.7f, 0, 1) * 120;
+            var mountain = Mathf.Clamp(Mathf.PerlinNoise(3 * x, 2 * z) - 0.5f, 0, 1) * 80;
             var mountain2 = Mathf.Clamp(Mathf.PerlinNoise(5 * x, 15 * z) - 0.5f, 0, 1) * 25;
             var mountain3 = Mathf.Clamp(Mathf.PerlinNoise(20 * x, 17 * z) - 0.6f, 0, 1) * 30;
 
@@ -54,11 +55,12 @@ namespace Block2nd.World
             var erode3 = -Mathf.Clamp(Mathf.PerlinNoise(50 * x, 45 * z) - 0.1f, 0, 1) * 8;
             
             var riverDown = Mathf.Clamp01(Mathf.Sqrt(Mathf.PerlinNoise(10 * x, 10 * z))) * (15 + waterLevel / 1.2f);
+            // var seaDown = Mathf.Clamp01(Mathf.Sqrt(Mathf.PerlinNoise(1 * x, 1 * z))) * (12 + waterLevel / 1.2f);
 
             var h = (baseHeight + 
                            Mathf.Lerp(
-                               waterLevel + plain + plain2 + mountain + mountain23 + 
-                                erode1 + erode2 + erode3 - riverDown / 4f,
+                               waterLevel + plain + plain2 + mountainHuge + mountain + mountain23 + 
+                                erode1 + erode2 + erode3 - riverDown / 3f,
                                -riverDown,
                                0.45f));
 

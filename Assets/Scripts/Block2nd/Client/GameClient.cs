@@ -52,7 +52,7 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.2.3";
+		public string GameVersion => "0.2.4";
 
 		public string GameVersionSubtitle => "Infdev";
 
@@ -214,10 +214,29 @@ namespace Block2nd.Client
 		{
 			var viewDistance = gameSettings.viewDistance;
 
-			RenderSettings.fogEndDistance = (viewDistance - 2) << 4;
-
-			if (RenderSettings.fogEndDistance < 10)
-				RenderSettings.fogEndDistance = 10;
+			if (viewDistance > 31)
+			{
+				RenderSettings.fogDensity = 0.001f;
+				return;
+			}
+			
+			if (viewDistance > 15)
+			{
+				RenderSettings.fogDensity = 0.0025f;
+				return;
+			}
+			
+			if (viewDistance > 7)
+			{
+				RenderSettings.fogDensity = 0.005f;
+				return;
+			}
+			
+			if (viewDistance > 0)
+			{
+				RenderSettings.fogDensity = 0.02f;
+				return;
+			}
 		}
 
 		private void SyncGameSettings()

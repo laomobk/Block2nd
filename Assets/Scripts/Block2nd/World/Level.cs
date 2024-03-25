@@ -1046,19 +1046,12 @@ namespace Block2nd.World
                         var block = GetBlock(x, y, z);
                         AABB blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
                                             .GetAABB(new IntVector3(x, y, z));
-                        
-                        DebugAABB.DrawAABBInSceneView(aabb, Color.yellow);
-                        
+
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&
                             aabb.Intersects(blockBox))
                         {
-                            DebugAABB.DrawAABBInSceneView(blockBox, Color.red);
                             result.Add(blockBox);
-                        }
-                        else
-                        {
-                            DebugAABB.DrawAABBInSceneView(blockBox, Color.magenta);
                         }
                     }
                 }

@@ -56,7 +56,7 @@
 				float3 view = normalize(WorldSpaceViewDir(v.vertex));
 				float3 norm = UnityObjectToWorldNormal(v.normal);
 
-				o.fresnel = 1 - saturate(dot(view, norm));
+				o.fresnel = 1 - min(0.4f, saturate(dot(view, norm)));
 
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				
