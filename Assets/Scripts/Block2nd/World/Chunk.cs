@@ -7,6 +7,7 @@ using Block2nd.Behavior.Block;
 using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.MathUtil;
+using Block2nd.Persistence.KNBT;
 using Block2nd.UnsafeStructure;
 using Unity.Profiling;
 using UnityEngine;
@@ -431,6 +432,15 @@ namespace Block2nd.World
         public IntVector3 LocalToWorld(int x, int y, int z)
         {
             return new IntVector3(x + worldBasePosition.x, y + worldBasePosition.y, z + worldBasePosition.z);
+        }
+
+        public KNBTTagCompound GetChunkNBTData()
+        {
+            var tree = new KNBTTagCompound("chunk");
+
+            tree.SetChunkBlockDataTensor("blockData", chunkBlocks);
+
+            return tree;
         }
     }
 }

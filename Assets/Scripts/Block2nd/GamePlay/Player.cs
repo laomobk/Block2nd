@@ -8,6 +8,7 @@ using Block2nd.Database;
 using Block2nd.Database.Meta;
 using Block2nd.Entity;
 using Block2nd.MathUtil;
+using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
 using Block2nd.World;
 using UnityEngine;
@@ -312,7 +313,36 @@ namespace Block2nd.GamePlay
             transform.localEulerAngles = new Vector3(0, horAngle, 0);
             playerCamera.transform.localEulerAngles = new Vector3(rotAngle, horAngle, 0);
         }
-        
+
+        public KNBTTagCompound GetPlayerKNBTData()
+        {
+            var treeBase = new KNBTTagCompound("Player");
+            var pos = transform.position;
+
+            treeBase
+                .SetFloat("pitch", rotAngle)
+                .SetFloat("yaw", horAngle)
+                .SetFloat("x", pos.x)
+                .SetFloat("y", pos.y)
+                .SetFloat("z", pos.z)
+                .SetByte("flying", (byte) (playerController.flying ? 1 : 0));
+
+            return treeBase;
+        }
+
+        public void SetPlayerWithKNBTData(KNBTTagCompound tree)
+        {
+            rotAngle = tree.GetFloat("pitch");
+            horAngle = tree.GetFloat("yaw");
+
+            var x = tree.GetFloat("x");
+            var y = tree.GetFloat("y");
+            var z = tree.GetFloat("z");
+            
+            transform.position = new Vector3(x, y, z);
+            entity.MoveAABBToWorldPosition();
+        }
+
         private void UpdateSelectedBox()
         {
             var playerPos = playerCamera.transform.position;

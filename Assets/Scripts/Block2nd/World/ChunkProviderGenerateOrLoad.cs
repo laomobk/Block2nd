@@ -11,10 +11,14 @@ namespace Block2nd.World
 
         private Dictionary<ulong, Chunk> chunkDict = new Dictionary<ulong, Chunk>();
 
+        private Chunk[] hotChunks;
+
         public ChunkProviderGenerateOrLoad(IChunkLoader chunkLoader, ChunkGeneratorBase chunkGeneratorBase)
         {
             this.chunkLoader = chunkLoader;
             this.chunkGeneratorBase = chunkGeneratorBase;
+
+            hotChunks = new Chunk[1024];
         }
         
         public Chunk ProvideChunk(Level level, int chunkX, int chunkZ)
