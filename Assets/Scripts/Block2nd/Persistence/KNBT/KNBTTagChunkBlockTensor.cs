@@ -26,7 +26,7 @@ namespace Block2nd.Persistence.KNBT
                 {
                     for (int k = 0; k < c; ++k)
                     {
-                        value[i, j, k].blockCode = reader.ReadInt32();
+                        value[i, j, k].blockCode = reader.ReadInt16();
                         value[i, j, k].blockState = reader.ReadByte();
                     }
                 }
@@ -49,7 +49,7 @@ namespace Block2nd.Persistence.KNBT
                 {
                     for (int k = 0; k < dim3; ++k)
                     {
-                        writer.Write(value[i, j, k].blockCode);
+                        writer.Write((short)value[i, j, k].blockCode);
                         writer.Write(value[i, j, k].blockState);
                     }
                 }

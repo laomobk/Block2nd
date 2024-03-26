@@ -30,8 +30,8 @@ namespace Block2nd.World
             {
                 return chunk;
             }
-            
-            chunk = chunkLoader.TryLoadChunk(chunkX, chunkZ);
+
+            chunk = chunkLoader.TryLoadChunk(level, chunkX, chunkZ);
 
             if (chunk != null)
                 return chunk;
@@ -47,7 +47,7 @@ namespace Block2nd.World
             return chunk;
         }
 
-        public Chunk TryGetChunk(int chunkX, int chunkZ)
+        public Chunk TryGetChunk(Level level, int chunkX, int chunkZ)
         {
             var key = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
             Chunk chunk;
@@ -57,7 +57,7 @@ namespace Block2nd.World
                 return chunk;
             }
             
-            chunk = chunkLoader.TryLoadChunk(chunkX, chunkZ);
+            chunk = chunkLoader.TryLoadChunk(level, chunkX, chunkZ);
 
             if (chunk != null)
                 return chunk;
@@ -68,6 +68,24 @@ namespace Block2nd.World
         public int GetChunkCacheCount()
         {
             return chunkDict.Count;
+        }
+
+        public void SaveChunk(Level level, bool isSaveAll)
+        {
+            if (isSaveAll)
+            {
+                foreach (var chunk in chunkDict.Values)
+                {
+                    if (chunk.NeedToSave)
+                    {
+                        chunkLoader.SaveChunk(level, chunk);
+                    } 
+                }
+                
+                Debug.Log(chunkDict.Count + " chunks saved.");
+
+                return;
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Block2nd.Persistence.KNBT
     {
         public float value;
         
-        public KNBTTagFloat(string tagName, float value) : base(tagName)
+        public KNBTTagFloat(string tagName, float value = 0f) : base(tagName)
         {
             this.value = value;
         }

@@ -9,10 +9,13 @@ using Block2nd.Database;
 using Block2nd.Database.Meta;
 using Block2nd.DebugUtil;
 using Block2nd.GamePlay;
+using Block2nd.GameSave;
 using Block2nd.MathUtil;
+using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Serialization;
 
 namespace Block2nd.World
 {
@@ -57,6 +60,8 @@ namespace Block2nd.World
 
         private ChunkRenderEntityManager chunkRenderEntityManager;
 
+        [HideInInspector] public LevelSaveHandler levelSaveHandler;
+
         public ChunkManager ChunkManager
         {
             get
@@ -72,10 +77,12 @@ namespace Block2nd.World
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
 
             chunkProvider = new ChunkProviderGenerateOrLoad(
-                new SaveChunkLoader(), 
+                new LocalChunkLoader(), 
                 new EarthChunkGenerator(worldSettings, terrainNoise));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
+            
+            CreateSaveHandler();
         }
 
         private void Update()
@@ -117,6 +124,11 @@ namespace Block2nd.World
         public void PrepareLevel()
         {
             GeneratePyramids();
+        }
+
+        public void CreateSaveHandler()
+        {
+            levelSaveHandler = new LevelSaveHandler(this);
         }
 
         public int PerformChunkUpdate()
@@ -295,7 +307,7 @@ namespace Block2nd.World
 
             int cx = startChunkX, cz = startChunkZ;
             
-            chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(cx, cz));
+            chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(this, cx, cz));
             yield return null;
 
             for (int i = 1; i <= distance; ++i)
@@ -1101,6 +1113,27 @@ namespace Block2nd.World
                 meta.shape.GetShapeMesh(1, 1).texcoords[0]);
             
             Destroy(particleGameObject, 2f);
+        }
+
+        public void SaveLevel()
+        {
+            var levelDataWriter = levelSaveHandler.GetLevelDataWriter();
+            var playerDataWriter = levelSaveHandler.GetPlayerDataWriter();
+            
+            var levelKnbt = new KNBTTagCompound("Level");
+
+            var player = client.player;
+            var playerKnbt = player.GetPlayerKNBTData();
+
+            levelKnbt.SetInt("Version", 1);
+            levelKnbt.Write(levelDataWriter);
+            
+            playerKnbt.Write(playerDataWriter);
+            
+            playerDataWriter.Dispose();
+            levelDataWriter.Dispose();
+            
+            chunkProvider.SaveChunk(this, true);
         }
     }
 }

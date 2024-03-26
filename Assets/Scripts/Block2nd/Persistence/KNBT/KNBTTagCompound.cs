@@ -8,7 +8,7 @@ namespace Block2nd.Persistence.KNBT
 {
     public class KNBTTagCompound : KNBTBase
     {
-        private Dictionary<string, KNBTBase> dict;
+        private Dictionary<string, KNBTBase> dict = new Dictionary<string, KNBTBase>();
 
         public KNBTTagCompound(string tagName) : base(tagName) {}
         
@@ -79,6 +79,32 @@ namespace Block2nd.Persistence.KNBT
 
             return defaultVal;
         }
+
+        public byte[] GetByteArray(string key)
+        {
+            if (dict.TryGetValue(key, out var value))
+            {
+                if (value is KNBTTagByteArray tagByteArray)
+                {
+                    return tagByteArray.value;
+                }
+            }
+
+            return null;
+        }
+        
+        public ChunkBlockData[,,] GetChunkBlockDataTensor(string key)
+        {
+            if (dict.TryGetValue(key, out var value))
+            {
+                if (value is KNBTTagChunkBlockTensor tagChunkBlockTensor)
+                {
+                    return tagChunkBlockTensor.value;
+                }
+            }
+
+            return null;
+        }
         
         public override byte GetId()
         {
@@ -88,10 +114,14 @@ namespace Block2nd.Persistence.KNBT
         public override void Read(BinaryReader reader)
         {
             KNBTBase tag;
+            string name;
 
             for (;
-                (tag = NewTagFromTagId(reader.ReadByte(), reader.ReadString())).GetId() != 0;
-                tag.Read(reader)) {}
+                (tag = NewTagFromTagId(reader.ReadByte(), name = reader.ReadString())).GetId() != 0;
+                tag.Read(reader))
+            {
+                dict.Add(name, tag);
+            }
         }
 
         public override void Write(BinaryWriter writer)
@@ -102,6 +132,7 @@ namespace Block2nd.Persistence.KNBT
                 writer.Write(pair.Key);
                 pair.Value.Write(writer);
             }
+            new KNBTTagTerminal("").Write(writer);
         }
     }
 }

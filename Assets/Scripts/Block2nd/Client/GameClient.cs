@@ -5,6 +5,7 @@ using Block2nd.Client.Debug;
 using Block2nd.CommandLine;
 using Block2nd.Database;
 using Block2nd.GamePlay;
+using Block2nd.GameSave;
 using Block2nd.GUI;
 using Block2nd.GUI.GameGUI;
 using Block2nd.Phys;
@@ -40,7 +41,7 @@ namespace Block2nd.Client
 		public int[] viewDistanceCandidates = new int[]{4, 8, 16, 32};
 
 		private GameClientState gameClientState = GameClientState.GAME;
-		private int viewDistanceCandidateIdx = 2;
+		private int viewDistanceCandidateIdx = 0;
 		private int shaderCandidateIdx = 0;
 		private bool cursorLocked;
 
@@ -186,7 +187,8 @@ namespace Block2nd.Client
 		{
 			SyncGameSettings();
 			StartCoroutine(GlobalMusicPlayer.BGMPlayCoroutine());
-			StartCoroutine(EnterWorldCoroutine(/* new TestTerrainNoiseGenerator(worldSettings) */));
+			
+			EnterWorld();
 		}
 
 		private void ClientTick()
@@ -283,12 +285,15 @@ namespace Block2nd.Client
 			}
 		}
 
-		public void EnterWorld(IChunkProvider chunkProvider = null)
+		public void EnterWorld(IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
 		{
-			StartCoroutine(EnterWorldCoroutine(chunkProvider));
+			if (chunkProvider == null)
+				chunkProvider = new ChunkProviderGenerateOrLoad(
+					new LocalChunkLoader(saveHandler == null), new FlatChunkGenerator(worldSettings));
+			StartCoroutine(EnterWorldCoroutine(chunkProvider, saveHandler));
 		}
 
-		private IEnumerator EnterWorldCoroutine(IChunkProvider chunkProvider = null)
+		private IEnumerator EnterWorldCoroutine(IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
 		{
 			CloseMenu();
 
@@ -315,10 +320,15 @@ namespace Block2nd.Client
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
 			var level = currentLevel.GetComponent<Level>();
-			
+
 			if (chunkProvider != null)
 				level.SetChunkProvider(chunkProvider);
-			
+
+			if (saveHandler != null)
+			{
+				level.levelSaveHandler = saveHandler;
+			}
+
 			level.PrepareLevel();
 			
 			progressUI.SetTitle("Spawning player...");
@@ -391,6 +401,16 @@ namespace Block2nd.Client
 			}
 
 			return shaderCandidateIdx;
+		}
+
+		public void SaveLevel()
+		{
+			currentLevel.GetComponent<Level>().SaveLevel();
+		}
+
+		public void LoadLevel()
+		{
+			EnterWorld(saveHandler: new LevelSaveHandler("Level_01"));
 		}
 	}
 }
