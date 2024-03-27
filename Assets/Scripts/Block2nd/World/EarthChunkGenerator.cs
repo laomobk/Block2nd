@@ -12,10 +12,10 @@ namespace Block2nd.World
 
         private IBiome biome;
 
-        public EarthChunkGenerator(WorldSettings worldSettings, TerrainNoiseGenerator noiseGenerator)
+        public EarthChunkGenerator(WorldSettings worldSettings)
         {
             this.worldSettings = worldSettings;
-            this.noiseGenerator = noiseGenerator;
+            this.noiseGenerator = new TerrainNoiseGenerator(worldSettings);
 
             biome = new BiomePlain();
         }
@@ -41,6 +41,11 @@ namespace Block2nd.World
         public override void PopulateChunk(Level level, int chunkX, int chunkZ)
         {
             biome.Decorate(level, chunkX << 4, chunkZ << 4);
+        }
+
+        public override int GetId()
+        {
+            return 0;
         }
     }
 }

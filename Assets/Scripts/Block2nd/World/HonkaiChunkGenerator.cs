@@ -36,5 +36,10 @@ namespace Block2nd.World
         {
             
         }
+
+        public override int GetId()
+        {
+            return 2;
+        }
     }
 }

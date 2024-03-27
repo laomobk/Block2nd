@@ -53,10 +53,6 @@ namespace Block2nd.Client
 		public int ViewDistanceCandidateIdx => viewDistanceCandidateIdx;
 		public int ShaderCandidateIdx => shaderCandidateIdx;
 
-		public string GameVersion => "0.2.4";
-
-		public string GameVersionSubtitle => "Infdev";
-
 		public IGameGUI currentGUI;
 
 		private int playerTickCount = 0;
@@ -75,7 +71,7 @@ namespace Block2nd.Client
 				Application.targetFrameRate = 120;
 			}
 
-			guiCanvasManager.SetGameVersionText("Block2nd " + GameVersionSubtitle + " " + GameVersion);
+			guiCanvasManager.SetGameVersionText("Block2nd " + GameVersion.Subtitle + " " + GameVersion.Version);
 			
 			ClientStart();
 

@@ -2,6 +2,24 @@ using System.IO;
 
 namespace Block2nd.Persistence.KNBT
 {
+    public enum KNBTTagType
+    {
+        TERMINAL = 0,
+        BYTE = 1,
+        SHORT = 2,
+        STRING = 3,
+        LONG = 4,
+        FLOAT = 5,
+        DOUBLE = 6,
+        BYTE_ARRAY = 7,
+        INT = 8,
+        LIST = 9,
+        COMPOUND = 10,
+        INT_ARRAY = 11,
+        CHUNK_BLOCK_ARRAY = 12,
+        CHUNK_BLOCK_TENSOR = 13
+    }
+    
     public abstract class KNBTBase
     {
         public string tagName;

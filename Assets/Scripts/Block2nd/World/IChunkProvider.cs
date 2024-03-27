@@ -9,5 +9,9 @@ namespace Block2nd.World
         int GetChunkCacheCount();
 
         void SaveChunk(Level level, bool isSaveAll);
+
+        ChunkGeneratorBase GetChunkGenerator();
+
+        IChunkLoader GetChunkLoader();
     }
 }

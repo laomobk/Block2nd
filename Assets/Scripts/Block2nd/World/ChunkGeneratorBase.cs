@@ -86,5 +86,7 @@ namespace Block2nd.World
         public abstract Chunk GenerateChunk(Level level, int chunkX, int chunkZ);
 
         public abstract void PopulateChunk(Level level, int chunkX, int chunkZ);
+
+        public abstract int GetId();
     }
 }

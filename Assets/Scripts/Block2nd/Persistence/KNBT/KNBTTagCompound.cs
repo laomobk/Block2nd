@@ -33,6 +33,13 @@ namespace Block2nd.Persistence.KNBT
             return this;
         }
         
+        public KNBTTagCompound SetString(string key, string value)
+        {
+            dict.Add(key, new KNBTTagString(value));
+
+            return this;
+        }
+
         public KNBTTagCompound SetFloat(string key, float value)
         {
             dict.Add(key, new KNBTTagFloat(key, value));
@@ -74,6 +81,19 @@ namespace Block2nd.Persistence.KNBT
                 if (value is KNBTTagFloat tagFloat)
                 {
                     return tagFloat.value;
+                }
+            }
+
+            return defaultVal;
+        }
+        
+        public string GetString(string key, string defaultVal = "")
+        {
+            if (dict.TryGetValue(key, out var value))
+            {
+                if (value is KNBTTagString tagString)
+                {
+                    return tagString.value;
                 }
             }
 

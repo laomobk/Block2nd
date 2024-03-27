@@ -5,20 +5,8 @@ namespace Block2nd.World
 {
     public class LocalChunkLoader : IChunkLoader
     {
-        private bool brandNew;
-
-        public LocalChunkLoader(bool brandNew = true)
-        {
-            this.brandNew = brandNew;
-        }
-
         public Chunk TryLoadChunk(Level level, int chunkX, int chunkZ)
         {
-            if (brandNew)
-            {
-                return null;
-            }
-
             if (level is null)
                 return null;
 

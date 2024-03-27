@@ -78,7 +78,7 @@ namespace Block2nd.World
 
             chunkProvider = new ChunkProviderGenerateOrLoad(
                 new LocalChunkLoader(), 
-                new EarthChunkGenerator(worldSettings, terrainNoise));
+                new EarthChunkGenerator(worldSettings));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
             
@@ -1134,8 +1134,10 @@ namespace Block2nd.World
             var playerKnbt = player.GetPlayerKNBTData();
 
             levelKnbt.SetInt("Version", 1);
-            levelKnbt.Write(levelDataWriter);
+            levelKnbt.SetString("Name", name);
+            levelKnbt.SetInt("Type", chunkProvider.GetChunkGenerator().GetId());
             
+            levelKnbt.Write(levelDataWriter);
             playerKnbt.Write(playerDataWriter);
             
             playerDataWriter.Dispose();
