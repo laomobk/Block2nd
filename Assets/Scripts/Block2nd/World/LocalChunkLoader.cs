@@ -49,7 +49,7 @@ namespace Block2nd.World
             chunk.BakeHeightMap();
 
             chunk.dirty = false;
-            chunk.fromLocal = true;
+            chunk.saved = true;
             
             return chunk;
         }
@@ -63,6 +63,8 @@ namespace Block2nd.World
             
             knbt.Write(writer);
             writer.Dispose();
+
+            chunk.saved = true;
         }
     }
 }

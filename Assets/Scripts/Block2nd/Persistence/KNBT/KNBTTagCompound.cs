@@ -113,13 +113,15 @@ namespace Block2nd.Persistence.KNBT
 
         public override void Read(BinaryReader reader)
         {
-            KNBTBase tag;
-            string name;
-
-            for (;
-                (tag = NewTagFromTagId(reader.ReadByte(), name = reader.ReadString())).GetId() != 0;
-                tag.Read(reader))
+            int c;
+            for (c = 0; c < 256; ++c)
             {
+                var id = reader.ReadByte();
+                if (id == 0)
+                    break;
+                var name = reader.ReadString();
+                var tag = NewTagFromTagId(id, name);
+                tag.Read(reader);
                 dict.Add(name, tag);
             }
         }
@@ -132,7 +134,7 @@ namespace Block2nd.Persistence.KNBT
                 writer.Write(pair.Key);
                 pair.Value.Write(writer);
             }
-            new KNBTTagTerminal("").Write(writer);
+            writer.Write((byte) 0);  // terminal
         }
     }
 }

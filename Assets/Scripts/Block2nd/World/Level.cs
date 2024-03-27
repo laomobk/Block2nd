@@ -281,7 +281,7 @@ namespace Block2nd.World
             
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
-            
+
             for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
             {
                 for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
@@ -824,6 +824,13 @@ namespace Block2nd.World
             var local = chunk.WorldToLocal(x, y, z);
 
             chunk.chunkBlocks[local.x, local.y, local.z].blockState = state;
+
+            chunk.modified = true;
+
+            if (updateMesh)
+            {
+                chunkRenderEntityManager.RenderChunk(chunk);
+            }
         }
         
         public void SetBlock(int blockCode, int x, int y, int z, 
@@ -855,7 +862,8 @@ namespace Block2nd.World
                 meta.behavior.OnInit(new IntVector3(x, y, z), this, chunk, client.player);
 
             chunk.dirty = true;
-            
+            chunk.modified = true;
+
             if (notify)
             {
                 AddUpdateToNextTick(new ChunkUpdateContext

@@ -28,7 +28,7 @@ namespace Block2nd.Persistence.KNBT
                 case 2:
                     return new KNBTTagShort(name);
                 case 3:
-                    return new KNBTTagInt(name);
+                    return new KNBTTagString(name);
                 case 4:
                     return new KNBTTagLong(name);
                 case 5:
@@ -38,13 +38,17 @@ namespace Block2nd.Persistence.KNBT
                 case 7:
                     return new KNBTTagByteArray(name);
                 case 8:
-                    return new KNBTTagString(name);
+                    return new KNBTTagInt(name);
                 case 9:
                     return new KNBTTagList<KNBTBase>(name);
                 case 10:
                     return new KNBTTagCompound(name);
                 case 11:
                     return new KNBTTagIntArray(name);
+                case 12:
+                    return new KNBTTagChunkBlockArray(name);
+                case 13:
+                    return new KNBTTagChunkBlockTensor(name);
             }
 
             return null;

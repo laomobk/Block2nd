@@ -26,13 +26,13 @@ namespace Block2nd.World
         public int[,] heightMap = new int[16, 16];
         public byte[,,] ambientOcclusionMap;
 
-        public bool empty = true;
+        public bool modified = true;
         public bool dirty = true;
-        public bool fromLocal;
+        public bool saved;
 
         public ulong CoordKey { get; }
 
-        public bool NeedToSave => dirty;
+        public bool NeedToSave => !saved || dirty;
 
         public Chunk(Level level, int chunkX, int chunkZ)
         {
@@ -439,7 +439,7 @@ namespace Block2nd.World
 
         public KNBTTagCompound GetChunkKNBTData()
         {
-            var tree = new KNBTTagCompound("chunk");
+            var tree = new KNBTTagCompound("Chunk");
 
             tree.SetInt("Height", chunkBlocks.GetLength(1));
             tree.SetChunkBlockDataTensor("Blocks", chunkBlocks);

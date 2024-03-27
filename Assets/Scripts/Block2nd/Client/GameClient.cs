@@ -287,9 +287,6 @@ namespace Block2nd.Client
 
 		public void EnterWorld(IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
 		{
-			if (chunkProvider == null)
-				chunkProvider = new ChunkProviderGenerateOrLoad(
-					new LocalChunkLoader(saveHandler == null), new FlatChunkGenerator(worldSettings));
 			StartCoroutine(EnterWorldCoroutine(chunkProvider, saveHandler));
 		}
 
@@ -329,7 +326,7 @@ namespace Block2nd.Client
 				level.levelSaveHandler = saveHandler;
 			}
 
-			level.PrepareLevel();
+			// level.PrepareLevel();
 			
 			progressUI.SetTitle("Spawning player...");
 			progressUI.SetProgress("");

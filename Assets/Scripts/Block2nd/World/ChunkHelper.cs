@@ -1,4 +1,6 @@
-﻿namespace Block2nd.World
+﻿using UnityEngine;
+
+namespace Block2nd.World
 {
     public class ChunkHelper
     {

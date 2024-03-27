@@ -34,8 +34,11 @@ namespace Block2nd.World
             chunk = chunkLoader.TryLoadChunk(level, chunkX, chunkZ);
 
             if (chunk != null)
+            {
+                chunkDict.Add(key, chunk);
                 return chunk;
-            
+            }
+
             chunk = chunkGeneratorBase.GenerateChunk(level, chunkX, chunkZ);
                 
             chunkDict.Add(key, chunk);
@@ -74,15 +77,18 @@ namespace Block2nd.World
         {
             if (isSaveAll)
             {
+                int c = 0;
+                
                 foreach (var chunk in chunkDict.Values)
                 {
                     if (chunk.NeedToSave)
                     {
                         chunkLoader.SaveChunk(level, chunk);
+                        c++;
                     } 
                 }
                 
-                Debug.Log(chunkDict.Count + " chunks saved.");
+                Debug.Log("Chunk Provider: " + c + " chunk(s) saved");
 
                 return;
             }
