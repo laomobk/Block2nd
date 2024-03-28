@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Post/GaussianBlur_Beauty" {
+Shader "B2nd/GaussianBlur_Beauty" {
     Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _TextureSize ("_TextureSize",Float) = 256

@@ -1,4 +1,4 @@
-Shader "Post/KawaseBlurShader"
+Shader "B2nd/KawaseBlurShader"
 {
     Properties
     {
