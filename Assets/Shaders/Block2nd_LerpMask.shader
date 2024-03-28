@@ -3,13 +3,17 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
-        _Strength ("Strength", Range(0, 2)) = 1
+        _BaseColor ("Base Color", Color) = (0, 0, 0, 1)
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 100
+        
+        Cull Off
+		Lighting Off
+		ZWrite Off
+		Blend One OneMinusSrcAlpha
 
         Pass
         {
@@ -48,7 +52,8 @@
             fixed4 frag (v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
-                col += _BaseColor * _Strength;
+                col = col * _BaseColor;
+                col.a = i.uv.y;
 
                 return saturate(col);
             }

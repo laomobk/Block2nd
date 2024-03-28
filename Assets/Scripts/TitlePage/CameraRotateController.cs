@@ -7,8 +7,8 @@ namespace TitlePage
     {
         private void Update()
         {
-            transform.Rotate(Vector3.up, Time.deltaTime * 5, Space.World);
-            transform.Rotate(Vector3.right, Mathf.Sin(Time.deltaTime), Space.Self);
+            transform.Rotate(Vector3.up, Time.deltaTime * 6f, Space.World);
+            transform.Rotate(Vector3.right, 0.01f * Mathf.Sin(0.2f * Time.time), Space.Self);
         }
     }
 }
