@@ -4,9 +4,9 @@ using Block2nd.Persistence.KNBT;
 
 namespace Block2nd.GameSave
 {
-    public class LevelSaveManager
+    public static class LevelSaveManager
     {
-        public LevelSavePreview GetLevelSavePreview(string saveFolderPath)
+        public static LevelSavePreview GetLevelSavePreview(string saveFolderPath)
         {
             var levelDatPath = Path.Combine(saveFolderPath, "Level.dat");
             if (!File.Exists(levelDatPath))
@@ -21,13 +21,21 @@ namespace Block2nd.GameSave
             
             var preview = new LevelSavePreview();
 
-            preview.name = levelKnbt.GetString("Name");
+            var levelName = levelKnbt.GetString("Name");
+
+            if (levelName.Length == 0)
+            {
+                levelName = "<no name>";
+            }
+
+            preview.name = levelName;
             preview.folderName = Path.GetFileName(saveFolderPath);
+            preview.terrainType = levelKnbt.GetInt("Type");
 
             return preview;
         }
         
-        public LevelSavePreview[] GetAllLevelSavePreviews(string levelName)
+        public static List<LevelSavePreview> GetAllLevelSavePreviews()
         {
             List<LevelSavePreview> previews = new List<LevelSavePreview>();
             
@@ -36,7 +44,7 @@ namespace Block2nd.GameSave
             if (!Directory.Exists(saveRoot))
             {
                 Directory.CreateDirectory(saveRoot);
-                return new LevelSavePreview[] {};
+                return null;
             }
             
             foreach (var dir in Directory.EnumerateDirectories(saveRoot))
@@ -47,7 +55,29 @@ namespace Block2nd.GameSave
                 previews.Add(preview);
             }
 
-            return previews.ToArray();
-        } 
+            return previews;
+        }
+
+        public static string GetLevelFolderName(string name)
+        {
+            bool again = true;
+
+            while (again)
+            {
+                again = false;
+                foreach (var dir in Directory.EnumerateDirectories(GameRootDirectory.GetInstance().saveRoot))
+                {
+                    var folderName = Path.GetFileName(dir);
+                    if (folderName == name)
+                    {
+                        name += '-';
+                        again = true;
+                        break;
+                    }
+                }
+            }
+
+            return name;
+        }
     }
 }

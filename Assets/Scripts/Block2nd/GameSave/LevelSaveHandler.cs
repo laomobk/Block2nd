@@ -11,11 +11,11 @@ namespace Block2nd.GameSave
         public string LevelSaveRoot { get; }
         public string ChunkSaveRoot { get; }
 
-        public LevelSaveHandler(Level level) : this(level.levelName) {}
+        public LevelSaveHandler(Level level) : this(level.levelFolderName) {}
 
-        public LevelSaveHandler(string levelName)
+        public LevelSaveHandler(string levelFolderName)
         {
-            LevelSaveRoot = GameRootDirectory.GetInstance().saveRoot;
+            LevelSaveRoot = Path.Combine(GameRootDirectory.GetInstance().saveRoot, levelFolderName);
             ChunkSaveRoot = Path.Combine(LevelSaveRoot, "Dim1");
 
             if (!Directory.Exists(LevelSaveRoot))

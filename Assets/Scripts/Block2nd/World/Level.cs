@@ -21,6 +21,7 @@ namespace Block2nd.World
 {
     public class Level : MonoBehaviour
     {
+        public string levelFolderName = "Level_01";
         public string levelName = "Level_01";
         
         public System.Random random = new System.Random();
@@ -1123,25 +1124,31 @@ namespace Block2nd.World
             Destroy(particleGameObject, 2f);
         }
 
-        public void SaveLevel()
+        public void SaveLevelData()
         {
             var levelDataWriter = levelSaveHandler.GetLevelDataWriter();
-            var playerDataWriter = levelSaveHandler.GetPlayerDataWriter();
-            
             var levelKnbt = new KNBTTagCompound("Level");
 
-            var player = client.player;
-            var playerKnbt = player.GetPlayerKNBTData();
-
             levelKnbt.SetInt("Version", 1);
-            levelKnbt.SetString("Name", name);
+            levelKnbt.SetString("Name", levelName);
             levelKnbt.SetInt("Type", chunkProvider.GetChunkGenerator().GetId());
             
             levelKnbt.Write(levelDataWriter);
+            
+            levelDataWriter.Dispose();
+        }
+
+        public void SaveLevelCompletely()
+        {
+            SaveLevelData();
+            
+            var playerDataWriter = levelSaveHandler.GetPlayerDataWriter();
+            
+            var player = client.player;
+            var playerKnbt = player.GetPlayerKNBTData();
             playerKnbt.Write(playerDataWriter);
             
             playerDataWriter.Dispose();
-            levelDataWriter.Dispose();
             
             chunkProvider.SaveChunk(this, true);
         }

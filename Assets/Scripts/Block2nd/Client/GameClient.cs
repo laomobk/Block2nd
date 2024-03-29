@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Block2nd.Client.Debug;
 using Block2nd.CommandLine;
 using Block2nd.Database;
 using Block2nd.GamePlay;
@@ -184,7 +183,7 @@ namespace Block2nd.Client
 			SyncGameSettings();
 			StartCoroutine(GlobalMusicPlayer.BGMPlayCoroutine());
 			
-			EnterWorld();
+			CheckAndEnterWorld();
 		}
 
 		private void ClientTick()
@@ -281,12 +280,34 @@ namespace Block2nd.Client
 			}
 		}
 
-		public void EnterWorld(IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
+		public void CheckAndEnterWorld()
 		{
-			StartCoroutine(EnterWorldCoroutine(chunkProvider, saveHandler));
+			var preview = ClientSharedData.enterWorldLevelSavePreview;
+
+			if (preview == null)
+			{
+				EnterWorld();
+				return;
+			}
+
+			LevelSaveHandler handler = new LevelSaveHandler(preview.folderName);
+			EnterWorld(
+				new ChunkProviderGenerateOrLoad(
+					new LocalChunkLoader(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
+						preview.terrainType, worldSettings)),
+				handler, preview.name, preview.folderName);
 		}
 
-		private IEnumerator EnterWorldCoroutine(IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
+		public void EnterWorld(
+			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null,
+			string worldName = "Level_01", string worldFolderName = "Level_01")
+		{
+			StartCoroutine(EnterWorldCoroutine(chunkProvider, saveHandler, worldName, worldFolderName));
+		}
+
+		private IEnumerator EnterWorldCoroutine(
+			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null,
+			string worldName = "Level_01", string worldFolderName = "Level_01")
 		{
 			CloseMenu();
 
@@ -322,6 +343,9 @@ namespace Block2nd.Client
 				level.levelSaveHandler = saveHandler;
 			}
 
+			level.levelName = worldName;
+			level.levelFolderName = worldFolderName;
+
 			// level.PrepareLevel();
 			
 			progressUI.SetTitle("Spawning player...");
@@ -335,6 +359,8 @@ namespace Block2nd.Client
 			progressUI.gameObject.SetActive(false);
 			
 			levelTickCoroutine = StartCoroutine(level.LevelTickCoroutine());
+			
+			level.SaveLevelData();
 		}
 
 		public Vector3 SpawnPlayer(Level level)
@@ -398,7 +424,7 @@ namespace Block2nd.Client
 
 		public void SaveLevel()
 		{
-			currentLevel.GetComponent<Level>().SaveLevel();
+			currentLevel.GetComponent<Level>().SaveLevelCompletely();
 		}
 
 		public void LoadLevel()

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Block2nd.Client.Debug
+namespace Block2nd.Client.GameDebug
 {
 	public class GameClientDebugger : MonoBehaviour
 	{

@@ -14,7 +14,7 @@ namespace Block2nd.GUI
 
         private void Start()
         {
-            CreateTestList();
+            // CreateTestList();
             
             manager.onLevelSelectedAction = delegate(LevelSavePreview preview)
             {
@@ -22,6 +22,14 @@ namespace Block2nd.GUI
             };
             
             manager.onPlaySelectedWorldAction = PlaySelectedWorld;
+
+            var previews = LevelSaveManager.GetAllLevelSavePreviews();
+            if (previews == null)
+            {
+                return;
+            }
+            
+            manager.SetPreviewList(previews);
         }
 
         private void CreateTestList()
