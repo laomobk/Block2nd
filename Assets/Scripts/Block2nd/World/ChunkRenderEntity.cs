@@ -58,11 +58,13 @@ namespace Block2nd.World
         
         public void RenderChunk(Chunk chunk)
         {
-            if (!chunk.dirty && chunk.CoordKey == currentCoordKey)
+            if (!chunk.dirty && chunk.CoordKey == currentCoordKey && !brandNew)
             {
                 SetVisible(true);
                 return;
             }
+
+            brandNew = false;
 
             currentCoordKey = chunk.CoordKey;
 

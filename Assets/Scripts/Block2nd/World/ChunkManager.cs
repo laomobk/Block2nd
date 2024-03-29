@@ -6,6 +6,7 @@ using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
+using Block2nd.Scriptable;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Profiling;

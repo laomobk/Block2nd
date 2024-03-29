@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace Block2nd.Database
+namespace Block2nd.Scriptable
 {
     [CreateAssetMenu(fileName = "New World Settings", menuName = "Block2nd/Settings/World")]
     [Serializable]

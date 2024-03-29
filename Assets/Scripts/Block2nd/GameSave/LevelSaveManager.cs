@@ -90,5 +90,39 @@ namespace Block2nd.GameSave
 
             return name;
         }
+
+        public static string GetLevelFolderPath(string levelFolderName)
+        {
+            return Path.Combine(GameRootDirectory.GetInstance().saveRoot, levelFolderName);
+        }
+
+        public static void RenameSave(LevelSavePreview preview, string newName)
+        {
+            var handler = new LevelSaveHandler(preview.folderName, false);
+            
+            var reader = handler.GetLevelDataReader();
+            if (reader is null)
+                return;
+
+            var knbt = new KNBTTagCompound("Level");
+            knbt.Read(reader);
+            reader.Dispose();
+            
+            knbt.SetString("Name", newName);
+
+            var writer = handler.GetLevelDataWriter();
+            if (writer is null)
+                return;
+            
+            knbt.Write(writer);
+            writer.Dispose();
+        }
+
+        public static void DeleteSave(LevelSavePreview preview)
+        {
+            var path = GetLevelFolderPath(preview.folderName);
+            
+            Directory.Delete(path, true);
+        }
     }
 }

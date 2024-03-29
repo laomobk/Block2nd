@@ -14,49 +14,49 @@ namespace Block2nd.Persistence.KNBT
         
         public KNBTTagCompound SetByteArray(string key, byte[] value)
         {
-            dict.Add(key, new KNBTTagByteArray(key, value));
+            dict[key] = new KNBTTagByteArray(key, value);
 
             return this;
         }
         
         public KNBTTagCompound SetInt(string key, int value)
         {
-            dict.Add(key, new KNBTTagInt(key, value));
+            dict[key] = new KNBTTagInt(key, value);
 
             return this;
         }
 
         public KNBTTagCompound SetByte(string key, byte value)
         {
-            dict.Add(key, new KNBTTagByte(key, value));
+            dict[key] = new KNBTTagByte(key, value);
 
             return this;
         }
         
         public KNBTTagCompound SetString(string key, string value)
         {
-            dict.Add(key, new KNBTTagString(key, value));
+            dict[key] = new KNBTTagString(key, value);
 
             return this;
         }
 
         public KNBTTagCompound SetFloat(string key, float value)
         {
-            dict.Add(key, new KNBTTagFloat(key, value));
+            dict[key] = new KNBTTagFloat(key, value);
 
             return this;
         }
 
         public KNBTTagCompound SetChunkBlockDataArray(string key, ChunkBlockData[] value)
         {
-            dict.Add(key, new KNBTTagChunkBlockArray(key, value));
+            dict[key] = new KNBTTagChunkBlockArray(key, value);
 
             return this;
         }
 
         public KNBTTagCompound SetChunkBlockDataTensor(string key, ChunkBlockData[,,] value)
         {
-            dict.Add(key, new KNBTTagChunkBlockTensor(key, value));
+            dict[key] = new KNBTTagChunkBlockTensor(key, value);
 
             return this;
         }
@@ -142,7 +142,7 @@ namespace Block2nd.Persistence.KNBT
                 var name = reader.ReadString();
                 var tag = NewTagFromTagId(id, name);
                 tag.Read(reader);
-                dict.Add(name, tag);
+                dict[name] = tag;
             }
         }
 

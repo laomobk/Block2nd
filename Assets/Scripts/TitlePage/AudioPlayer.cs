@@ -28,7 +28,7 @@ namespace TitlePage
             var clip1 = music1;
             var clip2 = music2;
 
-            if (random.Next(0, 1) == 1)
+            if (random.Next(0, 2) == 1)
             {
                 clip1 = music2;
                 clip2 = music1;

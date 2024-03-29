@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Block2nd.Client;
 using Block2nd.GameSave;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Block2nd.GUI
+namespace Block2nd.GUI.Hierarchical.WorldSelectionUI
 {
-    public class WorldSelectListUI : MonoBehaviour
+    public class WorldSelectListPage : MonoBehaviour
     {
         public WorldListManager manager;
 
         public Button playSelectedWorldButton;
+        public Button renameWorldButton;
+        public Button deleteWorldButton;
 
         private void Start()
         {
@@ -21,6 +22,10 @@ namespace Block2nd.GUI
             manager.onLevelSelectedAction = delegate(LevelSavePreview preview)
             {
                 playSelectedWorldButton.interactable = true;
+                renameWorldButton.interactable = true;
+                deleteWorldButton.interactable = true;
+
+                ClientSharedData.levelSavePreviewInLastContext = preview;
             };
             
             manager.onPlaySelectedWorldAction = PlaySelectedWorld;
@@ -63,7 +68,7 @@ namespace Block2nd.GUI
         {
             Debug.Log("Play world: " + preview.name);
 
-            ClientSharedData.enterWorldLevelSavePreview = preview;
+            ClientSharedData.levelSavePreviewInLastContext = preview;
 
             SceneManager.LoadScene("Game");
         }

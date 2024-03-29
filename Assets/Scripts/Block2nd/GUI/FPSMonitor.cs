@@ -1,40 +1,42 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FPSMonitor : MonoBehaviour
+namespace Block2nd.GUI
 {
-    private Text text;
-    private int count;
-    private int fpsSum;
-
-    // Use this for initialization
-    void Start()
+    public class FPSMonitor : MonoBehaviour
     {
-        text = GetComponent<Text>();
+        private Text text;
+        private int count;
+        private int fpsSum;
 
-        StartCoroutine(FPSTextUpdateCoroutine());
-    }
-
-    private void Update()
-    {
-        fpsSum += (int) (1 / Time.deltaTime);
-        count++;
-    }
-
-    private IEnumerator FPSTextUpdateCoroutine()
-    {
-        while (true)
+        // Use this for initialization
+        void Start()
         {
-            if (count != 0)
-            {
-                text.text = fpsSum / count + " FPS";
-                count = 0;
-                fpsSum = 0;
-            }
+            text = GetComponent<Text>();
 
-            yield return new WaitForSeconds(1f);
+            StartCoroutine(FPSTextUpdateCoroutine());
+        }
+
+        private void Update()
+        {
+            fpsSum += (int) (1 / Time.deltaTime);
+            count++;
+        }
+
+        private IEnumerator FPSTextUpdateCoroutine()
+        {
+            while (true)
+            {
+                if (count != 0)
+                {
+                    text.text = fpsSum / count + " FPS";
+                    count = 0;
+                    fpsSum = 0;
+                }
+
+                yield return new WaitForSeconds(1f);
+            }
         }
     }
 }

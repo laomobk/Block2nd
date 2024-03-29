@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using Block2nd.Database;
+using Block2nd.Scriptable;
 using Block2nd.World;
 using UnityEngine;
 using UnityEngine.UI;

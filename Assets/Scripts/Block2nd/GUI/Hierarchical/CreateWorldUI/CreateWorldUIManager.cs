@@ -36,7 +36,7 @@ namespace Block2nd.GUI.Hierarchical.CreateWorldUI
 
         public void OnCreateWorld()
         {
-            ClientSharedData.enterWorldLevelSavePreview = new LevelSavePreview
+            ClientSharedData.levelSavePreviewInLastContext = new LevelSavePreview
             {
                 folderName = willBeSaveName,
                 name = inputField.text,

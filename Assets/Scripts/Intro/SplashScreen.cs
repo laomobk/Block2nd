@@ -1,21 +1,22 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class SplashScreen : MonoBehaviour
+namespace Intro
 {
-    public Image mask;
-
-    private void Start()
+    public class SplashScreen : MonoBehaviour
     {
-        StartCoroutine(SphlashScreenCoroutine());
-    }
+        public Image mask;
 
-    private IEnumerator SphlashScreenCoroutine()
-    {
-        /*
+        private void Start()
+        {
+            StartCoroutine(SphlashScreenCoroutine());
+        }
+
+        private IEnumerator SphlashScreenCoroutine()
+        {
+            /*
         var color = mask.color;
 
         color.a = 1;
@@ -37,8 +38,9 @@ public class SplashScreen : MonoBehaviour
         }
         */
 
-        yield return new WaitForSeconds(1.25f);
+            yield return new WaitForSeconds(1.25f);
         
-        SceneManager.LoadScene("Title");
+            SceneManager.LoadScene("Title");
+        }
     }
 }

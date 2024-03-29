@@ -9,6 +9,7 @@ using Block2nd.GUI;
 using Block2nd.GUI.GameGUI;
 using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
+using Block2nd.Scriptable;
 using Block2nd.World;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -284,7 +285,7 @@ namespace Block2nd.Client
 
 		public void CheckAndEnterWorld()
 		{
-			var preview = ClientSharedData.enterWorldLevelSavePreview;
+			var preview = ClientSharedData.levelSavePreviewInLastContext;
 
 			if (preview == null)
 			{
@@ -340,11 +341,12 @@ namespace Block2nd.Client
 			if (chunkProvider != null)
 				level.SetChunkProvider(chunkProvider);
 
-			if (saveHandler != null)
+			if (saveHandler == null)
 			{
-				level.levelSaveHandler = saveHandler;
-			}
-
+				saveHandler = new LevelSaveHandler("Level_01");
+			} 
+			
+			level.levelSaveHandler = saveHandler;
 			level.levelName = worldName;
 			level.levelFolderName = worldFolderName;
 
@@ -392,6 +394,8 @@ namespace Block2nd.Client
 			knbt.Read(reader);
 			
 			player.SetPlayerWithKNBTData(knbt);
+			
+			reader.Dispose();
 
 			return true;
 		}

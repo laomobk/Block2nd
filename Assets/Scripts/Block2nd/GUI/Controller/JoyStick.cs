@@ -1,9 +1,8 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace Block2nd.GUI
+namespace Block2nd.GUI.Controller
 {
     public class JoyStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
@@ -112,22 +111,22 @@ namespace Block2nd.GUI
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(centerTransform, mousePos, 
                 uiCamera, out Vector2 point);
-
-            var dir = point - centerPos;
-
-            if (dir.magnitude < minActiveStickLength)
-            {
-                onJoystickClick.Invoke();
-            }
-
+            
             pointerId = pointerEventData.pointerId;
             inTouch = true;
+            touchBeginTime = Time.time;
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             OnEndDrag();
             inTouch = false;
+
+            if (Time.time - touchBeginTime < 0.3f)
+            {
+                onJoystickClick.Invoke();
+            }
+
         }
     }
 }

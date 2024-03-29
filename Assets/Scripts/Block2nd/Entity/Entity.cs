@@ -10,6 +10,7 @@ namespace Block2nd.Entity
     {
         protected float stepHeight = 1;
         protected bool onGround = false;
+        protected bool hitFront = false;
 
         protected GameClient gameClient;
 
@@ -20,7 +21,10 @@ namespace Block2nd.Entity
             return GetAABB();
         }
         
+        public Vector3 forward = Vector3.zero;
+        
         public bool OnGround => onGround;
+        public bool HitFront => hitFront;
 
         private void Awake()
         {
@@ -49,7 +53,7 @@ namespace Block2nd.Entity
         {
             transform.position = GetAABB().Center;
         }
-        
+
         public void MoveWorld(Vector3 dir)
         {
             float wantX = dir.x;
@@ -61,16 +65,16 @@ namespace Block2nd.Entity
             float dz = wantZ;
 
             var aabb = GetAABB();
-            
+
             var collideBoxes = gameClient.CurrentLevel.GetWorldCollideBoxIntersect(
-                                                aabb.CopyWithExpand(wantX, wantY, wantZ));
+                aabb.CopyWithExpand(wantX, wantY, wantZ));
 
             for (int i = 0; i < collideBoxes.Count; ++i)
             {
                 var box = collideBoxes[i];
                 dy = box.ClipYCollide(aabb, dy);
             }
-            
+
             aabb.Move(0, dy, 0);
 
             onGround = dy != wantY && wantY < 0;
@@ -80,6 +84,8 @@ namespace Block2nd.Entity
                 dx = box.ClipXCollide(aabb, dx);
                 dz = box.ClipZCollide(aabb, dz);
             }
+
+            hitFront = Vector3.Dot(forward, dir) > 0 && (dx != wantX || dz != wantZ);
             
             aabb.Move(dx, 0f, dz);
             

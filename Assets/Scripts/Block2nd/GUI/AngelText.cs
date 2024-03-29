@@ -1,23 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class AngelText : MonoBehaviour
+namespace Block2nd.GUI
 {
-	private GameObject playerCamera;
-	private Text text;
-	
-	// Use this for initialization
-	void Start ()
+	public class AngelText : MonoBehaviour
 	{
-		playerCamera = GameObject.FindWithTag("MainCamera");
-		text = GetComponent<Text>();
-	}
+		private GameObject playerCamera;
+		private Text text;
 	
-	// Update is called once per frame
-	void Update ()
-	{
-		text.text = "Angel: " + playerCamera.transform.rotation.eulerAngles.ToString();
+		// Use this for initialization
+		void Start ()
+		{
+			playerCamera = GameObject.FindWithTag("MainCamera");
+			text = GetComponent<Text>();
+		}
+	
+		// Update is called once per frame
+		void Update ()
+		{
+			text.text = "Angel: " + playerCamera.transform.rotation.eulerAngles.ToString();
+		}
 	}
 }

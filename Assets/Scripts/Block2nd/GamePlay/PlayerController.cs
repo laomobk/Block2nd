@@ -332,7 +332,13 @@ namespace Block2nd.GamePlay
                 else
                     externalSpeed *= 0.9f;
 
+                entity.forward = transform.forward;
                 entity.MoveWorld(speed * Time.deltaTime);
+
+                if (entity.HitFront)
+                {
+                    Jump();
+                }
             }
         }
     }

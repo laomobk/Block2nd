@@ -13,6 +13,7 @@ using Block2nd.GameSave;
 using Block2nd.MathUtil;
 using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
+using Block2nd.Scriptable;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;

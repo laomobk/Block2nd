@@ -2366,6 +2366,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c440632023a4edbbedc26ac19dbb138, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  forward: {x: 0, y: 0, z: 0}
   gravity: -0.98
   verticalVelocity: 0
 --- !u!1 &989039545
@@ -5164,7 +5165,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 60
+  field of view: 70
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -6746,101 +6747,12 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2136992142}
   m_CullTransparentMesh: 0
---- !u!1 &1926984834463097578 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6233634256739641029, guid: 9a93fcd5913641e4eadbdf165705451d,
-    type: 3}
-  m_PrefabInstance: {fileID: 5493361488168010799}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1926984834463097579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1926984834463097578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03f0915bf0844f3583f8da779e4cbcd2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &1926984834463097581 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6233634256739641026, guid: 9a93fcd5913641e4eadbdf165705451d,
     type: 3}
   m_PrefabInstance: {fileID: 5493361488168010799}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1926984834463097582 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-    type: 3}
-  m_PrefabInstance: {fileID: 5493361488168010799}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1926984834463097578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29b4ed090da647c8a5d5f51a01333f17, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1926984834463097585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1926984834463097578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1862395651, guid: f70555f144d8491a825f0804e09c671c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates:
-  - eventID: 2
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1926984834463097582}
-          m_MethodName: OnPointerDown
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 5
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1926984834463097582}
-          m_MethodName: OnDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 14
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1926984834463097582}
-          m_MethodName: OnEndDrag
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  delegates: []
 --- !u!33 &2126436820126302721
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -7936,9 +7848,9 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
-      propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.size
-      value: 2
-      objectReference: {fileID: 0}
+      propertyPath: uiCamera
+      value: 
+      objectReference: {fileID: 1864364269}
     - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
       propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -7946,38 +7858,13 @@ PrefabInstance:
       objectReference: {fileID: 972082047}
     - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
-      propertyPath: overflowStickLength
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: uiCamera
-      value: 
-      objectReference: {fileID: 1864364269}
-    - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
       propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 972082047}
     - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
-      propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: PressSpace
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634256739641025, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: onJoystickClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
+      propertyPath: minActiveStickLength
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6233634256739641026, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
@@ -8088,26 +7975,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Joystick
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634256739641029, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: m_Layer
-      value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634257090989922, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: m_Layer
-      value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634257213942727, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: m_Layer
-      value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 6233634257369693156, guid: 9a93fcd5913641e4eadbdf165705451d,
-        type: 3}
-      propertyPath: m_Layer
-      value: 13
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9a93fcd5913641e4eadbdf165705451d, type: 3}

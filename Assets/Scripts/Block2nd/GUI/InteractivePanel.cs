@@ -18,7 +18,11 @@ namespace Block2nd.GUI
         private float pressBeginTime;
 
         private bool active = false;
+        private bool moveTooFar = false;
+        private bool continuous = false;
+        private Vector2 touchBeginPosition = Vector2.zero;
 
+        private int pointerId;
         private GameClient gameClient;
 
         private void Awake()
@@ -33,12 +37,28 @@ namespace Block2nd.GUI
             {
                 if (active)
                 {
-                    if (Time.time - pressBeginTime > 1)
+                    Debug.Log(moveTooFar);
+
+                    var touches = Input.touches;
+                    if (pointerId >= 0 && pointerId < touches.Length)
                     {
-                        if (Time.time - pressTriggerTime >= pressTriggerInterval)
+                        var touch = touches[pointerId];
+                        if ((touch.position - touchBeginPosition).magnitude > 12f)
                         {
-                            longPressCallback.Invoke();
-                            pressTriggerTime = Time.time;
+                            moveTooFar = true;
+                        }
+                    }
+
+                    if (continuous || !moveTooFar)
+                    {
+                        if (Time.time - pressBeginTime > 0.15f)
+                        {
+                            if (Time.time - pressTriggerTime >= pressTriggerInterval)
+                            {
+                                longPressCallback.Invoke();
+                                pressTriggerTime = Time.time;
+                                continuous = true;
+                            }
                         }
                     }
                 }
@@ -47,9 +67,12 @@ namespace Block2nd.GUI
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            active = true;
-            
+            pointerId = eventData.pointerId;
             pressBeginTime = Time.time;
+            moveTooFar = false;
+            active = true;
+            continuous = false;
+            touchBeginPosition = eventData.position;
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -60,6 +83,8 @@ namespace Block2nd.GUI
             }
 
             active = false;
+            moveTooFar = false;
+            continuous = false;
         }
     }
 }

@@ -1,10 +1,9 @@
-using System;
 using Block2nd.GameSave;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Block2nd.GUI
+namespace Block2nd.GUI.Hierarchical.WorldSelectionUI
 {
     public class WorldPreviewItem : MonoBehaviour, IPointerDownHandler
     {
