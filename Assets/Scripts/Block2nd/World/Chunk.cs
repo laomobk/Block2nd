@@ -59,7 +59,9 @@ namespace Block2nd.World
         {
             if (!dirty)
                 return;
-
+            
+            Profiler.BeginSample("Bake HeightMap");
+            
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
             
@@ -77,6 +79,8 @@ namespace Block2nd.World
                     }
                 }
             }
+            
+            Profiler.EndSample();
         }
 
         public void BakeAmbientOcclusionMap()

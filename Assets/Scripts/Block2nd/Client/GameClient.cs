@@ -23,6 +23,7 @@ namespace Block2nd.Client
 		GUI,
 		GAME,
 		CHAT,
+		IN_PROGRESS
 	}
 	
 	public class GameClient : MonoBehaviour
@@ -59,6 +60,11 @@ namespace Block2nd.Client
 
 		private int playerTickCount = 0;
 
+		private void OnApplicationQuit()
+		{
+			StartCoroutine(SaveAndQuitCoroutine(false));
+		}
+
 		private void Awake()
 		{
 			commandRuntime = new CommandRuntime(this);
@@ -89,11 +95,6 @@ namespace Block2nd.Client
 		{
 			if (gameClientState == GameClientState.GAME)
 			{
-				if (Input.GetKeyDown(KeyCode.G))
-				{
-					EnterWorldCoroutine();
-				}
-
 				if (Input.GetKeyDown(KeyCode.L))
 				{
 					SwitchShader();
@@ -241,7 +242,6 @@ namespace Block2nd.Client
 
 		private void SyncGameSettings()
 		{
-			gameSettings.viewDistance = viewDistanceCandidates[viewDistanceCandidateIdx];
 			var shader = shaderCandidates[shaderCandidateIdx];
 			terrainMaterial.shader = shader;
 			SetFogState(gameSettings.fog);
@@ -286,31 +286,36 @@ namespace Block2nd.Client
 		public void CheckAndEnterWorld()
 		{
 			var preview = ClientSharedData.levelSavePreviewInLastContext;
-
+			
 			if (preview == null)
 			{
-				EnterWorld();
+				EnterWorld(new LevelSavePreview
+				{
+					folderName = "Level_01",
+					name = "Level_01",
+					seed = 0
+				});
 				return;
 			}
+			
+			worldSettings.seed = preview.seed;
 
 			LevelSaveHandler handler = new LevelSaveHandler(preview.folderName);
-			EnterWorld(
+			EnterWorld(preview, 
 				new ChunkProviderGenerateOrLoad(
 					new LocalChunkLoader(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
-						preview.terrainType, worldSettings)),
-				handler, preview.name, preview.folderName);
+						preview.terrainType, worldSettings)), handler);
 		}
 
-		public void EnterWorld(
-			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null,
-			string worldName = "Level_01", string worldFolderName = "Level_01")
+		private void EnterWorld(LevelSavePreview preview,
+			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
 		{
-			StartCoroutine(EnterWorldCoroutine(chunkProvider, saveHandler, worldName, worldFolderName));
+			
+			StartCoroutine(EnterWorldCoroutine(preview, chunkProvider, saveHandler));
 		}
 
-		private IEnumerator EnterWorldCoroutine(
-			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null,
-			string worldName = "Level_01", string worldFolderName = "Level_01")
+		private IEnumerator EnterWorldCoroutine(LevelSavePreview preview,
+			IChunkProvider chunkProvider = null, LevelSaveHandler saveHandler = null)
 		{
 			CloseMenu();
 
@@ -337,6 +342,9 @@ namespace Block2nd.Client
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
 			var level = currentLevel.GetComponent<Level>();
+			
+			level.seed = preview.seed;
+			level.random = new System.Random(preview.seed);
 
 			if (chunkProvider != null)
 				level.SetChunkProvider(chunkProvider);
@@ -347,10 +355,10 @@ namespace Block2nd.Client
 			} 
 			
 			level.levelSaveHandler = saveHandler;
-			level.levelName = worldName;
-			level.levelFolderName = worldFolderName;
+			level.levelName = preview.name;
+			level.levelFolderName = preview.folderName;
 
-			// level.PrepareLevel();
+			level.PrepareLevel();
 			
 			progressUI.SetTitle("Spawning player...");
 			progressUI.SetProgress("");
@@ -358,16 +366,9 @@ namespace Block2nd.Client
 
 			Vector3 point;
 
-			if (saveHandler != null)
+			if (RecoveryPlayer(saveHandler))
 			{
-				if (RecoveryPlayer(saveHandler))
-				{
-					point = player.transform.position;
-				}
-				else
-				{
-					point = SpawnPlayer(level);
-				}
+				point = player.transform.position;
 			}
 			else
 			{
@@ -466,8 +467,31 @@ namespace Block2nd.Client
 
 		public void SaveAndQuitToTitle()
 		{
+			StartCoroutine(SaveAndQuitCoroutine(true));
+		}
+
+		public IEnumerator SaveAndQuitCoroutine(bool jumpToTitle)
+		{
+			CloseMenu();
+			
+			gameClientState = GameClientState.IN_PROGRESS;
+
+			yield return null;
+			
+			var progressUI = guiCanvasManager.worldGeneratingProgressUI;
+			
+			progressUI.gameObject.SetActive(true);
+			
+			progressUI.SetTitle("Saving World...");
+			progressUI.SetProgress("");
+			yield return null;
+			
+			currentLevel.GetComponent<Level>().StopAllCoroutines();
+
 			SaveLevel();
-			SceneManager.LoadScene("Title");
+			
+			if (jumpToTitle)
+				SceneManager.LoadScene("Title");
 		}
 	}
 }

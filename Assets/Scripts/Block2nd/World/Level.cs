@@ -25,7 +25,7 @@ namespace Block2nd.World
         public string levelFolderName = "Level_01";
         public string levelName = "Level_01";
         
-        public System.Random random = new System.Random();
+        public System.Random random;
 
         private ChunkManager chunkManager;
         private TerrainNoiseGenerator terrainNoise;
@@ -63,6 +63,7 @@ namespace Block2nd.World
         private ChunkRenderEntityManager chunkRenderEntityManager;
 
         [HideInInspector] public LevelSaveHandler levelSaveHandler;
+        [HideInInspector] public int seed;
 
         public ChunkManager ChunkManager
         {
@@ -85,11 +86,6 @@ namespace Block2nd.World
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
         }
 
-        private void Update()
-        {
-            
-        }
-
         private void OnDestroy()
         {
             StopAllCoroutines();
@@ -109,11 +105,20 @@ namespace Block2nd.World
 
         private void FlushDirtyChunkQueue(bool discard = false)
         {
-            var n = dirtyChunkPreFrameQueue.Count;
+            if (discard)
+            {
+                dirtyChunkPreFrameQueue.Clear();
+                return;
+            }
             
+            var n = dirtyChunkPreFrameQueue.Count;
+
             for (int i = 0; i < n; ++i)
-                if (!discard)
-                    chunkRenderEntityManager.TryRenderChunk(dirtyChunkPreFrameQueue.Dequeue());
+            {
+                var chunk = dirtyChunkPreFrameQueue.Dequeue();
+                chunk.BakeHeightMap();
+                chunkRenderEntityManager.TryRenderChunk(chunk);
+            }
         }
 
         public void SetChunkProvider(IChunkProvider chunkProvider)
@@ -282,14 +287,18 @@ namespace Block2nd.World
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
 
+            int total = 4 * radius * radius;
+            float count = 0;
+
             for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
             {
                 for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
                 {
                     chunkProvider.ProvideChunk(this, cx, cz);
+                    count++;
                 }
                 
-                progressUI.SetProgress((cx + radius) / (2f * radius));
+                progressUI.SetProgress(count / total);
                 yield return null;
             }
 
@@ -696,6 +705,8 @@ namespace Block2nd.World
 
         public void Explode(int x, int y, int z, int radius)
         {
+            Profiler.BeginSample("Explode");
+            
             var minX = x - radius;
             var minY = y - radius;
             var minZ = z - radius;
@@ -723,7 +734,7 @@ namespace Block2nd.World
 
                             if (defaultAct)
                             {
-                                SetBlock(0, cx, cy, cz, false);
+                                SetBlock(0, cx, cy, cz, false, updateHeightmap: false);
                             }
                         }
                     }
@@ -732,6 +743,8 @@ namespace Block2nd.World
 
             var dir = client.player.transform.position - new Vector3(x, y, z);
             client.player.playerController.AddImpulseForse(dir.normalized * 300 / (1f + dir.magnitude));
+            
+            Profiler.EndSample();
             
             FlushDirtyChunkQueue();
         }
@@ -1134,6 +1147,7 @@ namespace Block2nd.World
             levelKnbt.SetInt("Version", 1);
             levelKnbt.SetString("Name", levelName);
             levelKnbt.SetInt("Type", chunkProvider.GetChunkGenerator().GetId());
+            levelKnbt.SetInt("Seed", worldSettings.seed);
             
             levelKnbt.Write(levelDataWriter);
             

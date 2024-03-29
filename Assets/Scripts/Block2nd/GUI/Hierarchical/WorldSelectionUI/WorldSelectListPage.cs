@@ -66,7 +66,7 @@ namespace Block2nd.GUI.Hierarchical.WorldSelectionUI
 
         public void PlaySelectedWorld(LevelSavePreview preview)
         {
-            Debug.Log("Play world: " + preview.name);
+            Debug.Log("Play world: " + preview.name + " | " + preview.seed);
 
             ClientSharedData.levelSavePreviewInLastContext = preview;
 

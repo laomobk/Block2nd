@@ -27,23 +27,16 @@ namespace Block2nd.Behavior.Block
             byte state = level.GetBlock(worldPos.x, worldPos.y, worldPos.z).blockState;
             byte iterCount = (byte) (state & 15);
 
-            if (iterCount == 0)
-            {
-                return;
-            }
-
             var x = worldPos.x;
             var y = worldPos.y;
             var z = worldPos.z;
 
             Chunk cp;
-
-            byte newState = (byte) (state - 1);
             
             if (y > 0 && level.GetBlock(x, y - 1, z, out cp).blockCode == 0)
             {
                 level.SetBlock(
-                    GetSelfBlockCode(), x, y - 1, z, false, state: newState, useInitState: false);
+                    GetSelfBlockCode(), x, y - 1, z, false, state: iterCount, useInitState: false);
 
                 level.AddUpdateToNextTick(new ChunkUpdateContext
                 {
@@ -54,6 +47,13 @@ namespace Block2nd.Behavior.Block
                 
                 return;
             }
+
+            if (iterCount == 0)
+            {
+                return;
+            }
+
+            byte newState = (byte) (iterCount - 1);
             
             if (level.GetBlock(x, y, z + 1, out cp).blockCode == 0)
             {

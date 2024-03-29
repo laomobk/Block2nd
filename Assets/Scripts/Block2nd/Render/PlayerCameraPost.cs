@@ -6,9 +6,10 @@ using UnityEngine;
 
 namespace Block2nd.Render
 {
-    public class CameraInWaterPost : MonoBehaviour
+    public class PlayerCameraPost : MonoBehaviour
     {
-        public Material postMaterial;
+        public Material inWaterPostMaterial;
+        public Material sightPostMaterial;
 
         private int waterCode;
         private Player player;
@@ -24,18 +25,36 @@ namespace Block2nd.Render
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
+
+            RenderTexture renderTexture;
+
+            if (Application.isMobilePlatform)
+            {
+                renderTexture = dest;
+            } else {
+                renderTexture = RenderTexture.GetTemporary(src.descriptor);
+            }
+
             if (client.CurrentLevel != null)
             {
-                postMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
+                inWaterPostMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
                     player.playerCamera.transform.position).blockCode == waterCode
                     ? 1
                     : 0);
-                Graphics.Blit(src, dest, postMaterial);
+                Graphics.Blit(src, renderTexture, inWaterPostMaterial);
             }
             else
             {
-                Graphics.Blit(src, dest);
+                Graphics.Blit(src, renderTexture);
             }
+
+            if (Application.isMobilePlatform)
+            {
+                return;
+            }
+
+            Graphics.Blit(renderTexture, dest, sightPostMaterial);
+            renderTexture.Release();
         }
     }
 }

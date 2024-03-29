@@ -40,19 +40,19 @@ namespace Block2nd.Client
                 switch (song)
                 {
                     case 0:
-                        length = audioManager.PlayBGM("newmusic/hal1");
+                        length = audioManager.PlayAudio("newmusic/hal1");
                         break;
                     case 1:
-                        length = audioManager.PlayBGM("newmusic/piano2");
+                        length = audioManager.PlayAudio("newmusic/piano2");
                         break;
                     case 2:
-                        length = audioManager.PlayBGM("music/calm1");
+                        length = audioManager.PlayAudio("music/calm1");
                         break;
                     case 3:
-                        length = audioManager.PlayBGM("newmusic/hal1");
+                        length = audioManager.PlayAudio("newmusic/hal1");
                         break;
                     case 4:
-                        length = audioManager.PlayBGM("music/calm2");
+                        length = audioManager.PlayAudio("music/calm2");
                         break;
                 }
 

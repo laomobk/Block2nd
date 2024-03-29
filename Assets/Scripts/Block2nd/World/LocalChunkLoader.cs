@@ -19,6 +19,8 @@ namespace Block2nd.World
 
             var knbt = new KNBTTagCompound("Chunk");
             knbt.Read(reader);
+            
+            reader.Dispose();
 
             var blocks = knbt.GetChunkBlockDataTensor("Blocks");
             if (blocks == null)

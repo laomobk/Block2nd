@@ -7,7 +7,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
     {
         public void GenerateNewWorld()
         {
-            GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>().EnterWorld();
+            GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>().CheckAndEnterWorld();
         }
     }
 }

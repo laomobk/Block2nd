@@ -65,7 +65,6 @@ namespace Block2nd.World
             }
 
             brandNew = false;
-
             currentCoordKey = chunk.CoordKey;
 
             Profiler.BeginSample("Render Chunk Mesh");

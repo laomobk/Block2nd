@@ -1,4 +1,5 @@
 ﻿using System;
+using Block2nd.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 namespace Block2nd.GUI
 {
     [RequireComponent(typeof(Image))]
-    public class ButtonStyle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class ButtonStyle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         private Image image;
         private Text text;
@@ -61,6 +62,12 @@ namespace Block2nd.GUI
         {
             if (button.interactable)
                 image.sprite = normalStateLook;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            var soundPlayer = GameObject.FindGameObjectWithTag("SoundPlayer");
+            soundPlayer.GetComponent<SoundPlayer>().PlaySound("sound3/random/click");
         }
     }
 }

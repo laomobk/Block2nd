@@ -16,7 +16,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
 
         public void GenerateWorld(IChunkProvider chunkProvider = null)
         {
-            gameClient.EnterWorld(chunkProvider);
+            
         }
 
         public void GenerateWorldNormal()

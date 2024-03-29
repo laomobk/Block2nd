@@ -7,6 +7,7 @@ namespace Block2nd.GameSave
         public string name;
         public string folderName;
         public int terrainType = 0;
+        public int seed = 0;
         public DateTime lastWriteTime;
 
         public override string ToString()

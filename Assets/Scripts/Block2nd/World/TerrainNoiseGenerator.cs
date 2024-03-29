@@ -16,12 +16,15 @@ namespace Block2nd.World
 
         public WorldSettings worldSettings;
         
-        private System.Random rand = new System.Random();
+        private System.Random rand;
 
         private Vector2 sampleOffset;
 
         public TerrainNoiseGenerator(WorldSettings worldSettings)
         {
+            Debug.Log("NoiseGen Seed: " + worldSettings.seed);
+            rand = new System.Random(worldSettings.seed);
+            
             Noise2d.Reseed();
             seed += rand.Next(1000000, 9999999);
             this.worldSettings = worldSettings;

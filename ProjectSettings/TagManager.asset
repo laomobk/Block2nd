@@ -11,6 +11,7 @@ TagManager:
   - Menu
   - Inventory
   - AudioManager
+  - SoundPlayer
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - Hold
   - GUIPanel
   - MobileGUI
-  - 
+  - Hud
   - 
   - 
   - 

@@ -36,13 +36,15 @@ namespace Block2nd.GUI.Hierarchical.CreateWorldUI
 
         public void OnCreateWorld()
         {
+            var seed = (int) DateTime.Now.Ticks;
             ClientSharedData.levelSavePreviewInLastContext = new LevelSavePreview
             {
                 folderName = willBeSaveName,
                 name = inputField.text,
+                seed = seed
             };
             
-            Debug.Log("Create New World: " + inputField.text + " | " + willBeSaveName);
+            Debug.Log("Create New World: " + inputField.text + " | " + willBeSaveName + "|" + seed);
 
             SceneManager.LoadScene("Game");
         }

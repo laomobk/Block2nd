@@ -7,7 +7,7 @@ namespace Block2nd.Audio
     {
         public AudioSource BGMAudioSource;
 
-        public float PlayBGM(string resPath)
+        public float PlayAudio(string resPath)
         {
             try
             {

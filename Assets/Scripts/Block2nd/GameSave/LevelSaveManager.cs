@@ -19,9 +19,11 @@ namespace Block2nd.GameSave
             var info = new FileInfo(levelDatPath);
             
             var reader = new BinaryReader(new FileStream(levelDatPath, FileMode.Open, FileAccess.Read));
-            
+
             var levelKnbt = new KNBTTagCompound("Level");
             levelKnbt.Read(reader);
+            
+            reader.Dispose();
             
             var preview = new LevelSavePreview();
 
@@ -36,6 +38,7 @@ namespace Block2nd.GameSave
             preview.folderName = Path.GetFileName(saveFolderPath);
             preview.terrainType = levelKnbt.GetInt("Type");
             preview.lastWriteTime = info.LastWriteTime;
+            preview.seed = levelKnbt.GetInt("Seed");
 
             return preview;
         }

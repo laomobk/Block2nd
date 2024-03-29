@@ -7,8 +7,8 @@ namespace Block2nd.Scriptable
     [Serializable]
     public class WorldSettings : ScriptableObject
     {
+        public int seed = 0;
         public int chunkHeight = 128;
-
         public int levelWidth = 256;
     }
 }
