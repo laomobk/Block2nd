@@ -364,7 +364,7 @@ MonoBehaviour:
         m_CallState: 2
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
-  m_SelectionColor: {r: 0.103773594, g: 0.103773594, b: 0.103773594, a: 0.7529412}
+  m_SelectionColor: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 0.5647059}
   m_Text: New World
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
@@ -631,6 +631,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   willBeSaveText: {fileID: 372380008}
   inputField: {fileID: 4783793484679383556}
+--- !u!114 &7926193380444436069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8338027439119067870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1433389995aad554fa4e77ddeac702ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPagePrefab: {fileID: 64305706213086499, guid: 80ec1cc7acf0c504793abeb18a7792d4,
+    type: 3}
 --- !u!1 &8563603544649959351
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,6 +834,16 @@ PrefabInstance:
       propertyPath: m_Interactable
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8126460352106996347, guid: 43223d41054e2304b8e1cf38fecb19c4,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7926193380444436069}
+    - target: {fileID: 8126460352106996347, guid: 43223d41054e2304b8e1cf38fecb19c4,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: EnterTargetPage
+      objectReference: {fileID: 0}
     - target: {fileID: 8126460352106996351, guid: 43223d41054e2304b8e1cf38fecb19c4,
         type: 3}
       propertyPath: m_Name
@@ -827,6 +851,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43223d41054e2304b8e1cf38fecb19c4, type: 3}
+--- !u!1 &8338027439119067870 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8126460352106996351, guid: 43223d41054e2304b8e1cf38fecb19c4,
+    type: 3}
+  m_PrefabInstance: {fileID: 247807265426688161}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8338027439119067865 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8126460352106996344, guid: 43223d41054e2304b8e1cf38fecb19c4,

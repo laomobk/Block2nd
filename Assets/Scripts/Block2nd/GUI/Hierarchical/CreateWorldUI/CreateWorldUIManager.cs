@@ -39,7 +39,7 @@ namespace Block2nd.GUI.Hierarchical.CreateWorldUI
             ClientSharedData.enterWorldLevelSavePreview = new LevelSavePreview
             {
                 folderName = willBeSaveName,
-                name = inputField.text
+                name = inputField.text,
             };
             
             Debug.Log("Create New World: " + inputField.text + " | " + willBeSaveName);

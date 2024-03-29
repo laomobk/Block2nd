@@ -687,7 +687,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 62151070}
+  m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -3175,7 +3175,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 91.01, y: -46.181}
+  m_AnchoredPosition: {x: 91.01001, y: -46.181}
   m_SizeDelta: {x: 157.32, y: 27.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1131276027
@@ -4273,6 +4273,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   firstMenuPagePrefab: {fileID: 4452392738380730571, guid: db2a4db53eeb96945a6fb946f5ec7626,
     type: 3}
+  openAtStart: 0
 --- !u!114 &1370177814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4659,7 +4660,7 @@ MonoBehaviour:
   m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 0728632207a7cba419e78139df1ca5ab, type: 2}
   m_Color: {r: 0.375, g: 0.375, b: 0.375, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
@@ -5362,7 +5363,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 305.4, y: -89.64}
+  m_AnchoredPosition: {x: 305.4, y: -89.640015}
   m_SizeDelta: {x: 586.1, y: 25.278286}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &1783670731 stripped

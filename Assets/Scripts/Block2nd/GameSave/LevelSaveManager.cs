@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Block2nd.Persistence.KNBT;
+using UnityEngine;
 
 namespace Block2nd.GameSave
 {
@@ -13,6 +15,8 @@ namespace Block2nd.GameSave
             {
                 return null;
             }
+            
+            var info = new FileInfo(levelDatPath);
             
             var reader = new BinaryReader(new FileStream(levelDatPath, FileMode.Open, FileAccess.Read));
             
@@ -31,11 +35,12 @@ namespace Block2nd.GameSave
             preview.name = levelName;
             preview.folderName = Path.GetFileName(saveFolderPath);
             preview.terrainType = levelKnbt.GetInt("Type");
+            preview.lastWriteTime = info.LastWriteTime;
 
             return preview;
         }
         
-        public static List<LevelSavePreview> GetAllLevelSavePreviews()
+        public static List<LevelSavePreview> GetAllLevelSavePreviews(bool sort = true)
         {
             List<LevelSavePreview> previews = new List<LevelSavePreview>();
             
@@ -53,6 +58,12 @@ namespace Block2nd.GameSave
                 if (preview is null) 
                     continue;
                 previews.Add(preview);
+            }
+
+            if (sort)
+            {
+                previews.Sort((preview1, preview2) => 
+                    -preview1.lastWriteTime.Ticks.CompareTo(preview2.lastWriteTime.Ticks));
             }
 
             return previews;

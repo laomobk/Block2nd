@@ -76,6 +76,9 @@ namespace Block2nd.GameSave
         public BinaryReader GetPlayerDataReader()
         {
             var playerDataFileName = Path.Combine(LevelSaveRoot, "Player.dat");
+
+            if (!File.Exists(playerDataFileName))
+                return null;
             
             var stream = new FileStream(playerDataFileName, FileMode.Open, FileAccess.Read);    
             
@@ -94,6 +97,9 @@ namespace Block2nd.GameSave
         public BinaryReader GetLevelDataReader()
         {
             var levelDataFileName = Path.Combine(LevelSaveRoot, "Level.dat");
+            
+            if (!File.Exists(levelDataFileName))
+                return null;
             
             var stream = new FileStream(levelDataFileName, FileMode.Open, FileAccess.Read);    
             

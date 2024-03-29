@@ -35,7 +35,7 @@ namespace Block2nd.Persistence.KNBT
         
         public KNBTTagCompound SetString(string key, string value)
         {
-            dict.Add(key, new KNBTTagString(value));
+            dict.Add(key, new KNBTTagString(key, value));
 
             return this;
         }

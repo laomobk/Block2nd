@@ -5,10 +5,14 @@ namespace TitlePage
 {
     public class CameraRotateController : MonoBehaviour
     {
-        private void Update()
+        private float time = 0f;
+        
+        private void FixedUpdate()
         {
-            transform.Rotate(Vector3.up, Time.deltaTime * 6f, Space.World);
-            transform.Rotate(Vector3.right, 0.01f * Mathf.Sin(0.2f * Time.time), Space.Self);
+            time += Time.fixedDeltaTime;
+            
+            transform.Rotate(Vector3.up, Time.fixedDeltaTime * 6f, Space.World);
+            transform.Rotate(Vector3.right, 0.01f * Mathf.Sin(0.2f * time), Space.Self);
         }
     }
 }

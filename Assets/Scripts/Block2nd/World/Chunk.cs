@@ -32,7 +32,7 @@ namespace Block2nd.World
 
         public ulong CoordKey { get; }
 
-        public bool NeedToSave => !saved || dirty;
+        public bool NeedToSave => !saved || modified;
 
         public Chunk(Level level, int chunkX, int chunkZ)
         {

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Block2nd.Client;
 using Block2nd.GameSave;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Block2nd.GUI
@@ -59,7 +61,11 @@ namespace Block2nd.GUI
 
         public void PlaySelectedWorld(LevelSavePreview preview)
         {
-            Debug.Log("Player world: " + preview.name);
+            Debug.Log("Play world: " + preview.name);
+
+            ClientSharedData.enterWorldLevelSavePreview = preview;
+
+            SceneManager.LoadScene("Game");
         }
     }
 }

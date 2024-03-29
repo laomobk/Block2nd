@@ -7,9 +7,11 @@ using Block2nd.GamePlay;
 using Block2nd.GameSave;
 using Block2nd.GUI;
 using Block2nd.GUI.GameGUI;
+using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
 using Block2nd.World;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 namespace Block2nd.Client
@@ -352,7 +354,23 @@ namespace Block2nd.Client
 			progressUI.SetProgress("");
 			yield return null;
 
-			var point = SpawnPlayer(level);
+			Vector3 point;
+
+			if (saveHandler != null)
+			{
+				if (RecoveryPlayer(saveHandler))
+				{
+					point = player.transform.position;
+				}
+				else
+				{
+					point = SpawnPlayer(level);
+				}
+			}
+			else
+			{
+				point = SpawnPlayer(level);
+			}
 
 			yield return StartCoroutine(level.ProvideChunksSurroundingCoroutineWithReport(point, 6));
 			
@@ -360,7 +378,22 @@ namespace Block2nd.Client
 			
 			levelTickCoroutine = StartCoroutine(level.LevelTickCoroutine());
 			
+			level.SavePlayerData();
 			level.SaveLevelData();
+		}
+
+		public bool RecoveryPlayer(LevelSaveHandler saveHandler)
+		{
+			var reader = saveHandler.GetPlayerDataReader();
+			if (reader is null)
+				return false;
+
+			var knbt = new KNBTTagCompound("Player");
+			knbt.Read(reader);
+			
+			player.SetPlayerWithKNBTData(knbt);
+
+			return true;
 		}
 
 		public Vector3 SpawnPlayer(Level level)
@@ -427,9 +460,10 @@ namespace Block2nd.Client
 			currentLevel.GetComponent<Level>().SaveLevelCompletely();
 		}
 
-		public void LoadLevel()
+		public void SaveAndQuitToTitle()
 		{
-			EnterWorld(saveHandler: new LevelSaveHandler("Level_01"));
+			SaveLevel();
+			SceneManager.LoadScene("Title");
 		}
 	}
 }

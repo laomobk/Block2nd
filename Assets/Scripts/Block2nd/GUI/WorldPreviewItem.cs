@@ -46,8 +46,12 @@ namespace Block2nd.GUI
 
         public void Setup(LevelSavePreview preview, WorldListManager manager)
         {
+            var accessTime = preview.lastWriteTime;
+            var timeString = $" ({accessTime.Year}-{accessTime.Month}-{accessTime.Day} {accessTime.Hour:00}:{accessTime.Minute:00})";
+
             worldTitle.text = preview.name;
-            worldSubtitle.text = preview.folderName;
+            worldSubtitle.text = preview.folderName + timeString;
+            
             this.preview = preview;
             this.manager = manager;
         }

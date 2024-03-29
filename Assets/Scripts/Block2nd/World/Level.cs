@@ -82,8 +82,6 @@ namespace Block2nd.World
                 new EarthChunkGenerator(worldSettings));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
-            
-            CreateSaveHandler();
         }
 
         private void Update()
@@ -1126,6 +1124,9 @@ namespace Block2nd.World
 
         public void SaveLevelData()
         {
+            if (levelSaveHandler == null)
+                return;
+            
             var levelDataWriter = levelSaveHandler.GetLevelDataWriter();
             var levelKnbt = new KNBTTagCompound("Level");
 
@@ -1135,13 +1136,13 @@ namespace Block2nd.World
             
             levelKnbt.Write(levelDataWriter);
             
+            Debug.Log("Level: Save level data: [" + levelName + "]:[" + levelFolderName + "]");
+            
             levelDataWriter.Dispose();
         }
 
-        public void SaveLevelCompletely()
+        public void SavePlayerData()
         {
-            SaveLevelData();
-            
             var playerDataWriter = levelSaveHandler.GetPlayerDataWriter();
             
             var player = client.player;
@@ -1149,6 +1150,15 @@ namespace Block2nd.World
             playerKnbt.Write(playerDataWriter);
             
             playerDataWriter.Dispose();
+        }
+
+        public void SaveLevelCompletely()
+        {
+            if (levelSaveHandler == null)
+                return;
+
+            SaveLevelData();
+            SavePlayerData();
             
             chunkProvider.SaveChunk(this, true);
         }
