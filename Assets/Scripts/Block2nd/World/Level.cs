@@ -47,6 +47,7 @@ namespace Block2nd.World
 
         private GameClient client;
 
+        private int levelTickCount = 0;
         private float tickInterval = 0.3f;
         private float lastTickTime = -10f;
         private int maxEachUpdateCount = 50;
@@ -177,6 +178,7 @@ namespace Block2nd.World
             while (true)
             {
                 LevelTick();
+                levelTickCount++;
 
                 yield return new WaitForSeconds(0.1f);
             }
@@ -185,6 +187,11 @@ namespace Block2nd.World
         private void LevelTick()
         {
             var playerPos = client.player.transform.position;
+
+            if (levelTickCount % 30 == 0)
+            {
+                chunkProvider.SaveChunk(this, false);
+            }
             
             ProvideChunksSurrounding(playerPos);
             

@@ -56,6 +56,9 @@ namespace Block2nd.World
 
         public void SaveChunk(Level level, Chunk chunk)
         {
+            if (!chunk.NeedToSave)
+                return;
+
             var knbt = chunk.GetChunkKNBTData();
 
             var path = level.levelSaveHandler.GetChunkFilePath(
@@ -70,6 +73,7 @@ namespace Block2nd.World
             gzipStream.Dispose();
 
             chunk.saved = true;
+            chunk.modified = false;
         }
     }
 }

@@ -491,6 +491,8 @@ namespace Block2nd.Client
 
 			SaveLevel();
 			
+			GC.Collect();
+			
 			if (jumpToTitle)
 				SceneManager.LoadScene("Title");
 		}

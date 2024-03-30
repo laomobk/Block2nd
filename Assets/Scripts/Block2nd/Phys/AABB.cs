@@ -85,7 +85,7 @@ namespace Block2nd.Phys
 
         public float ClipXCollide(AABB thatBox, float wantX)
         {
-            if (thatBox.maxY > minY && thatBox.minY <= maxY && thatBox.maxZ > minZ && thatBox.minZ <= maxZ)
+            if (thatBox.maxY > minY && thatBox.minY < maxY && thatBox.maxZ > minZ && thatBox.minZ < maxZ)
             {
                 float actualX;
                 if (wantX > 0 && thatBox.maxX <= minX && (actualX = minX - thatBox.maxX - epsilon) < wantX)
@@ -109,7 +109,7 @@ namespace Block2nd.Phys
         public float ClipYCollide(AABB thatBox, float wantY)
         {
             
-            if (thatBox.maxX > minX && thatBox.minX <= maxX && thatBox.maxZ > minZ && thatBox.minZ <= maxZ)
+            if (thatBox.maxX > minX && thatBox.minX < maxX && thatBox.maxZ > minZ && thatBox.minZ < maxZ)
             {
                 float actualY;
                 if (wantY > 0 && thatBox.maxY <= minY && (actualY = minY - thatBox.maxY - epsilon) < wantY)
@@ -129,7 +129,7 @@ namespace Block2nd.Phys
 
         public float ClipZCollide(AABB thatBox, float wantZ)
         {
-            if (thatBox.maxY > minY && thatBox.minY <= maxY && thatBox.maxX > minX && thatBox.minX <= maxX)
+            if (thatBox.maxY > minY && thatBox.minY < maxY && thatBox.maxX > minX && thatBox.minX < maxX)
             {
                 float actualZ;
                 if (wantZ > 0 && thatBox.maxZ <= minZ && (actualZ = minZ - thatBox.maxZ - epsilon) < wantZ)

@@ -17,8 +17,29 @@ namespace Block2nd.World
         {
             this.chunkLoader = chunkLoader;
             this.chunkGenerator = chunkGenerator;
-
+            
             hotChunks = new Chunk[1024];
+        }
+
+        public void UnloadChunk(Chunk chunk)
+        {
+            chunk.chunkBlocks = null;
+            
+            chunkDict.Remove(chunk.CoordKey);
+        }
+
+        private void ReleaseHotChunk(int chunkX, int chunkZ, ulong key, Level level, Chunk chunk)
+        {
+            int hotIdx = (chunkX & 0x1f) * 32 + (chunkZ & 0x1f);
+
+            if (hotChunks[hotIdx] != null && hotChunks[hotIdx].CoordKey != key)
+            {
+                var oldChunk = hotChunks[hotIdx];
+                chunkLoader.SaveChunk(level, oldChunk);
+                UnloadChunk(oldChunk);
+            }
+            
+            hotChunks[hotIdx] = chunk;
         }
         
         public Chunk ProvideChunk(Level level, int chunkX, int chunkZ)
@@ -36,12 +57,15 @@ namespace Block2nd.World
             if (chunk != null)
             {
                 chunkDict.Add(key, chunk);
+                ReleaseHotChunk(chunkX, chunkZ, key, level, chunk);
                 return chunk;
             }
 
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
                 
             chunkDict.Add(key, chunk);
+
+            ReleaseHotChunk(chunkX, chunkZ, key, level, chunk);
 
             if (chunk.populateState < 1)
             {
@@ -95,6 +119,16 @@ namespace Block2nd.World
                 Debug.Log("Chunk Provider: " + c + " chunk(s) saved");
 
                 return;
+            }
+            
+            // save 1 chunks.
+            foreach (var chunk in hotChunks)
+            {
+                if (chunk != null && chunk.NeedToSave)
+                {
+                    chunkLoader.SaveChunk(level, chunk);
+                    break;
+                }
             }
         }
 

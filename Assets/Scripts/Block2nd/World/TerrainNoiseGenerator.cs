@@ -42,9 +42,9 @@ namespace Block2nd.World
                 rand.Next(100000, 999999) / 1000000f);
         }
 
-        private float Clamp01(float x, float a)
+        private float Clamp01(float x, float a, float b = 1f)
         {
-            return x < a ? 0 : a + Mathf.Clamp(x - a, 0, 1);
+            return x < a ? 0 : a + Mathf.Clamp(x - a, 0, b);
         }
 
         public float GetHeightPerlin(float x, float z)
@@ -93,12 +93,12 @@ namespace Block2nd.World
         {
             var baseNoise = Remap01(perlin.Noise(x * 0.5f, y * 0.5f)) * baseHeight;
             
-            var plain = 12 + Remap01(perlin.Noise(x * 2, y * 2)) * 10;
-            var hill = Remap01(perlin.Fbm(x * 14, y * 14, 5), 0.5f) * 5;
+            var plain = 15 + Remap01(perlin.Noise(x * 2, y * 2)) * 3;
+            var hill = Remap01(perlin.Fbm(x * 10, y * 10, 5), 0.7f) * 1;
 
-            var mountain = Mathf.Pow(Remap01(perlin.Fbm(x * 3, y * 3, 5)), 6.5f) * 250f;
+            var mountain = Mathf.Pow(Remap01(perlin.Fbm(x * 3, y * 3, 5)), 7f) * 300f;
             
-            var erode = Remap01(perlin.Fbm(30 * x, 30 * y, 2), 0.3f) * 5f;
+            var erode = Remap01(perlin.Fbm(30 * x, 30 * y, 2), 0.3f) * 3f;
             var riverDown = -Mathf.Pow(Remap01(perlin.Noise(x * 10, y * 5), 0.3f), 2) * 60f;
             
             var riverDown2 = -Mathf.Pow(Remap01(perlin.Noise(x * 6, y * 6), 0.5f), 2) * 90f;
