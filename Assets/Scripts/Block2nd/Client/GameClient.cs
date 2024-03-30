@@ -293,7 +293,8 @@ namespace Block2nd.Client
 				{
 					folderName = "Level_01",
 					name = "Level_01",
-					seed = 0
+					seed = 0,
+					newWorld = true
 				});
 				return;
 			}
@@ -366,7 +367,7 @@ namespace Block2nd.Client
 
 			Vector3 point;
 
-			if (RecoveryPlayer(saveHandler))
+			if (RecoveryPlayer(saveHandler) && !preview.newWorld)
 			{
 				point = player.transform.position;
 			}

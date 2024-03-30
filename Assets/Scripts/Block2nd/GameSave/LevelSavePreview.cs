@@ -9,6 +9,7 @@ namespace Block2nd.GameSave
         public int terrainType = 0;
         public int seed = 0;
         public DateTime lastWriteTime;
+        public bool newWorld;
 
         public override string ToString()
         {

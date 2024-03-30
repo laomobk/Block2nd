@@ -1,5 +1,6 @@
 ﻿using System;
 using Block2nd.Client;
+using Block2nd.MathUtil;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,7 +26,11 @@ namespace Block2nd.GUI.Hierarchical.Buttons
 
         private void UpdateLabel()
         {
-            var level = levels[gameClient.ViewDistanceCandidateIdx];
+            var levelIdx = MathHelper.FloorToLevelIndex(
+                gameClient.gameSettings.viewDistance, 
+                gameClient.viewDistanceCandidates);
+            
+            var level = levels[levelIdx];
             buttonText.text = "View Distance: " + level;
         }
 

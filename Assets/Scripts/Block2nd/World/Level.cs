@@ -523,7 +523,7 @@ namespace Block2nd.World
             var x = 500;
             var z = 500;
 
-            var y = 10;
+            var y = chunkProvider.GetChunkGenerator().GetBaseHeight();
             
             var redBrickCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/red_brick").blockCode;
 

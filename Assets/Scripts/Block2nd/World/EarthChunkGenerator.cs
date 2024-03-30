@@ -48,5 +48,10 @@ namespace Block2nd.World
         {
             return 0;
         }
+
+        public override int GetBaseHeight()
+        {
+            return noiseGenerator.baseHeight;
+        }
     }
 }

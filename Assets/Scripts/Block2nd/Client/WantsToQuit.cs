@@ -6,6 +6,9 @@ namespace Block2nd.Client
     {
         static void QuitClient()
         {
+            if (Application.isEditor)
+                return;
+            
             var client = GameObject.FindGameObjectWithTag("GameClient");
             if (client == null)
             {

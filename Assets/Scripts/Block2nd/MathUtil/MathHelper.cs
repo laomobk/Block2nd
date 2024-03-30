@@ -13,5 +13,38 @@ namespace Block2nd.MathUtil
 
             return (v1 - v2).magnitude;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FloorToLevelIndex(float x, float[] levels)
+        {
+            if (x < levels[0])
+                return 0;
+            
+            for (int i = 0; i < levels.Length; ++i)
+            {
+                if (levels[i] >= x)
+                {
+                    return i;
+                }
+            }
+
+            return levels.Length - 1;
+        }
+        
+        public static int FloorToLevelIndex(float x, int[] levels)
+        {
+            if (x < levels[0])
+                return 0;
+            
+            for (int i = 0; i < levels.Length; ++i)
+            {
+                if (levels[i] >= x)
+                {
+                    return i;
+                }
+            }
+
+            return levels.Length - 1;
+        }
     }
 }

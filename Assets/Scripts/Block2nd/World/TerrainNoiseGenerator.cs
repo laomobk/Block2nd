@@ -7,8 +7,8 @@ namespace Block2nd.World
 {
     public class TerrainNoiseGenerator
     {
-        public int waterLevel = 10;
-        public int baseHeight = 10;
+        public int waterLevel = 25;
+        public int baseHeight = 25;
         
         public int seed = 10727;
         public int minHeight = 5;
@@ -17,6 +17,7 @@ namespace Block2nd.World
         public WorldSettings worldSettings;
         
         private System.Random rand;
+        private Perlin perlin;
 
         private Vector2 sampleOffset;
 
@@ -24,6 +25,8 @@ namespace Block2nd.World
         {
             Debug.Log("NoiseGen Seed: " + worldSettings.seed);
             rand = new System.Random(worldSettings.seed);
+            
+            perlin = new Perlin(worldSettings.seed);
             
             Noise2d.Reseed();
             seed += rand.Next(1000000, 9999999);
@@ -37,6 +40,11 @@ namespace Block2nd.World
         {
             sampleOffset = new Vector2(rand.Next(100000, 999999) / 1000000f, 
                 rand.Next(100000, 999999) / 1000000f);
+        }
+
+        private float Clamp01(float x, float a)
+        {
+            return x < a ? 0 : a + Mathf.Clamp(x - a, 0, 1);
         }
 
         public float GetHeightPerlin(float x, float z)
@@ -62,13 +70,42 @@ namespace Block2nd.World
             // var seaDown = Mathf.Clamp01(Mathf.Sqrt(Mathf.PerlinNoise(1 * x, 1 * z))) * (12 + waterLevel / 1.2f);
 
             var h = (baseHeight + 
-                           Mathf.Lerp(
-                               waterLevel + plain + plain2 + mountainHuge + mountain + mountain23 + 
-                                erode1 + erode2 + erode3 - riverDown / 3f,
-                               -riverDown,
-                               0.45f));
+                     Mathf.Lerp(
+                         waterLevel + plain + plain2 + mountainHuge + mountain + mountain23 + 
+                         erode1 + erode2 + erode3 - riverDown / 3f,
+                         -riverDown,
+                         0.45f));
 
             return h > 0 ? h : 1;
+        }
+
+        private float Remap01(float x, float offset = 0f)
+        {
+            return Mathf.Clamp01(x * .5f + .5f - offset);
+        }
+
+        private float ClampNg0(float x, float offset = 0f)
+        {
+            return x > 0 ? 0 : x - offset;
+        }
+
+        public float GetHeightPerlinNew(float x, float y)
+        {
+            var baseNoise = Remap01(perlin.Noise(x * 0.5f, y * 0.5f)) * baseHeight;
+            
+            var plain = 12 + Remap01(perlin.Noise(x * 2, y * 2)) * 10;
+            var hill = Remap01(perlin.Fbm(x * 14, y * 14, 5), 0.5f) * 5;
+
+            var mountain = Mathf.Pow(Remap01(perlin.Fbm(x * 3, y * 3, 5)), 6.5f) * 250f;
+            
+            var erode = Remap01(perlin.Fbm(30 * x, 30 * y, 2), 0.3f) * 5f;
+            var riverDown = -Mathf.Pow(Remap01(perlin.Noise(x * 10, y * 5), 0.3f), 2) * 60f;
+            
+            var riverDown2 = -Mathf.Pow(Remap01(perlin.Noise(x * 6, y * 6), 0.5f), 2) * 90f;
+
+            var height = baseNoise + plain + hill + mountain + riverDown + riverDown2 - erode;
+
+            return height > 0 ? height : 1;
         }
 
         public int GetErodeDepthPerlin(float x, float z)
@@ -130,12 +167,12 @@ namespace Block2nd.World
 
         public int GetHeightFlat(float x, float z)
         {
-            return 10;
+            return baseHeight;
         }
 
         public virtual float GetHeight(float x, float z)
         {
-            return GetHeightPerlin(x, z);
+            return GetHeightPerlinNew(x, z);
         }
     }
 

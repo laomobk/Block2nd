@@ -17,7 +17,7 @@ namespace Block2nd.Render
         private void Update()
         {
             var playerPos = playerTransform.position;
-            transform.position = new Vector3(playerPos.x, 64, playerPos.z);
+            transform.position = new Vector3(playerPos.x, 64.5f, playerPos.z);
             material.SetVector("_PlayerPos", playerPos);
         }
     }
