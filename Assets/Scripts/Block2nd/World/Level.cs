@@ -287,7 +287,7 @@ namespace Block2nd.World
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
 
-            int total = 4 * radius * radius;
+            int total = 4 * radius * radius + 4 * radius + 1;
             float count = 0;
 
             for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)

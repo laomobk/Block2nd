@@ -1,5 +1,8 @@
-﻿using Block2nd.Persistence.KNBT;
+﻿using System.IO;
+using System.IO.Compression;
+using Block2nd.Persistence.KNBT;
 using UnityEngine;
+using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace Block2nd.World
 {
@@ -10,17 +13,21 @@ namespace Block2nd.World
             if (level is null)
                 return null;
 
-            var reader = level.levelSaveHandler.GetChunkFileReader(chunkX, chunkZ);
+            var path = level.levelSaveHandler.GetChunkFilePath(chunkX, chunkZ);
 
-            if (reader == null)
+            if (!File.Exists(path))
             {
                 return null;
             }
+            
+            var gzipStream = new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress);
+            var reader = new BinaryReader(gzipStream);
 
             var knbt = new KNBTTagCompound("Chunk");
             knbt.Read(reader);
             
             reader.Dispose();
+            gzipStream.Dispose();
 
             var blocks = knbt.GetChunkBlockDataTensor("Blocks");
             if (blocks == null)
@@ -31,14 +38,17 @@ namespace Block2nd.World
             var height = knbt.GetInt("Height", 128);
             
             Chunk chunk = new Chunk(level, chunkX, chunkZ);
+            
             chunk.chunkBlocks = blocks;
             chunk.aabb = new Bounds(
                 new Vector3(8, height / 2f, 8),
                 new Vector3(16, height, 16)
             );
             chunk.BakeHeightMap();
-
+            
+            chunk.populateState = knbt.GetInt("PopulateState");
             chunk.dirty = false;
+            chunk.modified = false;
             chunk.saved = true;
             
             return chunk;
@@ -48,11 +58,16 @@ namespace Block2nd.World
         {
             var knbt = chunk.GetChunkKNBTData();
 
-            var writer = level.levelSaveHandler.GetChunkFileWriter(
+            var path = level.levelSaveHandler.GetChunkFilePath(
                 chunk.worldBasePosition.x >> 4, chunk.worldBasePosition.z >> 4);
             
+            var gzipStream = new GZipStream(new FileStream(path, FileMode.OpenOrCreate), CompressionLevel.Fastest);
+            var writer = new BinaryWriter(gzipStream);
+            
             knbt.Write(writer);
+            
             writer.Dispose();
+            gzipStream.Dispose();
 
             chunk.saved = true;
         }

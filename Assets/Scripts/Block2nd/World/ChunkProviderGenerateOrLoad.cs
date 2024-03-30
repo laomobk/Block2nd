@@ -42,9 +42,13 @@ namespace Block2nd.World
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
                 
             chunkDict.Add(key, chunk);
-            
-            chunkGenerator.PopulateChunk(level, chunkX, chunkZ);
-            
+
+            if (chunk.populateState < 1)
+            {
+                chunkGenerator.PopulateChunk(level, chunkX, chunkZ);
+                chunk.populateState = 1;
+            }
+
             chunk.BakeHeightMap();
 
             return chunk;

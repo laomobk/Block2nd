@@ -29,6 +29,7 @@ namespace Block2nd.World
         public bool modified = true;
         public bool dirty = true;
         public bool saved;
+        public int populateState = 0;
 
         public ulong CoordKey { get; }
 
@@ -447,6 +448,7 @@ namespace Block2nd.World
 
             tree.SetInt("Height", chunkBlocks.GetLength(1));
             tree.SetChunkBlockDataTensor("Blocks", chunkBlocks);
+            tree.SetInt("PopulateState", populateState);
 
             return tree;
         }

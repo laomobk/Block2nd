@@ -121,12 +121,20 @@ namespace Block2nd.GUI.Controller
         {
             OnEndDrag();
             inTouch = false;
+            
+            var mousePos = Input.mousePosition;
+            var centerPos = centerTransform.anchoredPosition;
 
-            if (Time.time - touchBeginTime < 0.3f)
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(centerTransform, mousePos, 
+                uiCamera, out Vector2 point);
+
+            if ((centerPos - point).magnitude < minActiveStickLength)
             {
-                onJoystickClick.Invoke();
+                if (Time.time - touchBeginTime < 0.3f)
+                {
+                    onJoystickClick.Invoke();
+                }
             }
-
         }
     }
 }

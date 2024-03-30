@@ -23,34 +23,14 @@ namespace Block2nd.GameSave
                 Directory.CreateDirectory(LevelSaveRoot);
             }
         }
-
-        public BinaryReader GetChunkFileReader(int chunkX, int chunkZ)
-        {
-            var regionX = chunkX >> 4;
-            var regionZ = chunkZ >> 4;
-
-            var chunkFileRoot = Path.Combine(ChunkSaveRoot, regionX.ToString(), regionZ.ToString());
-            var chunkFileName = "c." + chunkX + "," + chunkZ + ".chk";
-
-            var fullPath = Path.Combine(chunkFileRoot, chunkFileName);
-
-            if (!File.Exists(fullPath))
-            {
-                return null;
-            }
-            
-            var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);    
-            
-            return new BinaryReader(stream);
-        }
         
-        public BinaryWriter GetChunkFileWriter(int chunkX, int chunkZ)
+        public string GetChunkFilePath(int chunkX, int chunkZ)
         {
             var regionX = chunkX >> 4;
             var regionZ = chunkZ >> 4;
 
             var chunkFileRoot = Path.Combine(ChunkSaveRoot, regionX.ToString(), regionZ.ToString());
-            var chunkFileName = "c." + chunkX + "," + chunkZ + ".chk";
+            var chunkFileName = "c." + chunkX + "," + chunkZ + ".chkz";
 
             var fullPath = Path.Combine(chunkFileRoot, chunkFileName);
 
@@ -58,10 +38,8 @@ namespace Block2nd.GameSave
             {
                 Directory.CreateDirectory(chunkFileRoot);
             }
-            
-            var stream = new FileStream(fullPath, FileMode.OpenOrCreate, FileAccess.Write);    
-            
-            return new BinaryWriter(stream);
+
+            return fullPath;
         }
 
         public BinaryWriter GetPlayerDataWriter()

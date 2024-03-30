@@ -1,4 +1,5 @@
 using System;
+using System.Xml.Schema;
 using Block2nd.Client;
 using Block2nd.Phys;
 using Block2nd.World;
@@ -11,6 +12,7 @@ namespace Block2nd.Entity
         protected float stepHeight = 1;
         protected bool onGround = false;
         protected bool hitFront = false;
+        protected bool hitTop = false;
 
         protected GameClient gameClient;
 
@@ -25,6 +27,7 @@ namespace Block2nd.Entity
         
         public bool OnGround => onGround;
         public bool HitFront => hitFront;
+        public bool HitTop => hitTop;
 
         private void Awake()
         {
@@ -78,14 +81,18 @@ namespace Block2nd.Entity
             aabb.Move(0, dy, 0);
 
             onGround = dy != wantY && wantY < 0;
+            hitTop = dy != wantY && wantY > 0;
 
             foreach (var box in collideBoxes)
             {
                 dx = box.ClipXCollide(aabb, dx);
                 dz = box.ClipZCollide(aabb, dz);
             }
+            
+            var dVec = new Vector3(dx, dy, dz);
 
-            hitFront = Vector3.Dot(forward, dir) > 0 && (dx != wantX || dz != wantZ);
+            hitFront = Vector3.Dot(forward.normalized, dir.normalized) > 0.95 && 
+                       (dx != wantX || dz != wantZ) && dVec.magnitude < 0.65 * Time.deltaTime;
             
             aabb.Move(dx, 0f, dz);
             

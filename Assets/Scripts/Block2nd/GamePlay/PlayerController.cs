@@ -339,6 +339,11 @@ namespace Block2nd.GamePlay
                 {
                     Jump();
                 }
+
+                if (entity.HitTop)
+                {
+                    playerSpeed.y = 0;
+                }
             }
         }
     }
