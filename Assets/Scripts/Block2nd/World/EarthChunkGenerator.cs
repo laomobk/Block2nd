@@ -20,6 +20,36 @@ namespace Block2nd.World
 
             biome = new BiomePlain();
         }
+
+        private void GenerateCurve(ChunkBlockData[,,] blocks, int chunkX, int chunkZ)
+        {
+            var worldX = chunkX << 4;
+            var worldZ = chunkZ << 4;
+            
+            for (int x = 0; x < 16; ++x)
+            {
+                for (int z = 0; z < 16; ++z)
+                {
+                    if (baseHeight[x, z] + 2 < noiseGenerator.waterLevel)
+                    {
+                        continue;
+                    }
+                    
+                    for (int y = 95; y >= 30; --y)
+                    {
+                        float value = noiseGenerator.GetCheese3D((worldX + x) / 128f, y / 128f, (worldZ + z) / 128f);
+
+                        value *= (y - 30) / 65f;
+
+                        if (value > 0.02f)
+                        {
+                            blocks[x, y, z].blockCode = 0;
+                            blocks[x, y, z].blockState = 0;
+                        }
+                    }
+                }
+            }
+        }
         
         public override Chunk GenerateChunk(Level level, int chunkX, int chunkZ)
         {
@@ -35,6 +65,8 @@ namespace Block2nd.World
                 new Vector3(16, height, 16)
             );
             chunk.BakeHeightMap();
+            
+            // GenerateCurve(blocks, chunkX, chunkZ);
 
             return chunk;
         }

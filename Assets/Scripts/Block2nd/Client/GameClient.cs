@@ -14,6 +14,7 @@ using Block2nd.World;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using Random = System.Random;
 
 namespace Block2nd.Client
 {
@@ -404,10 +405,31 @@ namespace Block2nd.Client
 
 		public Vector3 SpawnPlayer(Level level)
 		{
-			var point = new Vector3(0.10727f, 0, 0.10727f);
-			level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true, radius: 2);
-			point.y = level.GetHeight((int) point.x, (int) point.z) + 3;
+			Random random = new Random();
+
+			Vector3 point;
 			
+			var ofs = new Vector3(0.10727f, 0, 0.10727f);
+			var count = 0;
+			var maxCount = 15;
+
+			int code;
+
+			do
+			{
+				point = new Vector3(random.Next(-300, 300), 0, random.Next(-300, 300));
+
+				level.ProvideChunksSurrounding(point, renderImmediately: false, waitForProviding: true, radius: 1);
+				point.y = level.GetHeight((int) point.x, (int) point.z);
+
+				code = level.GetBlock(point).blockCode;
+
+			} while (count++ < maxCount && 
+			         code != BlockMetaDatabase.BuiltinBlockCode.Grass &&
+			         code != BlockMetaDatabase.BuiltinBlockCode.Sand);
+
+			point += ofs;
+			point.y += 3;
 			player.ResetPlayer(point);
 
 			return point;

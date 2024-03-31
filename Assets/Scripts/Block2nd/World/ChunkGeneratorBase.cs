@@ -7,6 +7,7 @@ namespace Block2nd.World
     public abstract class ChunkGeneratorBase
     {
         protected System.Random random = new System.Random();
+        protected float[,] baseHeight = new float[16, 16];
 
         protected virtual int GetHeight(TerrainNoiseGenerator noiseGenerator, float x, float z)
         {
@@ -53,7 +54,7 @@ namespace Block2nd.World
             
             return BlockMetaDatabase.BuiltinBlockCode.Stone;
         }
-
+        
         protected virtual void GenerateBasicTerrain(
             WorldSettings worldSettings, TerrainNoiseGenerator noiseGenerator,
             ChunkBlockData[,,] blocks, int chunkX, int chunkZ, bool water = true)
@@ -68,6 +69,7 @@ namespace Block2nd.World
                 for (int z = 0; z < 16; ++z)
                 {
                     noiseHeight = GetHeight(noiseGenerator, worldX + x, worldZ + z);
+                    baseHeight[x, z] = noiseHeight;
                     
                     for (int y = 0; y < height; ++y)
                     {

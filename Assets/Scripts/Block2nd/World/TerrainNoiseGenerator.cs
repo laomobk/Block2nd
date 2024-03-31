@@ -89,16 +89,22 @@ namespace Block2nd.World
             return x > 0 ? 0 : x - offset;
         }
 
+        private float Range(float x, float a, float b, float otherwise = 0f)
+        {
+            return x > a && x < b ? x : otherwise;
+        }
+
         public float GetHeightPerlinNew(float x, float y)
         {
             var baseNoise = Remap01(perlin.Noise(x * 0.5f, y * 0.5f)) * baseHeight;
             
-            var plain = 15 + Remap01(perlin.Noise(x * 2, y * 2)) * 3;
-            var hill = Remap01(perlin.Fbm(x * 10, y * 10, 5), 0.7f) * 1;
+            var plain = 16 + Remap01(perlin.Noise(x * 2, y * 2)) * 3;
+            var hill = Remap01(perlin.Fbm(x * 10, y * 10, 5), 0.7f) * 2;
 
-            var mountain = Mathf.Pow(Remap01(perlin.Fbm(x * 3, y * 3, 5)), 7f) * 300f;
+            var mountainVal = Mathf.Pow(Remap01(perlin.Fbm(x * 3, y * 3, 5)), 8f);
+            var mountain = mountainVal * 350f;
             
-            var erode = Remap01(perlin.Fbm(30 * x, 30 * y, 2), 0.3f) * 3f;
+            var erode = mountainVal * hill * Remap01(perlin.Fbm(30 * x, 30 * y, 2), 0.3f) * 3f;
             var riverDown = -Mathf.Pow(Remap01(perlin.Noise(x * 10, y * 5), 0.3f), 2) * 60f;
             
             var riverDown2 = -Mathf.Pow(Remap01(perlin.Noise(x * 6, y * 6), 0.5f), 2) * 90f;
@@ -158,6 +164,37 @@ namespace Block2nd.World
             var mountain2 = Mathf.Clamp(Noise2d.PerlinNoise(20 * x, 20 * z) - 0.2f, 0, 1) * 100;
 
             return (int) (3 + plain + plain2 + mountain + mountain2);
+        }
+
+        public float GetNoodleWith3DPerlinNoise(float x, float y, float z)
+        {
+            // var baseCheese = Mathf.Pow(Remap01(perlin.Fbm(x * 5, y * 5, z * 5, 2)), 3);
+            var baseNoodle = Mathf.Pow(Remap01(perlin.Fbm(x * 5, y * 2, z * 2, 4)), 5);
+
+            // var cheese = Range(baseCheese, 0.2f, 0.4f, 0);
+            var noodle = Range(baseNoodle, 0.1f, 0.12f);
+
+            var summary = noodle;
+            
+            return summary > 0 ? 1 : 0;
+        }
+        
+        public float GetCheeseWith3DPerlinNoise(float x, float y, float z)
+        {
+            // var baseCheese = Mathf.Pow(Remap01(perlin.Fbm(x * 5, y * 5, z * 5, 2)), 3);
+            var baseCheese = Mathf.Pow(Remap01(perlin.Fbm(x * 5, y * 2, z * 2, 4)), 5);
+
+            return baseCheese;
+        }
+
+        public float GetNoodle3D(float x, float y, float z)
+        {
+            return GetNoodleWith3DPerlinNoise(x, y, z);
+        }
+
+        public float GetCheese3D(float x, float y, float z)
+        {
+            return GetCheeseWith3DPerlinNoise(x, y, z);
         }
 
         public int GetHeightRandom(float x, float z)
