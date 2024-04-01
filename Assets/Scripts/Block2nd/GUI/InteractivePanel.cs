@@ -9,9 +9,9 @@ namespace Block2nd.GUI
 {
     public class InteractivePanel : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public UnityEvent longPressCallback;
-        public UnityEvent tapCallback;
-
+        public Camera uiCamera;
+        public GameObject touchCircle;
+        
         public float pressTriggerInterval = 0.5f;
 
         private float pressTriggerTime;
@@ -25,10 +25,15 @@ namespace Block2nd.GUI
         private int pointerId;
         private GameClient gameClient;
 
+        private RectTransform rectTransform;
+        private RectTransform circleRectTransform;
+
         private void Awake()
         {
             gameClient = GameObject.FindWithTag("GameClient").GetComponent<GameClient>();
             pressTriggerTime = -pressBeginTime;
+            circleRectTransform = touchCircle.GetComponent<RectTransform>();
+            rectTransform = GetComponent<RectTransform>();
         }
 
         private void Update()
@@ -37,17 +42,16 @@ namespace Block2nd.GUI
             {
                 if (active)
                 {
-                    Debug.Log(moveTooFar);
-
-                    var touches = Input.touches;
-                    if (pointerId >= 0 && pointerId < touches.Length)
+                    
+                    var touch = Input.GetTouch(pointerId);
+                    if ((touch.position - touchBeginPosition).magnitude > 12f)
                     {
-                        var touch = touches[pointerId];
-                        if ((touch.position - touchBeginPosition).magnitude > 12f)
-                        {
-                            moveTooFar = true;
-                        }
+                        moveTooFar = true;
                     }
+
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        rectTransform, touch.position, uiCamera, out var vec2d);
+                    circleRectTransform.anchoredPosition = vec2d;
 
                     if (continuous || !moveTooFar)
                     {
@@ -55,7 +59,7 @@ namespace Block2nd.GUI
                         {
                             if (Time.time - pressTriggerTime >= pressTriggerInterval)
                             {
-                                longPressCallback.Invoke();
+                                OnPanelLongPress(touch.position);
                                 pressTriggerTime = Time.time;
                                 continuous = true;
                             }
@@ -73,18 +77,48 @@ namespace Block2nd.GUI
             active = true;
             continuous = false;
             touchBeginPosition = eventData.position;
+            touchCircle.SetActive(true);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             if (Time.time - pressBeginTime < 0.1f)
             {
-                tapCallback.Invoke();
+                OnPanelClick(eventData.position);
             }
 
             active = false;
             moveTooFar = false;
             continuous = false;
+            touchCircle.SetActive(false);
+        }
+        
+        public void OnPanelClick(Vector2 screenPos)
+        {
+            var level = gameClient.CurrentLevel;
+            var player = gameClient.player;
+
+            var ray = player.playerCamera.ScreenPointToRay(screenPos);
+
+            if (level == null || player == null)
+                return;
+
+            var hit = level.RaycastBlocks(ray.origin, ray.origin + ray.direction * 10);
+            player.PlaceBlock(hit);
+        }
+
+        public void OnPanelLongPress(Vector2 screenPos)
+        {
+            var level = gameClient.CurrentLevel;
+            var player = gameClient.player;
+
+            var ray = player.playerCamera.ScreenPointToRay(screenPos);
+
+            if (level == null || player == null)
+                return;
+
+            var hit = level.RaycastBlocks(ray.origin, ray.origin + ray.direction * 10);
+            player.DestroyBlock(hit);
         }
     }
 }

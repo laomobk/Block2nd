@@ -69,16 +69,16 @@ namespace Block2nd.GamePlay
             controller = GetComponent<CharacterController>();
             transform.position = new Vector3(15, 13, 3);
 
-            UpdateSelectedBox();
+            if (!gameClient.gameSettings.mobileControl)
+                UpdateRaycast();
 
             UpdateHoldingItemNameText();
         }
 
         void Update()
         {
-            Debug.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * 10);
-            
-            UpdateSelectedBox();
+            if (!gameClient.gameSettings.mobileControl)
+                UpdateRaycast();
             
             selectBox.gameObject.SetActive(raycastBlockHit != null);
             
@@ -96,7 +96,7 @@ namespace Block2nd.GamePlay
                 {
                     if (raycastBlockHit != null)
                     {
-                        DestroyBlock();
+                        DestroyBlock(raycastBlockHit);
                     }
                 }
 
@@ -104,7 +104,7 @@ namespace Block2nd.GamePlay
                 {
                     if (raycastBlockHit != null)
                     {
-                        PlaceBlock();
+                        PlaceBlock(raycastBlockHit);
                     }
                 }
 
@@ -223,21 +223,24 @@ namespace Block2nd.GamePlay
             SetHoldingBlock(meta);
         }
 
-        public void PlaceBlock()
+        public void PlaceBlock(RayHit hit)
         {
+            if (hit == null)
+                return;
+
             var level = gameClient.GetCurrentLevel();
 
             Chunk cp;
             var defaultAction = BlockMetaDatabase.GetBlockBehaviorByCode(level.GetBlock(
-                    raycastBlockHit.blockX, 
-                    raycastBlockHit.blockY, 
-                    raycastBlockHit.blockZ, out cp).blockCode)
-                        .OnInteract(raycastBlockHit.ToIntVector3(), level, cp, this);
+                    hit.blockX, 
+                    hit.blockY, 
+                    hit.blockZ, out cp).blockCode)
+                        .OnInteract(hit.ToIntVector3(), level, cp, this);
 
             if (!defaultAction)
                 return;
             
-            var intPos = raycastBlockHit.ToNormalAlongIntVector3();
+            var intPos = hit.ToNormalAlongIntVector3();
             
             BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnBeforePlace(
                 ref intPos, level, cp, this);
@@ -250,17 +253,17 @@ namespace Block2nd.GamePlay
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 
-        public void DestroyBlock()
+        public void DestroyBlock(RayHit hit)
         {
-            if (raycastBlockHit == null)
+            if (hit == null)
                 return;
-            
+
             var level = gameClient.GetCurrentLevel();
-            level.CreateBlockParticle(raycastBlockHit.ToIntVector3().ToUnityVector3());
+            level.CreateBlockParticle(hit.ToIntVector3().ToUnityVector3());
             level.SetBlock(0, 
-                raycastBlockHit.blockX, 
-                raycastBlockHit.blockY, 
-                raycastBlockHit.blockZ, true, notify: true);
+                hit.blockX, 
+                hit.blockY, 
+                hit.blockZ, true, notify: true);
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 
@@ -343,7 +346,7 @@ namespace Block2nd.GamePlay
             entity.MoveAABBToWorldPosition();
         }
 
-        private void UpdateSelectedBox()
+        private void UpdateRaycast()
         {
             var playerPos = playerCamera.transform.position;
             var currentLevel = gameClient.GetCurrentLevel();
