@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameSettings
   m_EditorClassIdentifier: 
   cameraFov: 60
-  mobileControl: 1
+  mobileControl: 0
   viewDistance: 8
   infiniteJump: 1
   ambientOcclusion: 1
