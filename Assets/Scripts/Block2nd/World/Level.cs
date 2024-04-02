@@ -188,7 +188,7 @@ namespace Block2nd.World
         {
             var playerPos = client.player.transform.position;
 
-            if (levelTickCount % 30 == 0)
+            if (levelTickCount % 3 == 0)
             {
                 chunkProvider.SaveChunk(this, false);
             }

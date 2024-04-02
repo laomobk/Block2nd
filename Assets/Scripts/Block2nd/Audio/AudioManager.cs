@@ -7,6 +7,11 @@ namespace Block2nd.Audio
     {
         public AudioSource BGMAudioSource;
 
+        public void SetVolume(float volume)
+        {
+            BGMAudioSource.volume = volume;
+        }
+
         public float PlayAudio(string resPath)
         {
             try

@@ -82,6 +82,7 @@ namespace Block2nd.Client
 
 			guiCanvasManager.SetGameVersionText("Block2nd " + GameVersion.Subtitle + " " + GameVersion.Version);
 			
+			SyncClientSettings();
 			ClientStart();
 
 			if (!gameSettings.mobileControl && Application.isMobilePlatform)
@@ -90,6 +91,15 @@ namespace Block2nd.Client
 			}
 			
 			guiCanvasManager.mobileUICanvas.SetActive(gameSettings.mobileControl);
+		}
+
+		private void SyncClientSettings()
+		{
+			gameSettings.LoadSettings();
+			gameSettings.dirty = false;
+			SetLightingWithGameSetting();
+			terrainMaterial.shader = shaderCandidates[gameSettings.shader];
+			GlobalMusicPlayer.SetVolume(gameSettings.music ? 1 : 0);
 		}
 
 		private void Update()
@@ -178,7 +188,10 @@ namespace Block2nd.Client
 				Cursor.lockState = cursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
 			}
 
-			SetLightingWithGameSetting();
+			if (gameSettings.dirty)
+			{
+				SyncClientSettings();
+			}
 			
 			ClientTick();
 		}

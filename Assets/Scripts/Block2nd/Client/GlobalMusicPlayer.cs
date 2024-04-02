@@ -18,7 +18,7 @@ namespace Block2nd.Client
             
             while (true)
             {
-                yield return new WaitForSeconds(random.Next(1, 3));
+                yield return new WaitForSeconds(random.Next(3, 9));
                 var song = 0;
 
                 if (played.Count <= 5)
@@ -60,6 +60,12 @@ namespace Block2nd.Client
                 
                 played.Add(song);
             }
+        }
+
+        public static void SetVolume(float volume)
+        {
+            var audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
+            audioManager.SetVolume(volume);
         }
     }
 }

@@ -77,7 +77,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '[Inf Jump]
+  m_Text: '[Music]
 
 '
 --- !u!114 &5372973154454694162
@@ -203,7 +203,6 @@ GameObject:
   - component: {fileID: 1297533090675506171}
   - component: {fileID: 1297533090675506170}
   - component: {fileID: 1297533090675506149}
-  - component: {fileID: 6757253616810248540}
   m_Layer: 5
   m_Name: Btn_Shader
   m_TagString: Untagged
@@ -306,8 +305,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 6757253616810248540}
-        m_MethodName: SwitchShader
+      - m_Target: {fileID: 3359309199934908019}
+        m_MethodName: OnShaderButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -329,20 +328,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db84c7eb7b7547e1b19e54fea40e5bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledStateLook: {fileID: 0}
   normalStateLook: {fileID: 21300000, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
   hoveStateLook: {fileID: 21300002, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
---- !u!114 &6757253616810248540
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1297533090675506151}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac105e993e3c484f898b0b32bb6c6468, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1297533091317079623
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,6 +362,7 @@ RectTransform:
   - {fileID: 1297533092001047898}
   - {fileID: 7472191596775332765}
   - {fileID: 1297533091528005624}
+  - {fileID: 4008880806172182158}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -395,7 +384,7 @@ GameObject:
   - component: {fileID: 1297533091528005631}
   - component: {fileID: 1297533091528005630}
   - component: {fileID: 1297533091528005625}
-  - component: {fileID: 5608344891816852514}
+  - component: {fileID: 7067890529912609555}
   m_Layer: 5
   m_Name: Btn_Back
   m_TagString: Untagged
@@ -498,8 +487,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 5608344891816852514}
-        m_MethodName: EnterTargetPage
+      - m_Target: {fileID: 7067890529912609555}
+        m_MethodName: ExitPage
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -521,9 +510,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db84c7eb7b7547e1b19e54fea40e5bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledStateLook: {fileID: 0}
   normalStateLook: {fileID: 21300000, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
   hoveStateLook: {fileID: 21300002, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
---- !u!114 &5608344891816852514
+--- !u!114 &7067890529912609555
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -532,11 +522,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1297533091528005627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1433389995aad554fa4e77ddeac702ce, type: 3}
+  m_Script: {fileID: 11500000, guid: b3b18283cf7048a9961bf5944dc10ec7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetPagePrefab: {fileID: 4452392738380730571, guid: db2a4db53eeb96945a6fb946f5ec7626,
-    type: 3}
 --- !u!1 &1297533091697145950
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,7 +631,6 @@ GameObject:
   - component: {fileID: 1297533092001047897}
   - component: {fileID: 1297533092001047896}
   - component: {fileID: 1297533092001047899}
-  - component: {fileID: 7156816512738287808}
   m_Layer: 5
   m_Name: Btn_ViewDistance
   m_TagString: Untagged
@@ -746,8 +733,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7156816512738287808}
-        m_MethodName: SwitchDistance
+      - m_Target: {fileID: 3359309199934908019}
+        m_MethodName: OnViewDistanceClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -769,20 +756,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db84c7eb7b7547e1b19e54fea40e5bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledStateLook: {fileID: 0}
   normalStateLook: {fileID: 21300000, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
   hoveStateLook: {fileID: 21300002, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
---- !u!114 &7156816512738287808
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1297533092001047877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb0ea97d0d28471d94849a46f8f16c4c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1297533092095538051
 GameObject:
   m_ObjectHideFlags: 0
@@ -878,6 +854,58 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!1 &7401682820135088047
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4008880806172182158}
+  - component: {fileID: 3359309199934908019}
+  m_Layer: 5
+  m_Name: PageController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4008880806172182158
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7401682820135088047}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1297533091317079620}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3359309199934908019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7401682820135088047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dacade3a4d74b87a291bcd565073770, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameSettings: {fileID: 11400000, guid: 6535fd4ac0945d14ba6ab797975dcab7, type: 2}
+  graphicButton: {fileID: 1297533090675506170}
+  viewDistanceButton: {fileID: 1297533092001047896}
+  musicButton: {fileID: 186240997082325892}
 --- !u!1 &8613369226195572532
 GameObject:
   m_ObjectHideFlags: 0
@@ -891,9 +919,8 @@ GameObject:
   - component: {fileID: 1688847431235888009}
   - component: {fileID: 186240997082325892}
   - component: {fileID: 5863063107206467676}
-  - component: {fileID: 1912091603814055844}
   m_Layer: 5
-  m_Name: Btn_InfJump
+  m_Name: Btn_Music
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -994,8 +1021,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1912091603814055844}
-        m_MethodName: Toggle
+      - m_Target: {fileID: 3359309199934908019}
+        m_MethodName: OnMusicButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1017,17 +1044,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db84c7eb7b7547e1b19e54fea40e5bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  disabledStateLook: {fileID: 0}
   normalStateLook: {fileID: 21300000, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
   hoveStateLook: {fileID: 21300002, guid: b809aedc33d4456469e194b4a613d41c, type: 3}
---- !u!114 &1912091603814055844
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8613369226195572532}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05478bd369a948fc8e3885ee5f5cce75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

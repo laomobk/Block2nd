@@ -33,6 +33,13 @@ namespace Block2nd.Persistence.KNBT
             return this;
         }
         
+        public KNBTTagCompound SetByte(string key, bool value)
+        {
+            dict[key] = new KNBTTagByte(key, value ? (byte)1 : (byte)0);
+
+            return this;
+        }
+        
         public KNBTTagCompound SetString(string key, string value)
         {
             dict[key] = new KNBTTagString(key, value);
@@ -46,7 +53,7 @@ namespace Block2nd.Persistence.KNBT
 
             return this;
         }
-
+        
         public KNBTTagCompound SetChunkBlockDataArray(string key, ChunkBlockData[] value)
         {
             dict[key] = new KNBTTagChunkBlockArray(key, value);
@@ -81,6 +88,19 @@ namespace Block2nd.Persistence.KNBT
                 if (value is KNBTTagFloat tagFloat)
                 {
                     return tagFloat.value;
+                }
+            }
+
+            return defaultVal;
+        }
+        
+        public bool GetBoolean(string key, bool defaultVal = false)
+        {
+            if (dict.TryGetValue(key, out var value))
+            {
+                if (value is KNBTTagByte tagByte)
+                {
+                    return tagByte.value == 1;
                 }
             }
 
