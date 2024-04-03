@@ -2,6 +2,8 @@
 
 ## A Unity clone of Minecraft.
 
+![screenshot4.png](Misc/screenshot4.png)
+
 ![screenshot2.png](Misc/screenshot2.png "Screenshot")
 
 ![screenshot3.png](Misc/screenshot1.png "Screenshot")
