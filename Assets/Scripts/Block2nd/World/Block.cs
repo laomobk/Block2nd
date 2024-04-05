@@ -35,7 +35,7 @@ namespace Block2nd.World
             var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
             if (meta != null)
                 return meta.transparent;
-            return true;
+            return true;  // air block is transparent.
         }
 
         public override string ToString()

@@ -6,6 +6,8 @@ namespace Block2nd.World
 
         Chunk TryGetChunk(Level level, int chunkX, int chunkZ);
 
+        Chunk GetChunkInCache(Level level, int chunkX, int chunkZ);
+
         int GetChunkCacheCount();
 
         void SaveChunk(Level level, bool isSaveAll);

@@ -263,7 +263,7 @@ namespace Block2nd.GamePlay
             level.SetBlock(0, 
                 hit.blockX, 
                 hit.blockY, 
-                hit.blockZ, true, notify: true);
+                hit.blockZ, true);
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 

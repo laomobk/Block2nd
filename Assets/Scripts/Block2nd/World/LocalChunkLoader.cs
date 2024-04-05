@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using Block2nd.Persistence.KNBT;
 using UnityEngine;
+using UnityEngine.Profiling;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace Block2nd.World
@@ -37,7 +38,7 @@ namespace Block2nd.World
 
             var height = knbt.GetInt("Height", 128);
             
-            Chunk chunk = new Chunk(level, chunkX, chunkZ);
+            Chunk chunk = new Chunk(level, chunkX, chunkZ, level.worldSettings.chunkHeight);
             
             chunk.chunkBlocks = blocks;
             chunk.aabb = new Bounds(
@@ -64,6 +65,8 @@ namespace Block2nd.World
             var path = level.levelSaveHandler.GetChunkFilePath(
                 chunk.worldBasePosition.x >> 4, chunk.worldBasePosition.z >> 4);
             
+            Profiler.BeginSample("Save Chunk");
+            
             var gzipStream = new GZipStream(new FileStream(path, FileMode.OpenOrCreate), CompressionLevel.Fastest);
             var writer = new BinaryWriter(gzipStream);
             
@@ -71,6 +74,8 @@ namespace Block2nd.World
             
             writer.Dispose();
             gzipStream.Dispose();
+            
+            Profiler.EndSample();
 
             chunk.saved = true;
             chunk.modified = false;

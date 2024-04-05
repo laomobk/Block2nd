@@ -40,7 +40,7 @@ namespace Block2nd.World
         public Player Player => client.player;
         public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
-        private readonly Queue<Chunk> dirtyChunkPreFrameQueue = new Queue<Chunk>();
+        private readonly Queue<Chunk> dirtyChunkQueue = new Queue<Chunk>();
 
         public bool breakChunkRender;
         private bool chunkProvideIgnoreDistance;
@@ -94,31 +94,16 @@ namespace Block2nd.World
 
         private void LateUpdate()
         {
-            dirtyChunkPreFrameQueue.Clear();
-            
             if (Time.time - lastTickTime > tickInterval)
             {
                 var nUpdate = PerformChunkUpdate();
                 lastTickTime = Time.time;
                 client.guiCanvasManager.SetUpdateText(nUpdate);
             }
-        }
 
-        private void FlushDirtyChunkQueue(bool discard = false)
-        {
-            if (discard)
+            if (dirtyChunkQueue.Count > 0)
             {
-                dirtyChunkPreFrameQueue.Clear();
-                return;
-            }
-            
-            var n = dirtyChunkPreFrameQueue.Count;
-
-            for (int i = 0; i < n; ++i)
-            {
-                var chunk = dirtyChunkPreFrameQueue.Dequeue();
-                chunk.BakeHeightMap();
-                chunkRenderEntityManager.TryRenderChunk(chunk);
+                chunkRenderEntityManager.RenderChunk(dirtyChunkQueue.Dequeue());
             }
         }
 
@@ -162,8 +147,6 @@ namespace Block2nd.World
                 else
                     ctx.chunk.ChunkUpdate(pos.x, pos.y, pos.z, ctx.size);
             }
-            
-            FlushDirtyChunkQueue();
 
             return length;
         }
@@ -188,10 +171,12 @@ namespace Block2nd.World
         {
             var playerPos = client.player.transform.position;
 
+            #if !UNITY_EDITOR 
             if (levelTickCount % 3 == 0)
             {
                 chunkProvider.SaveChunk(this, false);
             }
+            #endif
             
             ProvideChunksSurrounding(playerPos);
             
@@ -254,7 +239,7 @@ namespace Block2nd.World
         {
             if (radius == 0)
             {
-                radius = client.gameSettings.viewDistance;
+                radius = client.gameSettings.viewDistance + 2;
             }
             
             chunkProvideLock = true;
@@ -286,7 +271,7 @@ namespace Block2nd.World
 
             if (radius == 0)
             {
-                radius = client.gameSettings.viewDistance;
+                radius = client.gameSettings.viewDistance + 2;
             }
             
             chunkProvideLock = true;
@@ -332,6 +317,7 @@ namespace Block2nd.World
                 cz = startChunkZ + i;
                 cx = startChunkX;
                 chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
+                yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
@@ -346,6 +332,7 @@ namespace Block2nd.World
                 cz = startChunkZ - i;
                 cx = startChunkX;
                 chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
+                yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
@@ -360,6 +347,7 @@ namespace Block2nd.World
                 cz = startChunkZ;
                 cx = startChunkX + i;
                 chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
+                yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
@@ -374,6 +362,7 @@ namespace Block2nd.World
                 cz = startChunkZ;
                 cx = startChunkX - i;
                 chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
+                yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
@@ -393,6 +382,14 @@ namespace Block2nd.World
             }
             
             chunkRenderLock = false;
+        }
+
+        public bool IsChunkSurroundingInCache(int chunkX, int chunkZ)
+        {
+            return chunkProvider.GetChunkInCache(this, chunkX - 1, chunkZ) != null &&
+                   chunkProvider.GetChunkInCache(this, chunkX + 1, chunkZ) != null &&
+                   chunkProvider.GetChunkInCache(this, chunkX, chunkZ + 1) != null &&
+                   chunkProvider.GetChunkInCache(this, chunkX, chunkZ - 1) != null;
         }
         
         private bool IsBoundsInFrustum(Bounds aabb)
@@ -457,74 +454,6 @@ namespace Block2nd.World
             this.chunkProvider = chunkProvider;
         }
         
-        /*
-        public IEnumerator CreateLevelCoroutine(TerrainNoiseGenerator noiseGenerator = null)
-        {
-            if (noiseGenerator != null)
-            {
-                this.terrainNoise = noiseGenerator;
-            }
-            
-            Resources.UnloadUnusedAssets();
-            
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
-            
-            var levelWidth = worldSettings.levelWidth;
-            
-            int x = levelWidth / 2;
-            int z = levelWidth / 2;
-            
-            progressUI.gameObject.SetActive(true);
-            
-            progressUI.SetTitle("Generating terrainNoise...");
-
-            yield return null;
-            
-            // yield return GenerateLevelBlocksCoroutine();
-            
-            progressUI.SetTitle("Making rivers...");
-            
-            if (!(terrainNoise is FlatTerrainNoiseGenerator) && !(terrainNoise is HonkaiTerrainNoiseGenerator))
-                yield return GenerateRiverCoroutine();
-            
-            progressUI.SetTitle("Planting trees...");
-
-            yield return null;
-            if (!(terrainNoise is TestTerrainNoiseGenerator))
-                yield return GenerateTrees();
-            
-            progressUI.SetTitle("Generating relics...");
-
-            yield return null;
-            
-            if (!(terrainNoise is TestTerrainNoiseGenerator))
-                yield return GeneratePyramids();
-            
-            var chunk = chunkManager.FindChunk(x, z);
-            var chunkLocalPos = chunk.WorldToLocal(x, z);
-            
-            chunkManager.BakeAllChunkHeightMap();
-            var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 3;
-            
-            var playerPos = new Vector3(x, y, z);
-            
-            chunkManager.SortChunksByDistance(playerPos);
-            
-            progressUI.SetTitle("Generating meshes...");
-            
-            yield return null;
-            
-            progressUI.gameObject.SetActive(false);
-            
-            client.player.ResetPlayer(playerPos);
-
-            var coroutine = StartCoroutine(chunkManager.ChunkManagementWorkerCoroutine());
-            chunkManagementCoroutine = coroutine;
-
-            StartCoroutine(BGMPlayCoroutine());
-        }
-        */
-
         private void GeneratePyramids()
         {
             var x = 500;
@@ -569,145 +498,73 @@ namespace Block2nd.World
             var orkCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/ork").blockCode;
             var leavesCode = BlockMetaDatabase.GetBlockMetaById("b2nd:block/leaves").blockCode;
 
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlockFast(orkCode, x, ++y, z);
+            SetBlockFast(orkCode, x, ++y, z);
+            SetBlockFast(orkCode, x, ++y, z);
 
-            SetBlock(leavesCode, x - 1, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 1, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z + 1, false, false, record: false);
+            SetBlockFast(leavesCode, x - 1, y, z - 1);
+            SetBlockFast(leavesCode, x, y, z - 1);
+            SetBlockFast(leavesCode, x + 1, y, z - 1);
+            SetBlockFast(leavesCode, x - 1, y, z);
+            SetBlockFast(leavesCode, x + 1, y, z);
+            SetBlockFast(leavesCode, x - 1, y, z + 1);
+            SetBlockFast(leavesCode, x, y, z + 1);
+            SetBlockFast(leavesCode, x + 1, y, z + 1);
 
-            SetBlock(leavesCode, x + 2, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 2, y, z, false, false, record: false);
-            SetBlock(leavesCode, x + 2, y, z + 1, false, false, record: false);
+            SetBlockFast(leavesCode, x + 2, y, z - 1);
+            SetBlockFast(leavesCode, x + 2, y, z);
+            SetBlockFast(leavesCode, x + 2, y, z + 1);
 
-            SetBlock(leavesCode, x - 2, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x - 2, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 2, y, z - 1, false, false, record: false);
+            SetBlockFast(leavesCode, x - 2, y, z + 1);
+            SetBlockFast(leavesCode, x - 2, y, z);
+            SetBlockFast(leavesCode, x - 2, y, z - 1);
 
-            SetBlock(leavesCode, x - 1, y, z + 2, false, false, record: false);
-            SetBlock(leavesCode, x, y, z + 2, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z + 2, false, false, record: false);
+            SetBlockFast(leavesCode, x - 1, y, z + 2);
+            SetBlockFast(leavesCode, x, y, z + 2);
+            SetBlockFast(leavesCode, x + 1, y, z + 2);
 
-            SetBlock(leavesCode, x - 1, y, z - 2, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 2, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z - 2, false, false, record: false);
+            SetBlockFast(leavesCode, x - 1, y, z - 2);
+            SetBlockFast(leavesCode, x, y, z - 2);
+            SetBlockFast(leavesCode, x + 1, y, z - 2);
 
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlockFast(orkCode, x, ++y, z);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
+            SetBlockFast(leavesCode, x, y, z + 1);
+            SetBlockFast(leavesCode, x, y, z - 1);
+            SetBlockFast(leavesCode, x + 1, y, z);
+            SetBlockFast(leavesCode, x - 1, y, z);
 
-            SetBlock(leavesCode, x + 2, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 2, y, z, false, false, record: false);
-            SetBlock(leavesCode, x + 2, y, z + 1, false, false, record: false);
+            SetBlockFast(leavesCode, x + 2, y, z - 1);
+            SetBlockFast(leavesCode, x + 2, y, z);
+            SetBlockFast(leavesCode, x + 2, y, z + 1);
 
-            SetBlock(leavesCode, x - 2, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x - 2, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 2, y, z - 1, false, false, record: false);
+            SetBlockFast(leavesCode, x - 2, y, z + 1);
+            SetBlockFast(leavesCode, x - 2, y, z);
+            SetBlockFast(leavesCode, x - 2, y, z - 1);
 
-            SetBlock(leavesCode, x - 1, y, z + 2, false, false, record: false);
-            SetBlock(leavesCode, x, y, z + 2, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z + 2, false, false, record: false);
+            SetBlockFast(leavesCode, x - 1, y, z + 2);
+            SetBlockFast(leavesCode, x, y, z + 2);
+            SetBlockFast(leavesCode, x + 1, y, z + 2);
 
-            SetBlock(leavesCode, x - 1, y, z - 2, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 2, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z - 2, false, false, record: false);
+            SetBlockFast(leavesCode, x - 1, y, z - 2);
+            SetBlockFast(leavesCode, x, y, z - 2);
+            SetBlockFast(leavesCode, x + 1, y, z - 2);
 
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlockFast(orkCode, x, ++y, z);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x, y, z, false, false, record: false);
+            SetBlockFast(leavesCode, x, y, z + 1);
+            SetBlockFast(leavesCode, x, y, z - 1);
+            SetBlockFast(leavesCode, x + 1, y, z);
+            SetBlockFast(leavesCode, x - 1, y, z);
+            SetBlockFast(leavesCode, x, y, z);
 
-            SetBlock(orkCode, x, ++y, z, false, false, record: false);
+            SetBlockFast(orkCode, x, ++y, z);
 
-            SetBlock(leavesCode, x, y, z + 1, false, false, record: false);
-            SetBlock(leavesCode, x, y, z - 1, false, false, record: false);
-            SetBlock(leavesCode, x + 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x - 1, y, z, false, false, record: false);
-            SetBlock(leavesCode, x, y, z, false, false, record: false);
-        }
-
-        private IEnumerator GenerateRiverCoroutine()
-        {
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
-
-            var width = worldSettings.levelWidth;
-            var height = worldSettings.chunkHeight;
-            
-            chunkManager.BakeAllChunkHeightMap();
-
-            var count = 1;
-            var progress = 0;
-            var total = chunkManager.chunkEntries.Count;
-
-            var waterCode = BlockMetaDatabase.GetBlockCodeById("b2nd:block/water");
-            
-            yield return null;
-
-            foreach (var entry in chunkManager.chunkEntries)
-            {
-                var cCoord = entry.basePos;
-                var chunkBlocks = entry.chunk.chunkBlocks;
-                var chunkWidth = chunkBlocks.GetLength(0);
-                var chunkHeight = chunkBlocks.GetLength(1);
-
-                for (int cx = 0; cx < chunkWidth; ++cx)
-                {
-                    for (int cz = 0; cz < chunkWidth; ++cz)
-                    {
-                        if (entry.chunk.heightMap[cx, cz] > terrainNoise.waterLevel)
-                            continue;
-
-                        var rawHeight = terrainNoise.GetHeight((cCoord.x + cx) / 384f, (cCoord.z + cz) / 384f);
-
-                        for (int cy = chunkHeight - 1; cy >= 0; --cy)
-                        {
-                            if (cy > terrainNoise.waterLevel)
-                            {
-                                chunkBlocks[cx, cy, cz].blockCode = 0;
-                            } else if (cy <= terrainNoise.waterLevel && cy >= entry.chunk.heightMap[cx, cz] && 
-                                       terrainNoise.waterLevel - rawHeight < 0.005f)
-                            {
-                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Sand;
-                            } else if (cy <= terrainNoise.waterLevel && cy >= entry.chunk.heightMap[cx, cz])
-                            {
-                                chunkBlocks[cx, cy, cz].blockCode = waterCode;
-                                chunkBlocks[cx, cy, cz].blockState = LiquidBlockBehavior.DefaultIterCount;
-                            } else if (cy >= entry.chunk.heightMap[cx, cz] - 2)
-                            {
-                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Dirt;
-                            } else
-                            {
-                                chunkBlocks[cx, cy, cz].blockCode = BlockMetaDatabase.BuiltinBlockCode.Stone;
-                            }
-                        }
-                    }
-                }
-                
-                if (count % 20 == 0)
-                {
-                    count = 1;
-                    progressUI.SetProgress((float) progress / total);
-                    yield return null;
-                }
-                else
-                {
-                    count++;
-                }
-
-                progress++;
-            }
+            SetBlockFast(leavesCode, x, y, z + 1);
+            SetBlockFast(leavesCode, x, y, z - 1);
+            SetBlockFast(leavesCode, x + 1, y, z);
+            SetBlockFast(leavesCode, x - 1, y, z);
+            SetBlockFast(leavesCode, x, y, z);
         }
 
         public void Explode(int x, int y, int z, int radius)
@@ -741,7 +598,7 @@ namespace Block2nd.World
 
                             if (defaultAct)
                             {
-                                SetBlock(0, cx, cy, cz, false, updateHeightmap: false);
+                                SetBlock(0, cx, cy, cz, notify: false);
                             }
                         }
                     }
@@ -752,13 +609,42 @@ namespace Block2nd.World
             client.player.playerController.AddImpulseForse(dir.normalized * 300 / (1f + dir.magnitude));
             
             Profiler.EndSample();
-            
-            FlushDirtyChunkQueue();
         }
 
-        public int GetHeight(int x, int z)
+        public int GetSkyLight(int x, int y, int z, bool cacheOnly = false)
         {
-            var chunk = GetChunkFromCoord(x >> 4, z >> 4);
+            Chunk chunk;
+            if (cacheOnly)
+            {
+                chunk = chunkProvider.GetChunkInCache(this, x >> 4, z >> 4);
+            }
+            else
+            {
+                chunk = GetChunkFromCoord(x >> 4, z >> 4);
+            }
+
+            var chunkLocalPos = chunk.WorldToLocal(x, z);
+
+            if (y < 0 || y >= worldSettings.chunkHeight)
+                return 0;
+            
+            return chunk.lightMap[chunkLocalPos.x, y, chunkLocalPos.z];
+        }
+
+        public int GetHeight(int x, int z, bool cacheOnly = false)
+        {
+            Chunk chunk;
+            if (cacheOnly)
+            {
+                chunk = chunkProvider.GetChunkInCache(this, x >> 4, z >> 4);
+                if (chunk == null)
+                    return 0;
+            }
+            else
+            {
+                chunk = GetChunkFromCoord(x >> 4, z >> 4);
+            }
+
             var chunkLocalPos = chunk.WorldToLocal(x, z);
             
             if (chunk.dirty)
@@ -804,22 +690,47 @@ namespace Block2nd.World
             return exposed;
         }
 
-        public ChunkBlockData GetBlock(Vector3 pos)
+        public ChunkBlockData GetBlock(Vector3 pos, 
+                                        bool autoGenerate = true, bool cacheOnly = false)
         {
-            return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out Chunk _);
+            return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out Chunk _, autoGenerate, cacheOnly);
         }
         
-        public ChunkBlockData GetBlock(int x, int y, int z)
+        public ChunkBlockData GetBlock(int x, int y, int z, 
+                                        bool autoGenerate = true, bool cacheOnly = false)
         {
-            return GetBlock(x, y, z, out Chunk _);
+            return GetBlock(x, y, z, out Chunk _, autoGenerate, cacheOnly);
         }
 
-        public ChunkBlockData GetBlock(int x, int y, int z, out Chunk locatedChunk)
+        public ChunkBlockData GetBlock(int x, int y, int z, out Chunk locatedChunk, 
+                                        bool autoGenerate = true, bool cacheOnly = false)
         {
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
 
-            var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            Chunk chunk;
+
+            if (cacheOnly)
+            {
+                chunk = chunkProvider.GetChunkInCache(this, chunkX, chunkZ);
+                locatedChunk = chunk;
+                if (chunk == null)
+                {
+                    return ChunkBlockData.EMPTY;
+                }
+            }
+            else if (autoGenerate)
+            {
+                chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            }
+            else
+            {
+                chunk = chunkProvider.TryGetChunk(this, chunkX, chunkZ);
+                locatedChunk = chunk;
+                if (chunk == null)
+                    return ChunkBlockData.EMPTY;
+            }
+
             var local = chunk.WorldToLocal(x, y, z);
 
             locatedChunk = chunk;
@@ -852,22 +763,46 @@ namespace Block2nd.World
                 chunkRenderEntityManager.RenderChunk(chunk);
             }
         }
-        
-        public void SetBlock(int blockCode, int x, int y, int z, 
-                                        bool updateMesh, bool updateHeightmap = true,
-                                        bool notify = false, bool useInitState = true, byte state = 0,
-                                        bool record = true)
+
+        public void SetBlockFast(int blockCode, int x, int y, int z, bool useInitState = true, byte state = 0)
         {
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
+
+            if (y >= worldSettings.chunkHeight || y < 0)
+                return;
 
             var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
             var local = chunk.WorldToLocal(x, y, z);
 
             var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
 
+            if (useInitState && blockCode > 0)
+                state = meta.initState;
+            
+            chunk.chunkBlocks[local.x, local.y, local.z] = new ChunkBlockData
+            {
+                blockCode = blockCode,
+                blockState = state
+            };
+
+            chunk.modified = true;
+            chunk.dirty = true;
+        }
+        
+        public void SetBlock(int blockCode, int x, int y, int z, 
+                                bool notify = false, bool useInitState = true, byte state = 0)
+        {
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+
             if (y >= worldSettings.chunkHeight || y < 0)
                 return;
+
+            var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
+            var local = chunk.WorldToLocal(x, y, z);
+
+            var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
 
             if (useInitState && blockCode > 0)
                 state = meta.initState;
@@ -893,20 +828,8 @@ namespace Block2nd.World
                 });
             }
 
-            if (updateMesh)
-            {
-                chunk.BakeHeightMap();
-                chunkRenderEntityManager.RenderChunk(chunk);
-            }
-            else
-            {
-                if (!dirtyChunkPreFrameQueue.Contains(chunk) && record)
-                    dirtyChunkPreFrameQueue.Enqueue(chunk);
-            }
-
-            if (updateHeightmap)
-                chunk.BakeHeightMap();
-
+            if (!dirtyChunkQueue.Contains(chunk))
+                dirtyChunkQueue.Enqueue(chunk);
         }
 
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
@@ -1138,7 +1061,7 @@ namespace Block2nd.World
 
             particleGameObject.transform.position = pos;
             controller.GetMaterial().SetVector("_Texcoord", 
-                meta.shape.GetShapeMesh(1, 1).texcoords[0]);
+                meta.shape.GetShapeMesh(1, 1, 0).texcoords[0]);
             
             Destroy(particleGameObject, 2f);
         }

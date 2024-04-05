@@ -8,7 +8,7 @@ namespace Block2nd.Database.Meta
         {
         }
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation)
+        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits)
         {
             if ((exposedFace & 16) != 0)
             {
@@ -20,7 +20,7 @@ namespace Block2nd.Database.Meta
                 height = 1;
                 RecalculateVertexVectors();
             }
-            return base.GetShapeMesh(exposedFace, lightAttenuation);
+            return base.GetShapeMesh(exposedFace, lightAttenuation, aoBits);
         }
     }
 }

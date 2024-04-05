@@ -8,6 +8,7 @@ using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.MathUtil;
 using Block2nd.Persistence.KNBT;
+using Block2nd.Scriptable;
 using Block2nd.UnsafeStructure;
 using Unity.Profiling;
 using UnityEngine;
@@ -24,10 +25,11 @@ namespace Block2nd.World
 
         public ChunkBlockData[,,] chunkBlocks;
         public int[,] heightMap = new int[16, 16];
-        public byte[,,] ambientOcclusionMap;
+        public int[,,] lightMap;
 
         public bool modified = true;
         public bool dirty = true;
+        public bool firstRendered = false;
         public bool saved;
         public int populateState = 0;
 
@@ -35,11 +37,13 @@ namespace Block2nd.World
 
         public bool NeedToSave => !saved || modified;
 
-        public Chunk(Level level, int chunkX, int chunkZ)
+        public Chunk(Level level, int chunkX, int chunkZ, int chunkHeight)
         {
             this.level = level;
             worldBasePosition = new IntVector3(chunkX * 16, 0, chunkZ * 16);
             CoordKey = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
+
+            lightMap = new int[16, chunkHeight, 16];
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)
@@ -55,17 +59,31 @@ namespace Block2nd.World
 
             return 1f;
         }
-        
+
+        public void BakeHeightMapPartial(int x, int z)
+        {
+            var height = chunkBlocks.GetLength(1);
+
+            for (int y = height - 1; y >= 0; --y)
+            {
+                if (chunkBlocks[x, y, z].blockCode != 0)
+                {
+                    heightMap[x, z] = y;
+                    break;
+                }
+            }
+        }
+
         public void BakeHeightMap()
         {
             if (!dirty)
                 return;
-            
+
             Profiler.BeginSample("Bake HeightMap");
-            
+
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
-            
+
             for (int x = 0; x < width; ++x)
             {
                 for (int z = 0; z < width; ++z)
@@ -80,100 +98,10 @@ namespace Block2nd.World
                     }
                 }
             }
-            
+
             Profiler.EndSample();
         }
 
-        public void BakeAmbientOcclusionMap()
-        {
-            // cell: 32 位数字, 每 4 bit 为一个顶点的遮蔽数值，共 8 个顶点.
-            // 从低到高分别代表顶点 B(LT, RT, LB, RB), F(LT, RT, LB, RB)
-            // 只有不透明方块才会被加入到环境光遮蔽的计算之中
-            
-            Profiler.BeginSample("C:Bake AO");
-            
-            var width = chunkBlocks.GetLength(0);
-            var height = chunkBlocks.GetLength(1);
-            
-            for (int x = 0; x < width; ++x)
-            {
-                for (int z = 0; z < width; ++z)
-                {
-                    for (int y = height - 1; y >= 0; --y)
-                    {
-                        byte vertAoValue = 0;
-
-                        if (!GetBlock(x + 1, y + 1, z - 1).Transparent())
-                            vertAoValue |= 1;
-                        
-                        if (!GetBlock(x + 1, y + 1, z).Transparent())
-                            vertAoValue |= 17;
-                        
-                        if (!GetBlock(x + 1, y + 1, z + 1).Transparent())
-                            vertAoValue |= 16;
-
-                        if (!GetBlock(x, y + 1, z - 1).Transparent())
-                            vertAoValue |= 3;
-                        
-                        if (!GetBlock(x, y + 1, z + 1).Transparent())
-                            vertAoValue |= 48;
-
-                        if (!GetBlock(x - 1, y + 1, z - 1).Transparent())
-                            vertAoValue |= 2;
-                        
-                        if (!GetBlock(x - 1, y + 1, z).Transparent())
-                            vertAoValue |= 34;
-                        
-                        if (!GetBlock(x - 1, y + 1, z + 1).Transparent())
-                            vertAoValue |= 32;
-                        
-                        
-                        if (!GetBlock(x + 1, y - 1, z - 1).Transparent())
-                            vertAoValue |= 4;
-                        
-                        if (!GetBlock(x + 1, y - 1, z).Transparent())
-                            vertAoValue |= 68;
-                        
-                        if (!GetBlock(x + 1, y - 1, z + 1).Transparent())
-                            vertAoValue |= 64;
-
-                        if (!GetBlock(x, y - 1, z - 1).Transparent())
-                            vertAoValue |= 12;
-                        
-                        if (!GetBlock(x, y - 1, z + 1).Transparent())
-                            vertAoValue |= 192;
-
-                        if (!GetBlock(x - 1, y - 1, z - 1).Transparent())
-                            vertAoValue |= 8;
-                        
-                        if (!GetBlock(x - 1, y - 1, z).Transparent())
-                            vertAoValue |= 136;
-                        
-                        if (!GetBlock(x - 1, y - 1, z + 1).Transparent())
-                            vertAoValue |= 128;
-                        
-                        
-                        if (!GetBlock(x - 1, y, z + 1).Transparent())
-                            vertAoValue |= 80;
-                        
-                        if (!GetBlock(x - 1, y, z - 1).Transparent())
-                            vertAoValue |= 5;
-                        
-                        
-                        if (!GetBlock(x - 1, y, z + 1).Transparent())
-                            vertAoValue |= 128;
-                        
-                        if (!GetBlock(x - 1, y, z - 1).Transparent())
-                            vertAoValue |= 160;
-
-                        ambientOcclusionMap[x, y, z] = vertAoValue;
-                    }
-                }
-            }
-            
-            Profiler.EndSample();
-        }
-        
         public ChunkBlockData GetBlockWorldPos(int x, int y, int z, bool searchHoldLevel)
         {
             return GetBlock(
@@ -187,16 +115,16 @@ namespace Block2nd.World
         {
             var v = new IntVector3(x, y, z);
             var block = GetBlock(x, y, z, true);
-                        
+
             if (block.blockCode == 0)
                 return;
 
             v.x += worldBasePosition.x;
             v.y += worldBasePosition.y;
             v.z += worldBasePosition.z;
-                        
+
             BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnUpdate(
-                v, 
+                v,
                 level,
                 this,
                 level.Player);
@@ -206,14 +134,14 @@ namespace Block2nd.World
         {
             UpdateBlock(cx, cy + 1, cz);
             UpdateBlock(cx, cy - 1, cz);
-            
+
             UpdateBlock(cx + 1, cy, cz);
             UpdateBlock(cx - 1, cy, cz);
             UpdateBlock(cx, cy, cz + 1);
             UpdateBlock(cx, cy, cz - 1);
         }
 
-        public ChunkBlockData GetBlock(int x, int y, int z, bool searchLevel = false)
+        public ChunkBlockData GetBlock(int x, int y, int z, bool searchLevel = false, bool cacheOnly = true)
         {
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
@@ -221,9 +149,10 @@ namespace Block2nd.World
             if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= width)
             {
                 if (searchLevel)
-                    return level.GetBlock(worldBasePosition.x + x, 
-                                                 worldBasePosition.y + y, 
-                                                 worldBasePosition.z + z);
+                    return level.GetBlock(worldBasePosition.x + x,
+                        worldBasePosition.y + y,
+                        worldBasePosition.z + z,
+                        false, cacheOnly);
                 return ChunkBlockData.EMPTY;
             }
 
@@ -239,18 +168,19 @@ namespace Block2nd.World
         {
             return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, searchLevel);
         }
-        
+
         public ChunkBlockData GetBlockWS(Vector3 pos, bool searchLevel = false)
         {
-            var iPos = WorldToLocal((int)pos.x, (int)pos.y, (int)pos.z);;
+            var iPos = WorldToLocal((int) pos.x, (int) pos.y, (int) pos.z);
+            ;
             return GetBlock(iPos.x, iPos.y, iPos.z, searchLevel);
         }
-        
-        public void SetBlock(int blockCode, int x, int y, int z, 
-                                        bool worldPos, bool updateMesh, bool updateHeightMap, byte state)
+
+        public void SetBlock(int blockCode, int x, int y, int z,
+            bool worldPos, bool updateMesh, bool updateHeightMap, byte state)
         {
             int ox = x, oy = y, oz = z;
-            
+
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
 
@@ -263,7 +193,7 @@ namespace Block2nd.World
             if (x < 0 || x >= width || z >= width || z < 0 || y < 0 || y >= height)
             {
                 Debug.LogWarning(
-                    "SetBlock: pos out of range: (" + width + ", " + height + ", " + width + "), got (" + 
+                    "SetBlock: pos out of range: (" + width + ", " + height + ", " + width + "), got (" +
                     x + ", " + y + ", " + z + ")");
                 return;
             }
@@ -275,7 +205,7 @@ namespace Block2nd.World
             };
 
             chunkBlocks[x, y, z] = data;
-            
+
 
             if (heightMap[x, z] < y && updateHeightMap)
             {
@@ -287,7 +217,6 @@ namespace Block2nd.World
 
         public void SetBlockState(int x, int y, int z, byte state, bool worldPos, bool updateMesh)
         {
-            
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
 
@@ -296,11 +225,11 @@ namespace Block2nd.World
                 x -= worldBasePosition.x;
                 z -= worldBasePosition.z;
             }
-            
+
             if (x < 0 || x >= width || z >= width || z < 0 || y < 0 || y >= height)
             {
                 Debug.LogWarning(
-                    "SetBlockState: pos out of range: (" + width + ", " + height + ", " + width + "), got (" + 
+                    "SetBlockState: pos out of range: (" + width + ", " + height + ", " + width + "), got (" +
                     x + ", " + y + ", " + z + ")");
                 return;
             }
@@ -309,7 +238,7 @@ namespace Block2nd.World
 
             dirty = true;
         }
-        
+
         public int GetExposedFace(int x, int y, int z)
         {
             int exposed = 0;
@@ -346,7 +275,7 @@ namespace Block2nd.World
 
             return exposed;
         }
-        
+
         public int GetExposedFaceTransparent(int x, int y, int z, int blockCode)
         {
             int exposed = 0;
@@ -383,60 +312,120 @@ namespace Block2nd.World
 
             return exposed;
         }
-        
+
+        public int GetLightAttenuation(int x, int y, int z, int exposedFace)
+        {
+            int attenuation = 0;
+
+            if ((exposedFace & 1) != 0)
+            {
+                attenuation |= GetSkyLight(x, y, z + 1);
+            }
+
+            if ((exposedFace & 2) != 0)
+            {
+                attenuation |= GetSkyLight(x, y, z - 1) << 4;
+            }
+
+            if ((exposedFace & 4) != 0)
+            {
+                attenuation |= GetSkyLight(x - 1, y, z) << 8;
+            }
+
+            if ((exposedFace & 8) != 0)
+            {
+                attenuation |= GetSkyLight(x + 1, y, z) << 12;
+            }
+
+            if ((exposedFace & 16) != 0)
+            {
+                attenuation |= GetSkyLight(x, y + 1, z) << 16;
+            }
+
+            if ((exposedFace & 32) != 0)
+            {
+                attenuation |= GetSkyLight(x, y - 1, z) << 20;
+            }
+
+            return attenuation;
+        }
+
         public int GetLightAttenuation(int x, int y, int z)
         {
             int attenuation = 0;
 
             if (GetHeight(x, z + 1) > y)
             {
-                attenuation |= 1;
+                attenuation |= 2;
             }
 
             if (GetHeight(x, z - 1) > y)
             {
-                attenuation |= 2;
+                attenuation |= 2 << 4;
             }
 
             if (GetHeight(x - 1, z) > y)
             {
-                attenuation |= 4;
+                attenuation |= 2 << 8;
             }
 
             if (GetHeight(x + 1, z) > y)
             {
-                attenuation |= 8;
+                attenuation |= 2 << 12;
             }
 
             if (GetHeight(x, z) > y)
             {
-                attenuation |= 16;
+                attenuation |= 2 << 16;
             }
 
-            attenuation |= 32;
+            attenuation |= 2 << 20;
 
             return attenuation;
         }
 
-        public int GetHeight(int x, int z)
+        public int GetHeight(int x, int z, bool searchLevel = false, bool cacheOnly = false)
         {
             var width = heightMap.GetLength(0);
 
             if (x < 0 || x >= width || z < 0 || z >= width)
+            {
+                if (searchLevel)
+                {
+                    return level.GetHeight(x + worldBasePosition.x, z + worldBasePosition.z, cacheOnly);
+                }
+
                 return 0;
+            }
+
             return heightMap[x, z];
+        }
+
+        public int GetSkyLight(int x, int y, int z, bool cacheOnly = false)
+        {
+            var height = chunkBlocks.GetLength(1);
+
+            if (y >= height || y < 0)
+                return 0;
+
+            if (x < 0 || x >= 16 || z < 0 || z >= 16)
+            {
+                return level.GetSkyLight(x + worldBasePosition.x, y, z + worldBasePosition.z, cacheOnly);
+            }
+
+            return lightMap[x, y, z];
         }
 
         public IntVector3 WorldToLocal(int x, int z)
         {
             return new IntVector3(x - worldBasePosition.x, 0, z - worldBasePosition.z);
         }
-        
+
         public IntVector3 WorldToLocal(int x, int y, int z)
         {
             return new IntVector3(x - worldBasePosition.x, y - worldBasePosition.y, z - worldBasePosition.z);
         }
-        
+
         public IntVector3 LocalToWorld(int x, int y, int z)
         {
             return new IntVector3(x + worldBasePosition.x, y + worldBasePosition.y, z + worldBasePosition.z);
@@ -451,6 +440,70 @@ namespace Block2nd.World
             tree.SetInt("PopulateState", populateState);
 
             return tree;
+        }
+
+        public void UpdateChunkLightMapFully()
+        {
+            Profiler.BeginSample("Update Lightmap Fully");
+
+            Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
+
+            for (int x = 0; x < 16; ++x)
+            {
+                for (int z = 0; z < 16; ++z)
+                {
+                    int groundHeight = heightMap[x, z];
+
+                    for (int y = groundHeight; y >= 0; --y)
+                    {
+                        if (GetBlock(x, y, z).Transparent())
+                        {
+                            int value = 3;
+                            if (GetHeight(x - 1, z, true) > y &&
+                                GetHeight(x + 1, z, true) > y &&
+                                GetHeight(x, z + 1, true) > y &&
+                                GetHeight(x, z - 1, true) > y)
+                            {
+                                value = 6;
+                            }
+
+                            lightMap[x, y, z] = value;
+                        }
+                    }
+                }
+            }
+
+            Profiler.EndSample();
+        }
+
+        public void UpdateChunkSkylightForBlock(int x, int y, int z)
+        {
+            BakeHeightMapPartial(x, z);
+            var height = GetHeight(x, z);
+
+            if (y == height)
+            {
+                for (; y >= 0; --y)
+                {
+                    if (GetBlock(x, y, z).Transparent())
+                    {
+                        int value = 3;
+                        if (GetHeight(x - 1, z, true, true) > y &&
+                            GetHeight(x + 1, z, true, true) > y &&
+                            GetHeight(x, z + 1, true, true) > y &&
+                            GetHeight(x, z - 1, true, true) > y)
+                        {
+                            value = 6;
+                        }
+
+                        lightMap[x, y, z] = value;
+                    }
+                }
+            }
+        }
+
+        private void UpdateChunkSkyLight()
+        {
         }
     }
 }

@@ -35,11 +35,11 @@ namespace Block2nd.Database.Meta
         ///     8 比特数，低到高位依次代表面：前 后 左 右 上 下 是否发生管线衰减。
         /// </param>
         /// <returns></returns>
-        public abstract BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation);
+        public abstract BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0);
 
         public Vector3 GetCenterPoint()
         {
-            var shapeMash = GetShapeMesh(255, 0);
+            var shapeMash = GetShapeMesh(255, 0, 0);
             var center = new Vector3(0, 0, 0);
 
             foreach (var vert in shapeMash.positions)
@@ -58,7 +58,7 @@ namespace Block2nd.Database.Meta
     {
         public Mesh mesh;
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttuation)
+        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits)
         {
             return new BlockMesh
             {

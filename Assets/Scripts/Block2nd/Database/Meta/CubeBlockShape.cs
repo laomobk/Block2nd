@@ -120,7 +120,7 @@ namespace Block2nd.Database.Meta
         private void _BuildFace(
             ref byte posIdx, ref byte texcoordIdx, ref byte triangleIdx,
             Vector3 origin, Vector3 up, Vector3 right, 
-            Vector2 texcoordOrigin, Vector2 texcoordUp, Vector2 texcoordRight)
+            Vector2 texcoordOrigin, Vector2 texcoordUp, Vector2 texcoordRight, bool flip)
         {
             int startIdx = posIdx;
             
@@ -133,17 +133,30 @@ namespace Block2nd.Database.Meta
             tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordUp;
             tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordRight;
             tempTexcoordsArray[texcoordIdx++] = texcoordOrigin + texcoordRight + texcoordUp;
-            
-            tempTrianglesArray[triangleIdx++] = startIdx + 0;
-            tempTrianglesArray[triangleIdx++] = startIdx + 3;
-            tempTrianglesArray[triangleIdx++] = startIdx + 2;
 
-            tempTrianglesArray[triangleIdx++] = startIdx + 0;
-            tempTrianglesArray[triangleIdx++] = startIdx + 1;
-            tempTrianglesArray[triangleIdx++] = startIdx + 3;
+            if (flip)
+            {
+                tempTrianglesArray[triangleIdx++] = startIdx + 0;
+                tempTrianglesArray[triangleIdx++] = startIdx + 3;
+                tempTrianglesArray[triangleIdx++] = startIdx + 2;
+
+                tempTrianglesArray[triangleIdx++] = startIdx + 0;
+                tempTrianglesArray[triangleIdx++] = startIdx + 1;
+                tempTrianglesArray[triangleIdx++] = startIdx + 3;
+            }
+            else
+            {
+                tempTrianglesArray[triangleIdx++] = startIdx + 0;
+                tempTrianglesArray[triangleIdx++] = startIdx + 1;
+                tempTrianglesArray[triangleIdx++] = startIdx + 2;
+
+                tempTrianglesArray[triangleIdx++] = startIdx + 2;
+                tempTrianglesArray[triangleIdx++] = startIdx + 1;
+                tempTrianglesArray[triangleIdx++] = startIdx + 3;
+            }
         }
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation)
+        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0)
         {
             byte posIdx = 0, colorsIdx = 0, texcoordsIdx = 0, trianglesIdx = 0;
 
@@ -153,115 +166,153 @@ namespace Block2nd.Database.Meta
             if ((exposedFace & 1) != 0)  // front 
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.frontTexIdx);
-                
+
+                var color = new Color((15 - (lightAttenuation & 15)) / 15f, (aoBits >> 6) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 4) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 7) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 5) & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    FBL, up, -right, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 1) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    FBL, up, -right, texcoordOrigin, uvUp, uvRight, flip);
             }
 
             if ((exposedFace & 2) != 0)  // back
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.backTexIdx);
 
+                var color = new Color((15 - ((lightAttenuation >> 4) & 15)) / 15f, (aoBits >> 3) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 1) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 2) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = aoBits & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
+                
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    BBR, up, right, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 2) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    BBR, up, right, texcoordOrigin, uvUp, uvRight, flip);
             }
             
             if ((exposedFace & 4) != 0)  // left
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.leftTexIdx);
 
+                var color = new Color((15 - ((lightAttenuation >> 8) & 15)) / 15f, (aoBits >> 7) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 5) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 3) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 1) & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
+
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    FBR, up, -forward, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 4) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    FBR, up, -forward, texcoordOrigin, uvUp, uvRight, flip);
             }
             
             if ((exposedFace & 8) != 0)  // right
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.rightTexIdx);
 
+                var color = new Color((15 - ((lightAttenuation >> 12) & 15)) / 15f, (aoBits >> 2) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = aoBits & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 6) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 4) & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    BBL, up, forward, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 8) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    BBL, up, forward, texcoordOrigin, uvUp, uvRight, flip);
             }
             
             if ((exposedFace & 16) != 0)  // top
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.topTexIdx);
 
+                var color = new Color((15 - ((lightAttenuation >> 16) & 15)) / 15f, (aoBits >> 4) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = aoBits & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 5) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 1) & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    FTL, -forward, -right, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 16) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    FTL, -forward, -right, texcoordOrigin, uvUp, uvRight, flip);
             }
             
             if ((exposedFace & 32) != 0)  // bottom
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.bottomTexIdx);
 
+                var color = new Color((15 - ((lightAttenuation >> 20) & 15)) / 15f, (aoBits >> 2) & 1, 1);
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 6) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 3) & 1;
+                tempColorsArray[colorsIdx++] = color;
+                color.g = (aoBits >> 7) & 1;
+                tempColorsArray[colorsIdx++] = color;
+
+                bool flip = false;
+                if (aoBits > 0)
+                {
+                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
+                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                }
+
                 _BuildFace(
                     ref posIdx, ref texcoordsIdx, ref trianglesIdx,
-                    BBL, forward, -right, texcoordOrigin, uvUp, uvRight);
-
-                var color = new Color(1, 1, 1);
-                if ((lightAttenuation & 32) != 0)
-                {
-                    color = new Color(0.7f, 0.7f, 0.7f);
-                }
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
-                tempColorsArray[colorsIdx++] = color;
+                    BBL, forward, -right, texcoordOrigin, uvUp, uvRight, flip);
             }
 
             var verts = new BlockMesh

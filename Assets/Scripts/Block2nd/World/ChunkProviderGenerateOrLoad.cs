@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Block2nd.MathUtil;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Block2nd.World
 {
@@ -61,8 +62,12 @@ namespace Block2nd.World
                 return chunk;
             }
 
+            Profiler.BeginSample("Generate Chunk");
+            
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
-                
+            
+            Profiler.EndSample();
+            
             chunkDict.Add(key, chunk);
 
             ReleaseHotChunk(chunkX, chunkZ, key, level, chunk);
@@ -74,6 +79,7 @@ namespace Block2nd.World
             }
 
             chunk.BakeHeightMap();
+            // chunk.UpdateChunkLightMapFully();
 
             return chunk;
         }
@@ -92,6 +98,19 @@ namespace Block2nd.World
 
             if (chunk != null)
                 return chunk;
+
+            return null;
+        }
+
+        public Chunk GetChunkInCache(Level level, int chunkX, int chunkZ)
+        {
+            var key = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
+            Chunk chunk;
+
+            if (chunkDict.TryGetValue(key, out chunk))
+            {
+                return chunk;
+            }
 
             return null;
         }

@@ -58,7 +58,7 @@ namespace Block2nd.World
             ChunkBlockData[,,] blocks = new ChunkBlockData[16, worldSettings.chunkHeight, 16];
             GenerateBasicTerrain(worldSettings, noiseGenerator, blocks, chunkX, chunkZ);
 
-            Chunk chunk = new Chunk(level, chunkX, chunkZ);
+            Chunk chunk = new Chunk(level, chunkX, chunkZ, worldSettings.chunkHeight);
             chunk.chunkBlocks = blocks;
             chunk.aabb = new Bounds(
                 new Vector3(8, height / 2f, 8),

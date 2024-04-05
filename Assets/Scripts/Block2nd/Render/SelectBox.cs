@@ -25,7 +25,7 @@ namespace Block2nd.Render
 			uvList.Clear();
 			triList.Clear();
 
-			var shapeMesh = shape.GetShapeMesh(exposedFace, 0);
+			var shapeMesh = shape.GetShapeMesh(exposedFace, 0, 0);
 
 			var mesh = new Mesh();
 

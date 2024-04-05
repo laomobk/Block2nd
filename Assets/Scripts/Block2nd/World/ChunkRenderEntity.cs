@@ -69,6 +69,9 @@ namespace Block2nd.World
 
             Profiler.BeginSample("Render Chunk Mesh");
             
+            chunk.BakeHeightMap();
+            chunk.UpdateChunkLightMapFully();
+            
             var chunkBlocks = chunk.chunkBlocks;
             
             var opMesh = new Mesh();
@@ -109,6 +112,15 @@ namespace Block2nd.World
                         
                         if (meta != null)
                         {
+                            int exposedFace = meta.forceRenderAllFace
+                                ? 255
+                                : (meta.transparent
+                                    ? chunk.GetExposedFaceTransparent(x, y, z, meta.blockCode)
+                                    : chunk.GetExposedFace(x, y, z));
+                            
+                            if (exposedFace == 0)
+                                continue;
+                            
                             if (meta.liquid)
                             {
                                 tris = lqTris;
@@ -126,10 +138,8 @@ namespace Block2nd.World
                             var blockMesh = behavior.OnRender(chunk.LocalToWorld(x, y, z));
                             if (blockMesh == null)
                                 blockMesh = meta.shape.GetShapeMesh(
-                                    meta.forceRenderAllFace ? 255 : (meta.transparent ? 
-                                        chunk.GetExposedFaceTransparent(x, y, z, meta.blockCode) :
-                                        chunk.GetExposedFace(x, y, z)),
-                                    chunk.GetLightAttenuation(x, y, z));
+                                    exposedFace,
+                                    chunk.GetLightAttenuation(x, y, z, exposedFace));
                             var triangleStartIdx = vert.Count;
 
                             for (int i = 0; i < blockMesh.triangleCount; ++i)
@@ -191,11 +201,134 @@ namespace Block2nd.World
             subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
 
             chunk.dirty = false;
+            chunk.firstRendered = true;
             brandNew = false;
             
             SetVisible(true);
 
             Profiler.EndSample();
+        }
+        
+
+        public byte GetAoBits(Chunk chunk, int x, int y, int z, int exposedFace)
+        {
+            // cell: 32 位数字, 每 4 bit 为一个顶点的遮蔽数值，共 8 个顶点.
+            // 从低到高分别代表顶点 B(LT, RT, LB, RB), F(LT, RT, LB, RB)
+            
+            byte vertAoValue = 0;
+            byte exposedVertices = 0;
+            
+            if ((exposedFace & 1) != 0)
+            {
+                exposedVertices |= 240;
+            }
+
+            if ((exposedFace & 2) != 0)
+            {
+                exposedVertices |= 15;
+            }
+
+            if ((exposedFace & 4) != 0)
+            {
+                exposedVertices |= 85;
+            }
+
+            if ((exposedFace & 8) != 0)
+            {
+                exposedVertices |= 170;
+            }
+
+            if ((exposedFace & 16) != 0)
+            {
+                exposedVertices |= 51;
+            }
+
+            if ((exposedFace & 32) != 0)
+            {
+                exposedVertices |= 204;
+            }
+
+            if ((exposedVertices & 1) != 0)
+            {
+                if (!(chunk.GetBlock(x + 1, y + 1, z - 1, true, true).Transparent() &&
+                      chunk.GetBlock(x + 1, y + 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y + 1, z - 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 1;
+                }
+            }
+            
+            if ((exposedVertices & 2) != 0)
+            {
+                if (!(chunk.GetBlock(x - 1, y + 1, z - 1, true, true).Transparent() &&
+                      chunk.GetBlock(x - 1, y + 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y + 1, z - 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 2;
+                }
+            }
+            
+            if ((exposedVertices & 4) != 0)
+            {
+                if (!(chunk.GetBlock(x + 1, y - 1, z - 1, true, true).Transparent() &&
+                      chunk.GetBlock(x + 1, y - 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y - 1, z - 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 4;
+                }
+            }
+            
+            if ((exposedVertices & 8) != 0)
+            {
+                if (!(chunk.GetBlock(x - 1, y + 1, z - 1, true, true).Transparent() &&
+                      chunk.GetBlock(x - 1, y + 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y - 1, z - 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 8;
+                }
+            }
+            
+            if ((exposedVertices & 16) != 0)
+            {
+                if (!(chunk.GetBlock(x + 1, y + 1, z + 1, true, true).Transparent() &&
+                      chunk.GetBlock(x + 1, y + 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y + 1, z + 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 16;
+                }
+            }
+            
+            if ((exposedVertices & 32) != 0)
+            {
+                if (!(chunk.GetBlock(x - 1, y + 1, z + 1, true, true).Transparent() &&
+                      chunk.GetBlock(x - 1, y + 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y + 1, z + 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 32;
+                }
+            }
+            
+            if ((exposedVertices & 64) != 0)
+            {
+                if (!(chunk.GetBlock(x + 1, y - 1, z + 1, true, true).Transparent() &&
+                      chunk.GetBlock(x + 1, y - 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y - 1, z + 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 64;
+                }
+            }
+            
+            if ((exposedVertices & 128) != 0)
+            {
+                if (!(chunk.GetBlock(x - 1, y - 1, z + 1, true, true).Transparent() &&
+                      chunk.GetBlock(x - 1, y - 1, z, true, true).Transparent() &&
+                      chunk.GetBlock(x, y - 1, z + 1, true, true).Transparent()))
+                {
+                    vertAoValue |= 128;
+                }
+            }
+
+            return vertAoValue;
         }
     }
 }
