@@ -9,17 +9,26 @@ namespace Block2nd.GUI
 {
 	public class HoldingBlockPreview : MonoBehaviour
 	{
+		private MeshRenderer meshRenderer;
 		private MeshFilter meshFilter;
 		private Animator animator;
+
+		private Material material;
 
 		private GameClient gameClient;
 
 		private void Awake()
 		{
+			meshRenderer = GetComponent<MeshRenderer>();
 			animator = GetComponent<Animator>();
 			meshFilter = GetComponent<MeshFilter>();
 			
 			gameClient = GameObject.FindWithTag("GameClient").GetComponent<GameClient>();
+		}
+
+		private void Start()
+		{
+			material = meshRenderer.material;
 		}
 
 		private void Update()
@@ -27,7 +36,12 @@ namespace Block2nd.GUI
 			// transform.eulerAngles = gameClient.player.playerCamera.transform.eulerAngles;
 		}
 
-		public void SetMeshFromShape(BlockShape shape)
+		public void SetEnvLight(float light)
+		{
+			material.SetFloat("_EnvLight", light);
+		}
+
+		public void SetMeshFromShape(BlockShape shape, int lightAttenuation)
 		{
 			var shapeMesh = shape.GetShapeMesh(255, 0);
 			var mesh = new Mesh();
@@ -35,6 +49,7 @@ namespace Block2nd.GUI
 			mesh.vertices = shapeMesh.positions;
 			mesh.triangles = shapeMesh.triangles;
 			mesh.uv = shapeMesh.texcoords;
+			mesh.colors = shapeMesh.colors;
 			mesh.RecalculateNormals();
 			
 			DestroyImmediate(meshFilter.sharedMesh, true);

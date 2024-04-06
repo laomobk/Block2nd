@@ -25,6 +25,7 @@
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 				float3 normal : NORMAL;
+				float3 light : COLOR;
 			};
 
 			struct v2f
@@ -32,10 +33,12 @@
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
 				float lambert : TEXCOORD1;
+				float3 light : TEXCOORD2;
 			};
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+			float _EnvLight;
 			
 			v2f vert (appdata v)
 			{
@@ -43,14 +46,14 @@
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				o.lambert = clamp(dot(UnityObjectToWorldNormal(v.normal), 
-								normalize(WorldSpaceLightDir(v.vertex))), 0.2, 1) + 0.25;
+								normalize(WorldSpaceLightDir(v.vertex))) * 0.5 + 0.5, 0.5, 1) + 0.1;
 				return o;
 			}
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 col = tex2D(_MainTex, i.uv);
-				return fixed4(col.xyz * i.lambert, col.a);
+				return fixed4(col.xyz * i.lambert * _EnvLight, col.a);
 			}
 			ENDCG
 		}

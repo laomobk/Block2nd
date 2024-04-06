@@ -32,8 +32,15 @@ namespace Block2nd.Behavior.Block
             var z = worldPos.z;
 
             Chunk cp;
+
+            var belowBlock = level.GetBlock(x, y - 1, z, out cp);
+
+            if (belowBlock.blockCode == GetSelfBlockCode())
+            {
+                return;
+            }
             
-            if (y > 0 && level.GetBlock(x, y - 1, z, out cp).blockCode == 0)
+            if (y > 0 && belowBlock.blockCode == 0)
             {
                 level.SetBlock(
                     GetSelfBlockCode(), x, y - 1, z, false, state: iterCount, useInitState: false);

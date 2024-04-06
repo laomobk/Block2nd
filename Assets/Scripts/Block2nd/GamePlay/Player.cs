@@ -83,6 +83,18 @@ namespace Block2nd.GamePlay
             selectBox.gameObject.SetActive(raycastBlockHit != null);
             
             gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
+
+            if (gameClient.GameClientState == GameClientState.GAME)
+            {
+                var pos = transform.position;
+                var level = gameClient.CurrentLevel;
+
+                if (level)
+                {
+                    var light = gameClient.CurrentLevel.GetSkyLight((int) pos.x, (int) pos.y, (int) pos.z, true);
+                    holdingBlockPreview.SetEnvLight((15 - light) / 15f);
+                }
+            }
             
             if (gameClient.GameClientState == GameClientState.GAME && playerController.OnGround)
                 bobbingTime += Time.deltaTime;
@@ -140,7 +152,7 @@ namespace Block2nd.GamePlay
             
             gameClient.CurrentLevel.ChunkManager.BakeAllChunkHeightMap();
             
-            var chunk = gameClient.CurrentLevel.GetChunkFromCoord(x >> 4, z >> 4);
+            var chunk = gameClient.CurrentLevel.GetChunkFromCoords(x >> 4, z >> 4);
             var chunkLocalPos = chunk.WorldToLocal(x, z);
             
             var y = chunk.heightMap[chunkLocalPos.x, chunkLocalPos.z] + 5;
@@ -209,7 +221,10 @@ namespace Block2nd.GamePlay
             if (meta == null)
                 return;
 
-            holdingBlockPreview.SetMeshFromShape(meta.shape);
+            var level = gameClient.CurrentLevel;
+
+            holdingBlockPreview.SetMeshFromShape(meta.shape, 0);   
+            
             holdingBlockCode = meta.blockCode;
 
             UpdateHoldingItemNameText();

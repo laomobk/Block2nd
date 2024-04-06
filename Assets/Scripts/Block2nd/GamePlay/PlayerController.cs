@@ -326,7 +326,7 @@ namespace Block2nd.GamePlay
                 }
 
                 if (flying)
-                    playerSpeed *= 2f; 
+                    playerSpeed *= 1.5f; 
 
                 var speed = transform.localToWorldMatrix.MultiplyVector(playerSpeed) + externalSpeed;
 

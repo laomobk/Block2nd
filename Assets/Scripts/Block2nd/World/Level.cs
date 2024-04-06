@@ -484,7 +484,7 @@ namespace Block2nd.World
             var x = worldX;
             var z = worldY;
 
-            var chunk = GetChunkFromCoord(worldX >> 4, worldY >> 4);
+            var chunk = GetChunkFromCoords(worldX >> 4, worldY >> 4);
             chunk.BakeHeightMap();
             
             var chunkLocalPos = chunk.WorldToLocal(x, z);
@@ -620,7 +620,7 @@ namespace Block2nd.World
             }
             else
             {
-                chunk = GetChunkFromCoord(x >> 4, z >> 4);
+                chunk = GetChunkFromCoords(x >> 4, z >> 4);
             }
 
             var chunkLocalPos = chunk.WorldToLocal(x, z);
@@ -642,7 +642,7 @@ namespace Block2nd.World
             }
             else
             {
-                chunk = GetChunkFromCoord(x >> 4, z >> 4);
+                chunk = GetChunkFromCoords(x >> 4, z >> 4);
             }
 
             var chunkLocalPos = chunk.WorldToLocal(x, z);
@@ -741,8 +741,10 @@ namespace Block2nd.World
             return chunk.chunkBlocks[local.x, local.y, local.z];
         }
 
-        public Chunk GetChunkFromCoord(int chunkX, int chunkZ)
+        public Chunk GetChunkFromCoords(int chunkX, int chunkZ, bool cacheOnly = false)
         {
+            if (cacheOnly)
+                return chunkProvider.GetChunkInCache(this, chunkX, chunkZ);
             return chunkProvider.ProvideChunk(this, chunkX, chunkZ);
         }
 
