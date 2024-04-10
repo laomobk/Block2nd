@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Block2nd.Client;
 using UnityEngine;
 using Random = System.Random;
 
@@ -9,7 +10,7 @@ namespace TitlePage
     {
         public AudioClip music1;
         public AudioClip music2;
-        
+
         private AudioSource musicSource;
         private Random random = new Random();
 
@@ -27,6 +28,12 @@ namespace TitlePage
         {
             var clip1 = music1;
             var clip2 = music2;
+            
+            if (ClientSharedData.zoz)
+            {
+                var audio = Resources.Load<AudioClip>("sos/GymnopedieNo1");
+                clip1 = clip2 = audio;
+            }
 
             if (random.Next(0, 2) == 1)
             {

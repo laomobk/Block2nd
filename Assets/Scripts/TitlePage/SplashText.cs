@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Block2nd.Client;
 using Block2nd.GameSave;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,6 +37,12 @@ namespace TitlePage
 
         private void TrySetTextFromSplashesFile()
         {
+            if (ClientSharedData.zoz)
+            {
+                text.text = "Spreading Excitement all Over the World with Haruhi Suzumiya Brigade!";
+                return;
+            }
+            
             var fileName = Path.Combine(GameRootDirectory.GetInstance().gameDataRoot, "splashes.txt");
 
             if (!File.Exists(fileName))

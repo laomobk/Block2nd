@@ -1,4 +1,5 @@
 using System;
+using Block2nd.Client;
 using UnityEngine;
 
 namespace TitlePage
@@ -6,7 +7,7 @@ namespace TitlePage
     public class CameraRotateController : MonoBehaviour
     {
         private float time = 0f;
-        
+
         private void FixedUpdate()
         {
             time += Time.fixedDeltaTime;

@@ -4,7 +4,10 @@
     {
         public void Decorate(Level level, int worldX, int worldZ)
         {
-            int nTree = level.random.Next(2, 4);
+            int nTree = level.random.Next(0, 4);
+            
+            if (nTree <= 0)
+                return;
 
             for (int i = 0; i < nTree; ++i)
             {

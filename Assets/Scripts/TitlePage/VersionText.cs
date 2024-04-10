@@ -13,7 +13,8 @@ namespace TitlePage
         void Start()
         {
             text = GetComponent<Text>();
-            text.text = "Block2nd " + GameVersion.Subtitle + " " + GameVersion.Version;
+            text.text = "Block2nd " + GameVersion.Subtitle + " " + GameVersion.Version + 
+                        (ClientSharedData.zoz ? " for Suzumiya Haruhi" : "");
         }
     }
 
