@@ -1009,8 +1009,12 @@ namespace Block2nd.World
                     for (int z = z0; z < z1; ++z)
                     {
                         var block = GetBlock(x, y, z);
-                        AABB blockBox = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode)
-                                            .GetAABB(new IntVector3(x, y, z));
+                        var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode);
+                        
+                        if (!behavior.CanCollide())
+                            continue;
+                        
+                        AABB blockBox = behavior.GetAABB(new IntVector3(x, y, z));
 
                         if (block.blockCode != 0 &&  
                             !BlockMetaDatabase.GetBlockMetaByCode(block.blockCode).liquid &&

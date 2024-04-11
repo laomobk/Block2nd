@@ -31,6 +31,11 @@ namespace Block2nd.Behavior
             return true;
         }
 
+        public virtual bool CanCollide()
+        {
+            return true;
+        }
+
         public AABB GetAABB(IntVector3 worldPos)
         {
             return GetAABB(worldPos.x, worldPos.y, worldPos.z);

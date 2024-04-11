@@ -9,6 +9,7 @@ namespace Block2nd.World
     {
         private GameObject subTransparentChunk;
         private GameObject subLiquidChunk;
+        private GameObject subPlantChunk;
 
         private bool visible = false;
         
@@ -26,6 +27,11 @@ namespace Block2nd.World
         private List<Vector2> lqUvs = new List<Vector2>();
         private List<Color> lqColors = new List<Color>();
         private List<int> lqTris = new List<int>();
+        
+        private List<Vector3> ptVert = new List<Vector3>();
+        private List<Vector2> ptUvs = new List<Vector2>();
+        private List<Color> ptColors = new List<Color>();
+        private List<int> ptTris = new List<int>();
 
         [HideInInspector] public ulong currentCoordKey;
         [HideInInspector] public int freeCount = 0;
@@ -35,6 +41,7 @@ namespace Block2nd.World
         {
             subTransparentChunk = transform.GetChild(0).gameObject;
             subLiquidChunk = transform.GetChild(1).gameObject;
+            subPlantChunk = transform.GetChild(2).gameObject;
         }
 
         private void OnDestroy()
@@ -54,6 +61,7 @@ namespace Block2nd.World
             GetComponent<MeshRenderer>().enabled = state;
             subTransparentChunk.GetComponent<MeshRenderer>().enabled = state;
             subLiquidChunk.GetComponent<MeshRenderer>().enabled = state;
+            subPlantChunk.GetComponent<MeshRenderer>().enabled = state;
         }
         
         public void RenderChunk(Chunk chunk)
@@ -77,6 +85,7 @@ namespace Block2nd.World
             var opMesh = new Mesh();
             var trMesh = new Mesh();
             var lqMesh = new Mesh();
+            var ptMesh = new Mesh();
             
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
@@ -93,7 +102,11 @@ namespace Block2nd.World
             lqTris.Clear();
             lqUvs.Clear();
             lqVert.Clear();
-            
+            ptTris.Clear();
+            ptColors.Clear();
+            ptUvs.Clear();
+            ptVert.Clear();
+
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -127,7 +140,14 @@ namespace Block2nd.World
                                 uvs = lqUvs;
                                 colors = lqColors;
                                 vert = lqVert;
-                            } else if (meta.transparent)
+                            } else if (meta.plant)
+                            {
+                                tris = ptTris;
+                                uvs = ptUvs;
+                                colors = ptColors;
+                                vert = ptVert;
+                            }
+                            else if (meta.transparent)
                             {
                                 tris = trTris;
                                 uvs = trUvs;
@@ -187,18 +207,26 @@ namespace Block2nd.World
             lqMesh.RecalculateNormals();
             lqMesh.RecalculateBounds();
 
+            ptMesh.vertices = ptVert.ToArray();
+            ptMesh.uv = ptUvs.ToArray();
+            ptMesh.SetColors(ptColors);
+            ptMesh.triangles = ptTris.ToArray();
+            ptMesh.RecalculateNormals();
+            ptMesh.RecalculateBounds();
+
             var curTrMesh = subTransparentChunk.GetComponent<MeshFilter>().sharedMesh;
             var curLqMesh = subLiquidChunk.GetComponent<MeshFilter>().sharedMesh;
+            var curPtMesh = subLiquidChunk.GetComponent<MeshFilter>().sharedMesh;
             var curOpMesh = GetComponent<MeshFilter>().sharedMesh;
             DestroyImmediate(curOpMesh, true);
             DestroyImmediate(curTrMesh, true);
             DestroyImmediate(curLqMesh, true);
+            DestroyImmediate(curPtMesh, true);
             
             GetComponent<MeshFilter>().sharedMesh = opMesh;
-
             subTransparentChunk.GetComponent<MeshFilter>().sharedMesh = trMesh;
-
             subLiquidChunk.GetComponent<MeshFilter>().sharedMesh = lqMesh;
+            subPlantChunk.GetComponent<MeshFilter>().sharedMesh = ptMesh;
 
             chunk.dirty = false;
             chunk.firstRendered = true;

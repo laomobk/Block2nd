@@ -90,7 +90,8 @@ namespace Block2nd.World
                 {
                     for (int y = height - 1; y >= 0; --y)
                     {
-                        if (chunkBlocks[x, y, z].blockCode != 0)
+                        var code = chunkBlocks[x, y, z].blockCode;
+                        if (code != 0 && (BlockMetaDatabase.types[code] & BlockTypeBits.PlantBit) == 0)
                         {
                             heightMap[x, z] = y;
                             break;

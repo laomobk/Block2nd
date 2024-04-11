@@ -75,6 +75,8 @@ namespace Block2nd.Database.Meta
         public string blockId;
         public string blockName;
 
+        public bool plant = false;
+        public bool nonCube = false;
         public bool liquid;
         public bool transparent;
         public bool forceRenderAllFace;

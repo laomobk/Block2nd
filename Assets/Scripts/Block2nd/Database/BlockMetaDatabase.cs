@@ -7,10 +7,19 @@ using UnityEngine;
 
 namespace Block2nd.Database
 {
+    public class BlockTypeBits
+    {
+        public static readonly int CubeBit = 1;
+        public static readonly int NonCubeBit = 2;
+        public static readonly int PlantBit = 4;
+        public static readonly int LiquidBit = 8;
+    }
+    
     public class BlockMetaDatabase
     {
-        public static List<BlockMeta> blocks = new List<BlockMeta>();
-        public static List<BlockBehavior> behaviors = new List<BlockBehavior>();
+        public static readonly List<BlockMeta> blocks = new List<BlockMeta>();
+        public static readonly List<BlockBehavior> behaviors = new List<BlockBehavior>();
+        public static readonly List<int> types = new List<int>();
 
         public static BlockMeta GetBlockMetaById(string id)
         {
@@ -78,6 +87,29 @@ namespace Block2nd.Database
         {
             blocks.Add(meta);
             behaviors.Add(meta.behavior);
+
+            int bits = 0;
+
+            if (meta.liquid)
+            {
+                bits |= BlockTypeBits.LiquidBit;
+            }
+            
+            if (meta.nonCube)
+            {
+                bits |= BlockTypeBits.LiquidBit;
+            }
+            else
+            {
+                bits |= BlockTypeBits.CubeBit;
+            }
+
+            if (meta.plant)
+            {
+                bits |= BlockTypeBits.PlantBit;
+            }
+            
+            types.Add(bits);
         }
 
         static BlockMetaDatabase()
@@ -92,7 +124,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/grass",
                 blockName = "Grass",
-                shape = CubeBlockShape.NewWithTexIdx(3, 3, 3, 3, 0, 2),
+                shape = CubeBlockShape.NewWithTexIdx(3, 3, 3, 3, 40, 2),
             });
 
             AddBlock(new BlockMeta
@@ -328,6 +360,30 @@ namespace Block2nd.Database
                 behavior = new WaterBlockBehavior(),
                 liquid = true,
                 initState = 8
+            });
+            
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/small_flower_poppy",
+                blockName = "poppy",
+                shape = new PlantShape(12),
+                transparent = true,
+                behavior = new PlantBehavior(),
+                nonCube = true,
+                plant = true,
+            });
+            
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/plant_low_grass",
+                blockName = "Low Grass",
+                shape = new PlantShape(39),
+                transparent = true,
+                behavior = new PlantBehavior(),
+                nonCube = true,
+                plant = true,
             });
         }
     }
