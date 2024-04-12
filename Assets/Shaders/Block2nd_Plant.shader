@@ -73,6 +73,8 @@
 		
 		Pass
         {
+			Cull Off
+
             Name "Klee's Shadow Caster"
             Tags {
                 "LightMode"="ShadowCaster"
