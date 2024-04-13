@@ -8,12 +8,13 @@
 	{
 		Tags { "RenderType"="Opaque" }
 		LOD 100
-		ZTest Always
+		// ZTest Always
+		Offset -1, -1
 		Blend SrcAlpha OneMinusSrcAlpha
 
 		Pass
 		{
-			Cull off
+		    Cull off
 			
 			CGPROGRAM
 			#pragma vertex vert
