@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Block2nd.Entity
 {
-    public abstract class Entity : MonoBehaviour
+    public abstract class EntityBase : MonoBehaviour
     {
         protected float stepHeight = 1;
         protected bool onGround = false;
@@ -23,7 +23,7 @@ namespace Block2nd.Entity
             return GetAABB();
         }
         
-        public Vector3 forward = Vector3.zero;
+        [HideInInspector] public Vector3 forward = Vector3.zero;
         
         public bool OnGround => onGround;
         public bool HitFront => hitFront;

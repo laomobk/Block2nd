@@ -15,7 +15,7 @@ namespace Block2nd.GamePlay
     {
         private GameClient gameClient;
 
-        private PlayerEntity entity;
+        private PlayerEntityBase entityBase;
         
         [HideInInspector] public Vector3 playerSpeed;
         [HideInInspector] public Vector3 externalSpeed;
@@ -39,8 +39,8 @@ namespace Block2nd.GamePlay
 
         private bool inWater;
         public bool InWater => inWater;
-        public bool OnGround => entity.OnGround;
-        public PlayerEntity PlayerEntity => entity;
+        public bool OnGround => entityBase.OnGround;
+        public PlayerEntityBase PlayerEntityBase => entityBase;
         public PlayerState playerState = PlayerState.WALK;
         public Camera playerCamera;
         
@@ -56,7 +56,7 @@ namespace Block2nd.GamePlay
         {
             targetCameraFov = gameClient.gameSettings.cameraFov;
             speedRatio = walkSpeedRatio;
-            entity = GetComponent<PlayerEntity>();
+            entityBase = GetComponent<PlayerEntityBase>();
         }
 
         private void ApplyAcculation(ref Vector3 v)
@@ -82,7 +82,7 @@ namespace Block2nd.GamePlay
 
         public void Jump()
         {
-            if (entity.OnGround)
+            if (entityBase.OnGround)
             {
                 playerSpeed.y = 9f;
                 jumpBegin = true;
@@ -257,7 +257,7 @@ namespace Block2nd.GamePlay
                 
                 ApplyAcculation(ref externalSpeed);
 
-                var onGround = entity.OnGround && !inWater;
+                var onGround = entityBase.OnGround && !inWater;
 
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
@@ -278,7 +278,7 @@ namespace Block2nd.GamePlay
                             playerSpeed.y = -3f;
                         }
                     }
-                    else if (entity.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
+                    else if (entityBase.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
                     {
                         Jump();
                     }
@@ -330,20 +330,20 @@ namespace Block2nd.GamePlay
 
                 var speed = transform.localToWorldMatrix.MultiplyVector(playerSpeed) + externalSpeed;
 
-                if (entity.OnGround)
+                if (entityBase.OnGround)
                     externalSpeed *= 0.75f;
                 else
                     externalSpeed *= 0.9f;
 
-                entity.forward = transform.forward;
-                entity.MoveWorld(speed * Time.deltaTime);
+                entityBase.forward = transform.forward;
+                entityBase.MoveWorld(speed * Time.deltaTime);
 
-                if (entity.HitFront)
+                if (entityBase.HitFront)
                 {
                     Jump();
                 }
 
-                if (entity.HitTop)
+                if (entityBase.HitTop)
                 {
                     playerSpeed.y = 0;
                 }

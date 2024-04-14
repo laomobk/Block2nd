@@ -5,6 +5,7 @@ using System.Threading;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Client;
+using Block2nd.Entity;
 using Block2nd.Database;
 using Block2nd.MathUtil;
 using Block2nd.Persistence.KNBT;
@@ -23,6 +24,8 @@ namespace Block2nd.World
         public IntVector3 worldBasePosition;
         public Bounds aabb;
 
+        public VerticalList<List<EntityBase>> entityStorage; 
+        
         public ChunkBlockData[,,] chunkBlocks;
         public int[,] heightMap = new int[16, 16];
         public int[,,] lightMap;
@@ -44,6 +47,9 @@ namespace Block2nd.World
             CoordKey = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
 
             lightMap = new int[16, chunkHeight, 16];
+            
+            entityStorage = new VerticalList<List<EntityBase>>(chunkHeight / 16 + 1, 16, 16, 16);
+            
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)
@@ -505,6 +511,28 @@ namespace Block2nd.World
 
         private void UpdateChunkSkyLight()
         {
+        }
+
+        public void AddEntity(EntityBase entity, float worldX, float y, float worldZ)
+        {
+            var x = Mathf.FloorToInt(worldX - worldBasePosition.x);
+            var z = Mathf.FloorToInt(worldZ - worldBasePosition.z);
+            
+            var cell = entityStorage.Get((int)y >> 4);
+
+            var localY = Mathf.FloorToInt(y - y / 16 * 16);
+
+            var list = cell[x, localY, z];
+            
+            if (list == null)
+            {
+                var newList = new List<EntityBase>();
+                cell[x, localY, z] = newList;
+
+                list = newList;
+            }
+
+            list.Add(entity);
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Block2nd.Entity
 {
-    public class PlayerEntity : Entity
+    public class PlayerEntityBase : EntityBase
     {
         public float gravity = -0.98f;
         public float verticalVelocity = 0;

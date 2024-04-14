@@ -52,13 +52,13 @@ namespace Block2nd.GamePlay
         public Inventory Inventory => inventory;
         public IntVector3 IntPos => new IntVector3(transform.position);
 
-        [HideInInspector] public PlayerEntity entity;
+        [HideInInspector] public PlayerEntityBase entityBase;
 
         private void Awake()
         {
             playerController = GetComponent<PlayerController>();
             gameClient = GameObject.FindWithTag("GameClient").GetComponent<GameClient>();
-            entity = GetComponent<PlayerEntity>();
+            entityBase = GetComponent<PlayerEntityBase>();
         }
         
         private void Start()
@@ -170,8 +170,8 @@ namespace Block2nd.GamePlay
             playerController.playerSpeed = Vector3.zero;
             playerController.ResetVelocity();
             
-            // entity.ResetVelocity();
-            entity.MoveAABBToWorldPosition();
+            // entityBase.ResetVelocity();
+            entityBase.MoveAABBToWorldPosition();
         }
 
         private void HandleItemKey()
@@ -284,7 +284,7 @@ namespace Block2nd.GamePlay
 
         private void ApplyViewBobbing(Vector3 pos, out Vector3 posOfs, out float zAngle)
         {
-            if (gameClient.GameClientState == GameClientState.GAME && playerController.PlayerEntity.OnGround)
+            if (gameClient.GameClientState == GameClientState.GAME && playerController.PlayerEntityBase.OnGround)
             {
                 var speedVector = playerController.playerSpeed;
                 speedVector.y = 0;
@@ -358,7 +358,7 @@ namespace Block2nd.GamePlay
             var z = tree.GetFloat("z");
             
             transform.position = new Vector3(x, y, z);
-            entity.MoveAABBToWorldPosition();
+            entityBase.MoveAABBToWorldPosition();
         }
 
         private void UpdateRaycast()
