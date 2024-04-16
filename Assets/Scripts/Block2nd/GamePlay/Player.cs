@@ -376,7 +376,7 @@ namespace Block2nd.GamePlay
                     var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
                     if (meta != null)
                     {
-                        selectBox.UpdateDetectBoxByShape(meta.shape, hit.ToIntVector3().ToUnityVector3(),
+                        selectBox.UpdateDetectBox(meta.shape, hit.ToIntVector3().ToUnityVector3(),
                             currentLevel.GetExposedFace(hit.blockX, hit.blockY, hit.blockZ));
                     }
                 }
@@ -400,7 +400,7 @@ namespace Block2nd.GamePlay
                     var meta = BlockMetaDatabase.GetBlockMetaByCode(code);
                     if (meta != null)
                     {
-                        //selectBox.UpdateDetectBoxByShape(meta.shape, worldPos, level.GetExposedFace(
+                        //selectBox.UpdateDetectBox(meta.shape, worldPos, level.GetExposedFace(
                         //    (int) worldPos.x, (int) worldPos.y, (int) worldPos.z));
                     }
 

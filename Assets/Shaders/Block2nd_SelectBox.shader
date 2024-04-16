@@ -3,6 +3,8 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		
+		_BorderTex ("BorderTexture", 2D) = "white" {}
 	}
 	SubShader
 	{
@@ -39,6 +41,8 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+			
+			sampler2D _BorderTex;
 			
 			v2f vert (appdata v)
 			{

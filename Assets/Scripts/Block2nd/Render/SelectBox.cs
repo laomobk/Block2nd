@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Block2nd.Database.Meta;
+using Block2nd.Phys;
 using UnityEngine;
 
 namespace Block2nd.Render
@@ -19,7 +20,7 @@ namespace Block2nd.Render
 			meshFilter = GetComponent<MeshFilter>();
 		}
 
-		public void UpdateDetectBoxByShape(BlockShape shape, Vector3 position, int exposedFace)
+		public void UpdateDetectBox(BlockShape shape, Vector3 position, int exposedFace)
 		{
 			posList.Clear();
 			uvList.Clear();
