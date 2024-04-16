@@ -9,7 +9,7 @@ namespace Block2nd.Entity
 
         private void Update()
         {
-            behavior.Update(this);
+            behavior?.Update(this);
         }
 
         public override AABB GetAABB()
