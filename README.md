@@ -18,5 +18,12 @@
 
 ## Build 下载
 
+### PC Build
+
 https://wwo.lanzoue.com/b0mahu7sf  
+密码:b2nd
+
+### Android Build
+
+https://wwo.lanzoue.com/b0maig4kb  
 密码:b2nd
