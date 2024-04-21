@@ -74,12 +74,12 @@ namespace Block2nd.Database
 
         public class BuiltinBlockCode
         {
-            public static readonly int Grass = 1;
-            public static readonly int Stone = 2;
-            public static readonly int Rock = 3;
-            public static readonly int Wood = 4;
-            public static readonly int Dirt = 5;
-            public static readonly int Sand = 6;
+            public static readonly int Grass = GetBlockCodeById("b2nd:block/grass");
+            public static readonly int Stone = GetBlockCodeById("b2nd:block/stone");
+            public static readonly int Rock = GetBlockCodeById("b2nd:block/rock");
+            public static readonly int Wood = GetBlockCodeById("b2nd:block/wood");
+            public static readonly int Dirt = GetBlockCodeById("b2nd:block/dirt");
+            public static readonly int Sand = GetBlockCodeById("b2nd:block/sand");
             public static readonly int Water = GetBlockCodeById("b2nd:block/water");
         }
 
@@ -384,6 +384,88 @@ namespace Block2nd.Database
                 behavior = new PlantBehavior(),
                 nonCube = true,
                 plant = true,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/gravel",
+                blockName = "Gravel",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(19)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/iron_block",
+                blockName = "Iron Block",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(22)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/gold_block",
+                blockName = "Gold Block",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(23)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/diamond_block",
+                blockName = "Diamond Block",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(24)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/bookshelf",
+                blockName = "Bookshelf",
+                shape = CubeBlockShape.NewWithTexIdx(35, 35, 35, 35, 4, 4),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/mossy_cobblestone",
+                blockName = "Mossy Cobblestone",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(36)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/obsidian",
+                blockName = "Obsidian",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(37)),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/sandstone",
+                blockName = "Sandstone",
+                shape = CubeBlockShape.NewWithTexIdx(
+                    192, 192, 192, 192, 176, 208),
+                transparent = false,
+            });
+
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/stone_bricks",
+                blockName = "Stone Bricks",
+                shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(54)),
+                transparent = false,
             });
         }
     }

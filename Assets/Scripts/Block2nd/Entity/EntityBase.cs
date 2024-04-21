@@ -31,7 +31,11 @@ namespace Block2nd.Entity
 
         private void Awake()
         {
-            gameClient = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
+            var go = GameObject.FindGameObjectWithTag("GameClient");
+            if (go != null)
+                gameClient = go.GetComponent<GameClient>();
+            else
+                Debug.LogWarning("Game Client instance not found!");
         }
         
         public void MoveAABBToWorldPosition()

@@ -1,6 +1,8 @@
-﻿namespace Block2nd.Resource
+﻿using UnityEngine;
+
+namespace Block2nd.Resource
 {
-    public class ResourceManager
+    public static class ResourceManager
     {
         
     }

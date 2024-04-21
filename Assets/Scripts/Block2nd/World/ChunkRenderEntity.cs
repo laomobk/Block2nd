@@ -198,21 +198,18 @@ namespace Block2nd.World
             trMesh.SetColors(trColors);
             trMesh.triangles = trTris.ToArray();
             trMesh.RecalculateNormals();
-            trMesh.RecalculateBounds();
 
             lqMesh.vertices = lqVert.ToArray();
             lqMesh.uv = lqUvs.ToArray();
             lqMesh.SetColors(lqColors);
             lqMesh.triangles = lqTris.ToArray();
             lqMesh.RecalculateNormals();
-            lqMesh.RecalculateBounds();
 
             ptMesh.vertices = ptVert.ToArray();
             ptMesh.uv = ptUvs.ToArray();
             ptMesh.SetColors(ptColors);
             ptMesh.triangles = ptTris.ToArray();
             ptMesh.RecalculateNormals();
-            ptMesh.RecalculateBounds();
 
             var curTrMesh = subTransparentChunk.GetComponent<MeshFilter>().sharedMesh;
             var curLqMesh = subLiquidChunk.GetComponent<MeshFilter>().sharedMesh;

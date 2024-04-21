@@ -8,7 +8,7 @@
 
 ![screenshot3.png](Misc/screenshot1.png "Screenshot")
 
-![screenshot](Misc/screenshot.png "Game Screenshot")
+![screenshot](Misc/screenshot5.png "Game Screenshot")
 
 ![screenshot3.png](Misc/screenshot3.png)
 
