@@ -2506,7 +2506,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300024, guid: c419039160e29b94f8208012cf91a88a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 89e5d1226a460ef4cb5c58652479a58b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4894,7 +4894,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300012, guid: c419039160e29b94f8208012cf91a88a, type: 3}
+  m_Sprite: {fileID: 21300002, guid: 89e5d1226a460ef4cb5c58652479a58b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6949,7 +6949,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300024, guid: c419039160e29b94f8208012cf91a88a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 89e5d1226a460ef4cb5c58652479a58b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8335,11 +8335,29 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 6233634256739641027, guid: 9a93fcd5913641e4eadbdf165705451d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300002, guid: 3b0c15bf89515534ea761ae7e1afd215,
+        type: 3}
     - target: {fileID: 6233634256739641029, guid: 9a93fcd5913641e4eadbdf165705451d,
         type: 3}
       propertyPath: m_Name
       value: Joystick
       objectReference: {fileID: 0}
+    - target: {fileID: 6233634257090989920, guid: 9a93fcd5913641e4eadbdf165705451d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 3b0c15bf89515534ea761ae7e1afd215,
+        type: 3}
+    - target: {fileID: 6233634257369693154, guid: 9a93fcd5913641e4eadbdf165705451d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300002, guid: 3b0c15bf89515534ea761ae7e1afd215,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9a93fcd5913641e4eadbdf165705451d, type: 3}
 --- !u!114 &5565800706039832876

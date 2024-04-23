@@ -2,7 +2,7 @@
 {
     public static class GameVersion
     {
-        public static readonly string Version = "0.3.11";
+        public static readonly string Version = "0.3.12";
         public static readonly string Subtitle = "Infdev";
     }
 }

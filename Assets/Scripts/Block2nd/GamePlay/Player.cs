@@ -52,6 +52,8 @@ namespace Block2nd.GamePlay
         public Inventory Inventory => inventory;
         public IntVector3 IntPos => new IntVector3(transform.position);
 
+        public Vector3 Position => transform.position;
+
         [HideInInspector] public PlayerEntityBase entityBase;
 
         private void Awake()
