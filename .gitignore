@@ -8,6 +8,7 @@ Library/
 Assets/AssetStoreTools*
 Build/
 Build-Android/
+Build-Linux/
 Logs/
 Resources/
 
