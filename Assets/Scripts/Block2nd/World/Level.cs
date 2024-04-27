@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Block2nd.Audio;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Client;
@@ -13,6 +14,7 @@ using Block2nd.GameSave;
 using Block2nd.MathUtil;
 using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
+using Block2nd.Resource;
 using Block2nd.Scriptable;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -29,6 +31,8 @@ namespace Block2nd.World
 
         private ChunkManager chunkManager;
         private TerrainNoiseGenerator terrainNoise;
+
+        private EnvironmentSoundManager environmentSoundManager;
         
         private Queue<ChunkUpdateContext> chunkUpdateQueue = new Queue<ChunkUpdateContext>();
 
@@ -77,6 +81,7 @@ namespace Block2nd.World
         private void Awake()
         {
             client = GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>();
+            
             chunkManager = new ChunkManager(this, chunkPrefab, transform, worldSettings, client);
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
 
@@ -85,6 +90,12 @@ namespace Block2nd.World
                 new EarthChunkGenerator(worldSettings));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
+        }
+
+        private void Start()
+        {
+            environmentSoundManager = GameObject.FindGameObjectWithTag("EnvSoundManager")
+                .GetComponent<EnvironmentSoundManager>();
         }
 
         private void OnDestroy()
@@ -122,6 +133,17 @@ namespace Block2nd.World
             levelSaveHandler = new LevelSaveHandler(this);
         }
 
+        public void PlaySoundAt(string soundResPath, float x, float y, float z)
+        {
+            var clip = ResourceManager.Load<AudioClip>(soundResPath);
+            if (clip == null)
+            {
+                return;
+            }
+
+            environmentSoundManager.PlaySoundAt(clip, x, y, z);
+        }
+
         public int PerformChunkUpdate()
         {
             if (chunkUpdateQueue.Count <= 0)
@@ -155,6 +177,8 @@ namespace Block2nd.World
         {
             chunkUpdateQueue.Enqueue(ctx);
         }
+        
+        
 
         public IEnumerator LevelTickCoroutine()
         {
@@ -449,6 +473,15 @@ namespace Block2nd.World
             return coords;
         }
 
+        public void DestroyBlock(int x, int y, int z)
+        {
+            CreateBlockParticle(new Vector3(x, y, z));
+            var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(
+                GetBlock(x, y, z, out var chunk, false, true).blockCode);
+            behavior?.OnDestroy(new IntVector3(x, y, z), this, chunk, client.player);
+            SetBlock(0, x, y, z, true);
+        }
+
         public void ResetChunkProvider(IChunkProvider chunkProvider)
         {
             this.chunkProvider = chunkProvider;
@@ -606,7 +639,7 @@ namespace Block2nd.World
             }
 
             var dir = client.player.transform.position - new Vector3(x, y, z);
-            client.player.playerController.AddImpulseForse(dir.normalized * 300 / (1f + dir.magnitude));
+            client.player.playerController.AddImpulseForse(dir.normalized * 100 / (1f + dir.magnitude));
             
             Profiler.EndSample();
         }
@@ -622,6 +655,9 @@ namespace Block2nd.World
             {
                 chunk = GetChunkFromCoords(x >> 4, z >> 4);
             }
+
+            if (chunk == null)
+                return 0;
 
             var chunkLocalPos = chunk.WorldToLocal(x, z);
 
@@ -823,11 +859,8 @@ namespace Block2nd.World
 
             if (notify)
             {
-                AddUpdateToNextTick(new ChunkUpdateContext
-                {
-                    chunk = chunk,
-                    pos = new IntVector3(x, y, z)
-                });
+                var loc = chunk.WorldToLocal(x, y, z);
+                chunk.ChunkUpdate(loc.x, loc.y, loc.z, 3);
             }
 
             if (!dirtyChunkQueue.Contains(chunk))

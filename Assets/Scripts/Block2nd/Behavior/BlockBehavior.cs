@@ -1,4 +1,5 @@
-﻿using Block2nd.Database.Meta;
+﻿using Block2nd.Audio;
+using Block2nd.Database.Meta;
 using Block2nd.GamePlay;
 using Block2nd.MathUtil;
 using Block2nd.Phys;
@@ -9,6 +10,18 @@ namespace Block2nd.Behavior
     public abstract class BlockBehavior
     {
         protected AABB aabb = AABB.LazyOneBox;
+        protected BlockSoundDescriptor soundDescriptor = BlockSoundDescriptor.SoundDigGrass;
+
+        public BlockSoundDescriptor SoundDescriptor => soundDescriptor;
+
+        public BlockBehavior(BlockSoundDescriptor soundDescriptor = null)
+        {
+            if (soundDescriptor != null)
+            {
+                this.soundDescriptor = soundDescriptor;
+            }
+        }
+        
         public abstract BlockBehavior CreateInstance();
 
         public virtual void OnInit(IntVector3 worldPos, Level level, Chunk chunk, Player player)
@@ -18,6 +31,9 @@ namespace Block2nd.Behavior
 
         public virtual bool OnDestroy(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
+            level.PlaySoundAt(soundDescriptor.breakSoundGroup.GetPath(),
+                                worldPos.x, worldPos.y, worldPos.z);
+            
             return true;
         }
 
@@ -53,6 +69,7 @@ namespace Block2nd.Behavior
         
         public virtual void OnAfterPlace(IntVector3 worldPos, Level level, Chunk chunk, Player player)
         {
+            level.PlaySoundAt(soundDescriptor.placeSoundGroup.GetPath(), worldPos.x, worldPos.y, worldPos.z);
         }
 
         public virtual bool OnInteract(IntVector3 worldPos, Level level, Chunk chunk, Player player)
@@ -78,8 +95,11 @@ namespace Block2nd.Behavior
 
     public class StaticBlockBehavior : BlockBehavior
     {
-        public static StaticBlockBehavior Default = new StaticBlockBehavior();
-        
+        public StaticBlockBehavior(BlockSoundDescriptor blockSoundDescriptor = null) : base(blockSoundDescriptor)
+        {
+            
+        }
+
         public override BlockBehavior CreateInstance()
         {
             return this;

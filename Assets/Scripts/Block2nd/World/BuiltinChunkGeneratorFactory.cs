@@ -17,5 +17,18 @@ namespace Block2nd.World
             
             return new EarthChunkGenerator(worldSettings);
         }
+
+        public static string GetChunkGeneratorNameFromId(int id)
+        {
+            switch (id)
+            {
+                case 1:
+                    return "Superflat";
+                case 2:
+                    return "Honkai";
+            }
+
+            return "Default";
+        }
     }
 }

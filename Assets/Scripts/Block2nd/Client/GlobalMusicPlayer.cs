@@ -14,51 +14,35 @@ namespace Block2nd.Client
         {
             var audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
 
-            var played = new List<int>();
+            int lastPlayed = -1;
             
             while (true)
             {
                 yield return new WaitForSeconds(random.Next(3, 9));
-                var song = 0;
+                int song;
 
-                if (played.Count <= 5)
+                do
                 {
-                    int count = 0;
-                    do
-                    {
-                        song = random.Next(0, 4);
-                        count++;
-                    } while (played.Contains(song) && count < 6);
-                }
-                else
-                {
-                    song = random.Next(0, 4);
-                    played.Clear();
-                }
+                    song = random.Next(0, 2);
+                } while (song == lastPlayed);
 
                 float length = 0;
                 switch (song)
                 {
                     case 0:
-                        length = audioManager.PlayAudio("newmusic/hal1");
-                        break;
-                    case 1:
-                        length = audioManager.PlayAudio("newmusic/piano2");
-                        break;
-                    case 2:
                         length = audioManager.PlayAudio("music/calm1");
                         break;
-                    case 3:
-                        length = audioManager.PlayAudio("newmusic/hal1");
-                        break;
-                    case 4:
+                    case 1:
                         length = audioManager.PlayAudio("music/calm2");
+                        break;
+                    case 2:
+                        length = audioManager.PlayAudio("music/calm3");
                         break;
                 }
 
+                lastPlayed = song;
+
                 yield return new WaitForSeconds(length);
-                
-                played.Add(song);
             }
         }
 
