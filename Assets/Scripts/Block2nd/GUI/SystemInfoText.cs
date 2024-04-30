@@ -6,6 +6,7 @@ namespace Block2nd.GUI
 {
     public class SystemInfoText : MonoBehaviour
     {
+        private string staticInfo1, staticInfo2;
         private Text text;
 
         private void Awake()
@@ -15,12 +16,24 @@ namespace Block2nd.GUI
 
         private void Start()
         {
-            text.text =
+            staticInfo1 =
                 $"Device: {SystemInfo.deviceModel} | {SystemInfo.operatingSystem}\n" +
-                $"CPU: {SystemInfo.processorCount}x {SystemInfo.processorType}\n" +
-                $"Display: {Screen.width}x{Screen.height} ({SystemInfo.graphicsDeviceVendor})\n" +
+                $"CPU: {SystemInfo.processorCount}x {SystemInfo.processorType}\n";
+            staticInfo2 = 
                 $"GPU: {SystemInfo.graphicsDeviceName}\n" +
                 $"Graphics API: {SystemInfo.graphicsDeviceVersion}";
+            text.text =
+                staticInfo1 +
+                $"Display: {Screen.width}x{Screen.height} ({SystemInfo.graphicsDeviceVendor})\n" +
+                staticInfo2;
+        }
+
+        private void Update()
+        {
+            text.text =
+                staticInfo1 +
+                $"Display: {Screen.width}x{Screen.height} ({SystemInfo.graphicsDeviceVendor})\n" +
+                staticInfo2; 
         }
     }
 }
