@@ -49,7 +49,10 @@ namespace Block2nd.GUI.Hierarchical.WorldSelectionUI
             var timeString = $" ({accessTime.Year}-{accessTime.Month}-{accessTime.Day} {accessTime.Hour:00}:{accessTime.Minute:00})";
 
             worldTitle.text = preview.name;
-            worldSubtitle.text = preview.folderName + timeString;
+            if (preview.folderName.Length > 20)
+                worldSubtitle.text = preview.folderName + "\n" + timeString;
+            else
+                worldSubtitle.text = preview.folderName + timeString;
             
             this.preview = preview;
             this.manager = manager;

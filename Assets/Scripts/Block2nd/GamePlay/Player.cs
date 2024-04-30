@@ -274,13 +274,7 @@ namespace Block2nd.GamePlay
         {
             if (hit == null)
                 return;
-
-            var level = gameClient.GetCurrentLevel();
-            level.CreateBlockParticle(hit.ToIntVector3().ToUnityVector3());
-            level.SetBlock(0, 
-                hit.blockX, 
-                hit.blockY, 
-                hit.blockZ, true);
+            gameClient.CurrentLevel.DestroyBlock(hit.blockX, hit.blockY, hit.blockZ);
             holdingBlockPreview.PlayUseBlockAnimation();
         }
 

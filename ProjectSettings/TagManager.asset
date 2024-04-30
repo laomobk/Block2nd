@@ -12,6 +12,7 @@ TagManager:
   - Inventory
   - AudioManager
   - SoundPlayer
+  - EnvSoundManager
   layers:
   - Default
   - TransparentFX

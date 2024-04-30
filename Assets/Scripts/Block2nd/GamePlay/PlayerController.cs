@@ -5,6 +5,7 @@ using Block2nd.Database;
 using Block2nd.Database.Meta;
 using Block2nd.Entity;
 using Block2nd.MathUtil;
+using Block2nd.Resource;
 using Block2nd.World;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -16,7 +17,8 @@ namespace Block2nd.GamePlay
         private GameClient gameClient;
 
         private PlayerEntityBase entityBase;
-        
+
+        private Vector3 playerControlSpeed = Vector3.zero;
         [HideInInspector] public Vector3 playerSpeed;
         [HideInInspector] public Vector3 externalSpeed;
 
@@ -45,6 +47,9 @@ namespace Block2nd.GamePlay
         public Camera playerCamera;
         
         private Queue<Vector3> impulseForceQueue = new Queue<Vector3>();
+
+        private AudioSource audioSource;
+        private float stepTimeClock = 0;
         
         private void Awake()
         {
@@ -57,6 +62,7 @@ namespace Block2nd.GamePlay
             targetCameraFov = gameClient.gameSettings.cameraFov;
             speedRatio = walkSpeedRatio;
             entityBase = GetComponent<PlayerEntityBase>();
+            audioSource = GetComponent<AudioSource>();
         }
 
         private void ApplyAcculation(ref Vector3 v)
@@ -104,22 +110,22 @@ namespace Block2nd.GamePlay
 
         public void MoveForward()
         {
-            playerSpeed.z = 1f * speedRatio;
+            playerControlSpeed.z = 1f * speedRatio;
         }
         
         public void MoveBack()
         {
-            playerSpeed.z = -1f * speedRatio;
+            playerControlSpeed.z = -1f * speedRatio;
         }
         
         public void MoveLeft()
         {
-            playerSpeed.x = -1f * speedRatio;
+            playerControlSpeed.x = -1f * speedRatio;
         }
         
         public void MoveRight()
         {
-            playerSpeed.x = 1 * speedRatio;
+            playerControlSpeed.x = 1 * speedRatio;
         }
 
         public void MoveAxis(Vector2 axis)
@@ -216,16 +222,7 @@ namespace Block2nd.GamePlay
                 floating = false;
                 
                 inWater = gameClient.CurrentLevel.GetBlock(transform.position).blockCode == waterCode;
-
-                if (!Application.isMobilePlatform && !gameClient.gameSettings.mobileControl)
-                {
-                    var hAxis = Input.GetAxis("Horizontal");
-                    var vAxis = Input.GetAxis("Vertical");
-
-                    playerSpeed.x = hAxis * speedRatio;
-                    playerSpeed.z = vAxis * speedRatio;
-                }
-
+                
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
                     SetRunState(true);
@@ -234,27 +231,25 @@ namespace Block2nd.GamePlay
                 {
                     SetRunState(false);
                 }
-
-                if (Input.GetKey(KeyCode.W))
-                {
-                    MoveForward();
-                }
-
-                if (Input.GetKey(KeyCode.A))
-                {
-                    MoveLeft();
-                }
-
-                if (Input.GetKey(KeyCode.S))
-                {
-                    MoveBack();
-                }
-
-                if (Input.GetKey(KeyCode.D))
-                {
-                    MoveRight();
-                }
                 
+                if (!Application.isMobilePlatform && !gameClient.gameSettings.mobileControl)
+                {
+                    var hAxis = Input.GetAxis("Horizontal");
+                    var vAxis = Input.GetAxis("Vertical");
+
+                    playerControlSpeed.x = hAxis * speedRatio;
+                    playerControlSpeed.z = vAxis * speedRatio;
+
+                    if (playerControlSpeed.magnitude > speedRatio)
+                    {
+                        playerControlSpeed.Normalize();
+                        playerControlSpeed *= speedRatio;
+                    }
+
+                    playerSpeed.x = playerControlSpeed.x;
+                    playerSpeed.z = playerControlSpeed.z;
+                }
+
                 ApplyAcculation(ref externalSpeed);
 
                 var onGround = entityBase.OnGround && !inWater;
@@ -337,6 +332,29 @@ namespace Block2nd.GamePlay
 
                 entityBase.forward = transform.forward;
                 entityBase.MoveWorld(speed * Time.deltaTime);
+                
+                var horizontalSpeed = speed;
+                horizontalSpeed.y = 0;
+                
+                var belowCode = gameClient.CurrentLevel.GetBlock(transform.position + Vector3.down * 1.2f).blockCode;
+                stepTimeClock += horizontalSpeed.magnitude * Time.deltaTime;
+
+                if (belowCode != 0 && 
+                    gameClient.CurrentLevel != null && onGround && horizontalSpeed.magnitude * Time.deltaTime > 0)
+                {
+                    if (stepTimeClock > 2f)
+                    {
+                        stepTimeClock = 0;
+                        var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(belowCode);
+                        if (behavior != null)
+                        {
+                            var clip = ResourceManager.Load<AudioClip>(
+                                behavior.SoundDescriptor.stepSoundGroup.GetPath());
+                            audioSource.clip = clip;
+                            audioSource.Play();
+                        }
+                    }
+                }
 
                 if (entityBase.HitFront)
                 {

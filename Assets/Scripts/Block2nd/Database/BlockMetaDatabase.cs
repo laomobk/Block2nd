@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Block2nd.Audio;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Database.Meta;
@@ -132,6 +133,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/stone",
                 blockName = "Stone",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(1)),
             });
 
@@ -140,6 +142,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/rock",
                 blockName = "Rock",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = CubeBlockShape.NewWithTexIdx(16, 16, 16, 16, 16, 16),
             });
 
@@ -148,6 +151,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/wood",
                 blockName = "Wood",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigWood),
                 shape = CubeBlockShape.NewWithTexIdx(4, 4, 4, 4, 4, 4),
             });
 
@@ -156,6 +160,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/dirt",
                 blockName = "Dirt",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigGravel),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(2)),
             });
 
@@ -175,7 +180,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/black_wool",
-                blockName = "Black",
+                blockName = "Black Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(113)),
             });
 
@@ -184,7 +190,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/gray_wool",
-                blockName = "Gray",
+                blockName = "Gray Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(114)),
             });
 
@@ -193,7 +200,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/red_wool",
-                blockName = "Red",
+                blockName = "Red Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(129)),
             });
 
@@ -202,7 +210,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/pink_wool",
-                blockName = "Pink",
+                blockName = "Pink Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(130)),
             });
 
@@ -211,7 +220,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/dark_green_wool",
-                blockName = "Dark Green",
+                blockName = "Dark Green Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(145)),
             });
 
@@ -220,7 +230,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/green_wool",
-                blockName = "Green",
+                blockName = "Green Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(146)),
             });
 
@@ -229,7 +240,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/brown_wool",
-                blockName = "Brown",
+                blockName = "Brown Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(161)),
             });
 
@@ -237,8 +249,9 @@ namespace Block2nd.Database
             AddBlock(new BlockMeta
             {
                 blockCode = blocks.Count,
-                blockId = "b2nd:block/yello_wool",
-                blockName = "Yello",
+                blockId = "b2nd:block/yellow_wool",
+                blockName = "Yellow Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(162)),
             });
 
@@ -247,7 +260,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/blue_wool",
-                blockName = "Blue",
+                blockName = "Blue Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(177)),
             });
 
@@ -256,7 +270,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/light_blue_wool",
-                blockName = "Light Blue",
+                blockName = "Light Blue Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(178)),
             });
 
@@ -265,7 +280,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/purple_wool",
-                blockName = "Purple",
+                blockName = "Purple Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(193)),
             });
 
@@ -274,7 +290,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/light_purple_wool",
-                blockName = "Light Purple",
+                blockName = "Light Purple Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(194)),
             });
 
@@ -283,7 +300,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/cyan_wool",
-                blockName = "Cyan",
+                blockName = "Cyan Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(209)),
             });
 
@@ -292,7 +310,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/orange_wool",
-                blockName = "Orange",
+                blockName = "Orange Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(210)),
             });
 
@@ -301,7 +320,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/light_gray_wool",
-                blockName = "Light Gray",
+                blockName = "Light Gray Wool",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigCloth),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(225)),
             });
 
@@ -309,7 +329,8 @@ namespace Block2nd.Database
             {
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/ork",
-                blockName = "ork",
+                blockName = "Ork",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigWood),
                 shape = CubeBlockShape.NewWithTexIdx(20, 20, 20, 20, 21, 21),
             });
 
@@ -328,6 +349,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/red_brick",
                 blockName = "Red Brick",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(7)),
             });
 
@@ -391,6 +413,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/gravel",
                 blockName = "Gravel",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigGravel),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(19)),
                 transparent = false,
             });
@@ -400,6 +423,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/iron_block",
                 blockName = "Iron Block",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(22)),
                 transparent = false,
             });
@@ -409,6 +433,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/gold_block",
                 blockName = "Gold Block",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(23)),
                 transparent = false,
             });
@@ -418,6 +443,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/diamond_block",
                 blockName = "Diamond Block",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(24)),
                 transparent = false,
             });
@@ -427,6 +453,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/bookshelf",
                 blockName = "Bookshelf",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigWood),
                 shape = CubeBlockShape.NewWithTexIdx(35, 35, 35, 35, 4, 4),
                 transparent = false,
             });
@@ -436,6 +463,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/mossy_cobblestone",
                 blockName = "Mossy Cobblestone",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(36)),
                 transparent = false,
             });
@@ -445,6 +473,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/obsidian",
                 blockName = "Obsidian",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(37)),
                 transparent = false,
             });
@@ -454,6 +483,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/sandstone",
                 blockName = "Sandstone",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = CubeBlockShape.NewWithTexIdx(
                     192, 192, 192, 192, 176, 208),
                 transparent = false,
@@ -464,6 +494,7 @@ namespace Block2nd.Database
                 blockCode = blocks.Count,
                 blockId = "b2nd:block/stone_bricks",
                 blockName = "Stone Bricks",
+                behavior = new StaticBlockBehavior(BlockSoundDescriptor.SoundDigStone),
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(54)),
                 transparent = false,
             });

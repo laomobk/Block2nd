@@ -237,19 +237,19 @@ namespace Block2nd.Client
 			
 			if (viewDistance > 15)
 			{
-				RenderSettings.fogDensity = 0.0025f;
+				RenderSettings.fogDensity = 0.003f;
 				return;
 			}
 			
 			if (viewDistance > 7)
 			{
-				RenderSettings.fogDensity = 0.005f;
+				RenderSettings.fogDensity = 0.01f;
 				return;
 			}
 			
 			if (viewDistance > 0)
 			{
-				RenderSettings.fogDensity = 0.02f;
+				RenderSettings.fogDensity = 0.025f;
 				return;
 			}
 		}
@@ -373,7 +373,8 @@ namespace Block2nd.Client
 			level.levelName = preview.name;
 			level.levelFolderName = preview.folderName;
 
-			level.PrepareLevel();
+			if (preview.newWorld)
+				level.PrepareLevel();
 			
 			progressUI.SetTitle("Spawning player...");
 			progressUI.SetProgress("");

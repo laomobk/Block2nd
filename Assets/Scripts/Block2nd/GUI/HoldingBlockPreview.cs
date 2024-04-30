@@ -58,7 +58,7 @@ namespace Block2nd.GUI
 
 		public void PlayUseBlockAnimation()
 		{
-			animator.SetTrigger("UseBlock");
+			animator.Play("HandUse");
 		}
 	}
 }
