@@ -347,6 +347,8 @@ namespace Block2nd.World
             
             progressUI.SetTitle("Saving world...");
             progressUI.SetProgress("");
+
+            yield return null;
             
             SaveLevelCompletely();
 
