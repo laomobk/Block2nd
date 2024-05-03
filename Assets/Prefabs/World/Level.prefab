@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 114771931947235232}
   m_Layer: 9
   m_Name: Level
-  m_TagString: WorldDetectBox
+  m_TagString: Level
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -44,13 +44,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6677f34ef4acc474eb0a3e6c96a8d1ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  levelFolderName: Level_01
   levelName: Level_01
   worldSettings: {fileID: 11400000, guid: 2c7949822500ebc47b2577083b24acdc, type: 2}
   blockParticlePrefab: {fileID: 1534006773791382, guid: b3f96261af0a26d4493fdc9863b97899,
     type: 3}
   chunkPrefab: {fileID: 1353389129824702, guid: 57d381d19974b484e94fdb9705acdb49,
     type: 3}
+  breakChunkRender: 0
   gravity: {x: 0, y: -0.98, z: 0}
+  seed: 0
 --- !u!114 &114771931947235232
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -377,43 +377,6 @@ namespace Block2nd.GamePlay
                     }
                 }
             }
-            
-            /*
-            
-            if (Physics.Raycast(playerCamera.transform.position,
-                    playerCamera.transform.forward, out hit, 10,
-                    layerMask: raycastLayerMask))
-            {
-                // Debug.DrawRay(hit.point, hit.normal, Color.red);
-
-                if (hit.collider.CompareTag("WorldDetectBox"))
-                {
-                    var level = gameClient.GetCurrentLevel();
-                    var worldPos = level.CalculateWorldBlockPosByHit(hit);
-
-                    var code = level.GetBlock((int) worldPos.x, (int) worldPos.y, (int) worldPos.z).blockCode;
-
-                    var meta = BlockMetaDatabase.GetBlockMetaByCode(code);
-                    if (meta != null)
-                    {
-                        //selectBox.UpdateDetectBox(meta.shape, worldPos, level.GetExposedFace(
-                        //    (int) worldPos.x, (int) worldPos.y, (int) worldPos.z));
-                    }
-
-                    isRaycastHitBlock = true;
-                    raycastBlockHit = hit;
-                    raycastHitPointBlockNormalAlong = worldPos + hit.normal;
-                }
-                else
-                {
-                    isRaycastHitBlock = false;
-                }
-            }
-            else
-            {
-                isRaycastHitBlock = false;
-            }
-            */
         }
     }
 }

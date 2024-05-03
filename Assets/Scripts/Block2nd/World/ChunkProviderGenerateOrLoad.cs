@@ -24,12 +24,12 @@ namespace Block2nd.World
 
         public void UnloadChunk(Chunk chunk)
         {
-            chunk.chunkBlocks = null;
+            // chunk.chunkBlocks = null;
             
             chunkDict.Remove(chunk.CoordKey);
         }
 
-        private void ReleaseHotChunk(int chunkX, int chunkZ, ulong key, Level level, Chunk chunk)
+        private void UpdateHotChunk(int chunkX, int chunkZ, ulong key, Level level, Chunk chunk)
         {
             int hotIdx = (chunkX & 0x1f) * 32 + (chunkZ & 0x1f);
 
@@ -58,7 +58,7 @@ namespace Block2nd.World
             if (chunk != null)
             {
                 chunkDict.Add(key, chunk);
-                ReleaseHotChunk(chunkX, chunkZ, key, level, chunk);
+                UpdateHotChunk(chunkX, chunkZ, key, level, chunk);
                 return chunk;
             }
 
@@ -70,7 +70,7 @@ namespace Block2nd.World
             
             chunkDict.Add(key, chunk);
 
-            ReleaseHotChunk(chunkX, chunkZ, key, level, chunk);
+            UpdateHotChunk(chunkX, chunkZ, key, level, chunk);
 
             if (chunk.populateState < 1)
             {

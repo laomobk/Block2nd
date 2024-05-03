@@ -474,8 +474,8 @@ namespace Block2nd.Client
 				gameSettings.viewDistance = viewDistanceCandidates[viewDistanceCandidateIdx];
 			}
 
-			GetCurrentLevel().breakChunkRender = true;
-
+			GetCurrentLevel().RefreshChunkRender();
+			
 			return viewDistanceCandidateIdx;
 		}
 

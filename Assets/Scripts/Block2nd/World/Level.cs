@@ -46,8 +46,9 @@ namespace Block2nd.World
 
         private readonly Queue<Chunk> dirtyChunkQueue = new Queue<Chunk>();
 
-        public bool breakChunkRender;
         private bool chunkProvideIgnoreDistance;
+        private bool breakChunkDisplay;
+        private bool skipChunkProvidingWhileDisplay;
 
         private GameClient client;
 
@@ -118,6 +119,12 @@ namespace Block2nd.World
             }
         }
 
+        public void RefreshChunkRender()
+        {
+            breakChunkDisplay = true;
+            chunkProvideIgnoreDistance = true;
+        }
+
         public void SetChunkProvider(IChunkProvider chunkProvider)
         {
             this.chunkProvider = chunkProvider;
@@ -178,8 +185,6 @@ namespace Block2nd.World
             chunkUpdateQueue.Enqueue(ctx);
         }
         
-        
-
         public IEnumerator LevelTickCoroutine()
         {
             while (true)
@@ -212,23 +217,27 @@ namespace Block2nd.World
                         Vector3 position, int radius = 0, bool renderImmediately = true, 
                         bool waitForProviding = false)
         {
-            if (!waitForProviding && renderImmediately && !chunkProvideLock && !syncProvideAndRenderLock)
+            position.y = 0;
+            lastChunkProvidePosition.y = 0;
+            
+            if (!waitForProviding && renderImmediately)
             {
-                if (!chunkProvideIgnoreDistance)
+                if (!chunkProvideLock && !syncProvideAndRenderLock)
                 {
-                    if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                    if (!chunkProvideIgnoreDistance)
                     {
-                        return;
+                        if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                        {
+                            return;
+                        }
                     }
-                }
-                else
-                {
-                    chunkProvideIgnoreDistance = false;
-                }
+                    else
+                    {
+                        chunkProvideIgnoreDistance = false;
+                    }
 
-                lastChunkProvidePosition = client.player.transform.position;
-
-                StartCoroutine(SyncChunkProvideAndRenderCoroutine(position, radius));
+                    StartCoroutine(ChunkDisplayCoroutine(position, radius));
+                }
                 return;
             }
 
@@ -248,13 +257,16 @@ namespace Block2nd.World
                 StartCoroutine(RenderChunksSurrounding(position, radius));
         }
 
-        public IEnumerator SyncChunkProvideAndRenderCoroutine(Vector3 position, int radius)
+        public IEnumerator ChunkDisplayCoroutine(Vector3 position, int radius)
         {
             syncProvideAndRenderLock = true;
-            
-            yield return StartCoroutine(ProvideChunksSurroundingCoroutine(position, radius));
+
+            if (skipChunkProvidingWhileDisplay)
+                yield return StartCoroutine(ProvideChunksSurroundingCoroutine(position, radius));
             yield return StartCoroutine(RenderChunksSurrounding(position, radius));
-            
+
+            breakChunkDisplay = false;
+
             syncProvideAndRenderLock = false;
         }
 
@@ -270,14 +282,25 @@ namespace Block2nd.World
             
             int pointChunkX = (int) position.x >> 4;
             int pointChunkZ = (int) position.z >> 4;
-            
+
+            lastChunkProvidePosition = position;
+
             for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
             {
                 for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
                 {
-                    chunkProvider.ProvideChunk(this, cx, cz);
+                    if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
+                    {
+                        chunkProvider.ProvideChunk(this, cx, cz);
 
-                    yield return null;
+                        if (breakChunkDisplay)
+                        {
+                            chunkProvideLock = false;
+                            yield break;
+                        }
+
+                        yield return null;
+                    }
                 }
             }
 
@@ -297,6 +320,7 @@ namespace Block2nd.World
             {
                 radius = client.gameSettings.viewDistance + 2;
             }
+            lastChunkProvidePosition = position;
             
             chunkProvideLock = true;
             
@@ -318,6 +342,14 @@ namespace Block2nd.World
                 yield return null;
             }
 
+            chunkProvideIgnoreDistance = true;
+            skipChunkProvidingWhileDisplay = false;
+            
+            progressUI.SetTitle("Saving world...");
+            progressUI.SetProgress("");
+            
+            SaveLevelCompletely();
+
             chunkProvideLock = false;
         }
 
@@ -332,76 +364,93 @@ namespace Block2nd.World
 
             int cx = startChunkX, cz = startChunkZ;
             
-            chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(this, cx, cz));
-            yield return null;
+            if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(this, cx, cz)))
+                yield return null;
 
             for (int i = 1; i <= distance; ++i)
             {
                 // dir Z+
                 cz = startChunkZ + i;
                 cx = startChunkX;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                yield return null;
+                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                    yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
                     cx = startChunkX - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
+
+                    if (breakChunkDisplay)
+                    {
+                        chunkRenderLock = false;
+                        yield break;
+                    }
                 }
                 
                 // dir Z-
                 cz = startChunkZ - i;
                 cx = startChunkX;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                yield return null;
+                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                    yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
                     cx = startChunkX - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
+
+                    if (breakChunkDisplay)
+                    {
+                        chunkRenderLock = false;
+                        yield break;
+                    }
                 }
                 
                 // dir X+
                 cz = startChunkZ;
                 cx = startChunkX + i;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                yield return null;
+                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                    yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
                     cz = startChunkZ - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
+
+                    if (breakChunkDisplay)
+                    {
+                        chunkRenderLock = false;
+                        yield break;
+                    }
                 }
                 
                 // dir X-
                 cz = startChunkZ;
                 cx = startChunkX - i;
-                chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                yield return null;
+                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                    yield return null;
                 for (int j = 1; j <= i; ++j)
                 {
                     cz = startChunkZ + j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
                     cz = startChunkZ - j;
-                    chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz));
-                    yield return null;
-                }
+                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
+                        yield return null;
 
-                if (breakChunkRender)
-                {
-                    breakChunkRender = false;
-                    chunkProvideIgnoreDistance = true;
-                    break;
+                    if (breakChunkDisplay)
+                    {
+                        chunkRenderLock = false;
+                        yield break;
+                    }
                 }
             }
             

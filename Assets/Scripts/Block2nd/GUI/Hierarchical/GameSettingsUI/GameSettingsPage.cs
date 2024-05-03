@@ -1,6 +1,7 @@
 ﻿using System;
 using Block2nd.MathUtil;
 using Block2nd.Scriptable;
+using Block2nd.World;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,8 +9,8 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
 {
     public class GameSettingsPage : MonoBehaviour
     {
-        public readonly int[] viewDistanceCandidates = new int[]{4, 8, 16, 32};
-        private readonly string[] viewDistanceLevels = {"Tiny", "Near", "Far", "Very Far"};
+        public readonly int[] viewDistanceCandidates = new int[]{4, 8, 16};
+        private readonly string[] viewDistanceLevels = {"Tiny", "Near", "Far"};
         public readonly string[] shaderLevels = {"Low", "Medium", "High"};
         
         public GameSettings gameSettings;
@@ -61,6 +62,8 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
 
         public void OnViewDistanceClick()
         {
+            var level = GameObject.FindGameObjectWithTag("Level").GetComponent<Level>();
+            
             int i;
             int length = viewDistanceCandidates.Length;
 
@@ -75,6 +78,11 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
             gameSettings.viewDistance = viewDistanceCandidates[(i + 1) % length];
             SyncWithSettings();
             StoreSettings();
+
+            if (level != null)
+            {
+                level.RefreshChunkRender();
+            }
         }
 
         public void OnMusicButtonClick()

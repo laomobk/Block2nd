@@ -8,7 +8,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
 {
     public class ViewDistanceButton : MonoBehaviour
     {
-        private readonly string[] levels = {"Tiny", "Near", "Far", "Very Far"};
+        private readonly string[] levels = {"Tiny", "Near", "Far"};
 
         private GameClient gameClient;
         private Text buttonText;

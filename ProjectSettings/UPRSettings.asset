@@ -4,5 +4,4 @@
 UPRManager:
   m_openweb: 1
   m_screenshotEnable: 1
-  m_shaderProfilerTicker: 0
   m_objectProfilerTicker: 0

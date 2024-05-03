@@ -21,14 +21,15 @@ namespace Block2nd.World
             player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         }
 
-        public void TryRenderChunk(Chunk chunk)
+        public bool TryRenderChunk(Chunk chunk)
         {
             if (chunk == null)
             {
-                return;
+                return false;
             }
             
             RenderChunk(chunk);
+            return true;
         }
 
         public void RenderChunk(Chunk chunk)
