@@ -24,6 +24,28 @@ namespace Block2nd.MathUtil
             this.z = (int) z;
         }
 
+        public IntVector3(float x, float y)
+        {
+            this.x = (int) x;
+            this.y = (int) y;
+            this.z = 0;
+        }
+
+
+        public IntVector3(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = 0;
+        }
+
+        public IntVector3(int x, int y, int z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
         public Vector3 ToUnityVector3()
         {
             return new Vector3(x, y, z);

@@ -42,7 +42,12 @@ namespace Block2nd.World
             
             hotChunks[hotIdx] = chunk;
         }
-        
+
+        public Chunk PreheatChunk(Level level, int chunkX, int chunkZ)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public Chunk ProvideChunk(Level level, int chunkX, int chunkZ)
         {
             var key = ChunkHelper.ChunkCoordsToLongKey(chunkX, chunkZ);
@@ -64,6 +69,7 @@ namespace Block2nd.World
 
             Profiler.BeginSample("Generate Chunk");
             
+            Debug.Log("gen chunk: " + chunkX + ", " + chunkZ);
             chunk = chunkGenerator.GenerateChunk(level, chunkX, chunkZ);
             
             Profiler.EndSample();

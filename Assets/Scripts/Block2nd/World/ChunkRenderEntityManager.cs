@@ -32,11 +32,31 @@ namespace Block2nd.World
             return true;
         }
 
+        public bool TryRenderChunkInJob(Chunk chunk, Vector3 playerPos)
+        {
+            if (chunk == null)
+            {
+                return false;
+            }
+            
+            if (!IsInRenderDistance(chunk.worldBasePosition.ToUnityVector3(), playerPos))
+                return false;
+            
+            RenderChunkInternal(chunk);
+
+            return true;
+        }
+        
         public void RenderChunk(Chunk chunk)
         {
             if (!IsInRenderDistance(chunk.worldBasePosition.ToUnityVector3()))
                 return;
             
+            RenderChunkInternal(chunk);
+        }
+        
+        public void RenderChunkInternal(Chunk chunk)
+        {
             if (entityInUseDict.TryGetValue(chunk.CoordKey, out var entity))
             {
                 entity.freeCount = 0;
@@ -67,6 +87,12 @@ namespace Block2nd.World
         private bool IsInRenderDistance(Vector3 pos)
         {
             var playerPos = player.transform.position;
+            /* a circle which r = view distance * 16 * sqrt(2) */
+            return (playerPos - pos).magnitude < gameClient.gameSettings.viewDistance * 24;
+        }
+
+        private bool IsInRenderDistance(Vector3 pos, Vector3 playerPos)
+        {
             /* a circle which r = view distance * 16 * sqrt(2) */
             return (playerPos - pos).magnitude < gameClient.gameSettings.viewDistance * 24;
         }

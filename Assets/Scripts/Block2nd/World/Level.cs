@@ -16,6 +16,8 @@ using Block2nd.Persistence.KNBT;
 using Block2nd.Phys;
 using Block2nd.Resource;
 using Block2nd.Scriptable;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;
@@ -132,7 +134,7 @@ namespace Block2nd.World
 
         public void PrepareLevel()
         {
-            GeneratePyramids();
+            // GeneratePyramids();
         }
 
         public void CreateSaveHandler()
@@ -307,6 +309,66 @@ namespace Block2nd.World
             chunkProvideLock = false;
         }
         
+        public IEnumerator ProvideChunksSurroundingCoroutineWithJob(
+            Vector3 position, int radius)
+        {
+            if (radius == 0)
+            {
+                radius = client.gameSettings.viewDistance + 2;
+            }
+            
+            chunkProvideLock = true;
+            
+            int pointChunkX = (int) position.x >> 4;
+            int pointChunkZ = (int) position.z >> 4;
+
+            lastChunkProvidePosition = position;
+
+            var arrSize = (radius * 2 + 1) * (radius * 2 + 1);
+            var idx = 0;
+            
+            var natPosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
+
+            try
+            {
+                for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+                {
+                    for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                    {
+
+                        if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
+                        {
+                            natPosArray[idx++] = new IntVector3(cx, cz);
+                            
+                            /*
+                            chunkProvider.ProvideChunk(this, cx, cz);
+
+                            if (breakChunkDisplay)
+                            {
+                                chunkProvideLock = false;
+                                yield break;
+                            }
+
+                            yield return null;
+                            */
+                        }
+                    }
+                }
+                
+                var job = new PreheatSurroundingChunkJob();
+                job.positions = natPosArray;
+                var handle = job.Schedule(idx, 1);
+                handle.Complete();
+            }
+            finally
+            {
+                natPosArray.Dispose();
+                chunkProvideLock = false;
+            }
+            
+            yield break;
+        }
+        
         // Only for the player first time enter the world.
         public IEnumerator ProvideChunksSurroundingCoroutineWithReport(Vector3 position, int radius)
         {
@@ -355,105 +417,88 @@ namespace Block2nd.World
             chunkProvideLock = false;
         }
 
-        public IEnumerator RenderChunksSurrounding(Vector3 position, int distance)
+        private IntVector3[] CalculateChunkPositionList(Vector3 position, int distance)
         {
-            chunkRenderLock = true;
             if (distance == 0)
                 distance = client.gameSettings.viewDistance;
+            
+            IntVector3[] result = new IntVector3[(2 * distance + 1) * (2 * distance + 1)];
+            int idx = 0;
 
             var startChunkX = Mathf.FloorToInt(position.x) >> 4;
             var startChunkZ = Mathf.FloorToInt(position.z) >> 4;
-
+            
             int cx = startChunkX, cz = startChunkZ;
             
-            if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(this, cx, cz)))
-                yield return null;
+            result[idx++] = new IntVector3(cx, cz);
 
             for (int i = 1; i <= distance; ++i)
             {
                 // dir Z+
                 cz = startChunkZ + i;
                 cx = startChunkX;
-                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                    yield return null;
+                result[idx++] = new IntVector3(cx, cz);
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
+                    result[idx++] = new IntVector3(cx, cz);
                     cx = startChunkX - j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
-
-                    if (breakChunkDisplay)
-                    {
-                        chunkRenderLock = false;
-                        yield break;
-                    }
+                    result[idx++] = new IntVector3(cx, cz);
                 }
                 
                 // dir Z-
                 cz = startChunkZ - i;
                 cx = startChunkX;
-                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                    yield return null;
+                result[idx++] = new IntVector3(cx, cz);
                 for (int j = 1; j <= i; ++j)
                 {
                     cx = startChunkX + j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
+                    result[idx++] = new IntVector3(cx, cz);
                     cx = startChunkX - j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
-
-                    if (breakChunkDisplay)
-                    {
-                        chunkRenderLock = false;
-                        yield break;
-                    }
+                    result[idx++] = new IntVector3(cx, cz);
                 }
                 
                 // dir X+
                 cz = startChunkZ;
                 cx = startChunkX + i;
-                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                    yield return null;
-                for (int j = 1; j <= i; ++j)
+                result[idx++] = new IntVector3(cx, cz);
+                for (int j = 1; j < i; ++j)
                 {
                     cz = startChunkZ + j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
+                    result[idx++] = new IntVector3(cx, cz);
                     cz = startChunkZ - j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
-
-                    if (breakChunkDisplay)
-                    {
-                        chunkRenderLock = false;
-                        yield break;
-                    }
+                    result[idx++] = new IntVector3(cx, cz);
                 }
                 
                 // dir X-
                 cz = startChunkZ;
                 cx = startChunkX - i;
-                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                    yield return null;
-                for (int j = 1; j <= i; ++j)
+                result[idx++] = new IntVector3(cx, cz);
+                for (int j = 1; j < i; ++j)
                 {
                     cz = startChunkZ + j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
+                    result[idx++] = new IntVector3(cx, cz);
                     cz = startChunkZ - j;
-                    if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.ProvideChunk(this, cx, cz)))
-                        yield return null;
-
-                    if (breakChunkDisplay)
-                    {
-                        chunkRenderLock = false;
-                        yield break;
-                    }
+                    result[idx++] = new IntVector3(cx, cz);
                 }
+            }
+            
+            return result;
+        }
+
+        public IEnumerator RenderChunksSurrounding(Vector3 position, int distance)
+        {
+            var posList = CalculateChunkPositionList(position, distance);
+            
+            chunkRenderLock = true;
+
+            foreach (var pos in posList)
+            {
+                if (chunkRenderEntityManager.TryRenderChunk(chunkProvider.TryGetChunk(this, pos.x, pos.y)))
+                    yield return null;
+                
+                if (breakChunkDisplay)
+                    break;
             }
             
             chunkRenderLock = false;

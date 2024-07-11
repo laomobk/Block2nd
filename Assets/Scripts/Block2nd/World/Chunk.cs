@@ -34,7 +34,9 @@ namespace Block2nd.World
         public bool dirty = true;
         public bool firstRendered = false;
         public bool saved;
+        
         public int populateState = 0;
+        public bool lightened = false;
 
         public ulong CoordKey { get; }
 
