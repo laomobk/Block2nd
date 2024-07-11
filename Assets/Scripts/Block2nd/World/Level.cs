@@ -263,8 +263,7 @@ namespace Block2nd.World
         {
             syncProvideAndRenderLock = true;
 
-            if (skipChunkProvidingWhileDisplay)
-                yield return StartCoroutine(ProvideChunksSurroundingCoroutine(position, radius));
+            yield return StartCoroutine(ProvideChunksSurroundingCoroutineWithJob(position, radius));
             yield return StartCoroutine(RenderChunksSurrounding(position, radius));
 
             breakChunkDisplay = false;
@@ -327,7 +326,8 @@ namespace Block2nd.World
             var arrSize = (radius * 2 + 1) * (radius * 2 + 1);
             var idx = 0;
             
-            var natPosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
+            var nativePosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
+            var newChunkFlagArray = new NativeArray<int>(arrSize, Allocator.TempJob);
 
             try
             {
@@ -338,8 +338,8 @@ namespace Block2nd.World
 
                         if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
                         {
-                            natPosArray[idx++] = new IntVector3(cx, cz);
-                            
+                            nativePosArray[idx++] = new IntVector3(cx, cz);
+
                             /*
                             chunkProvider.ProvideChunk(this, cx, cz);
 
@@ -356,13 +356,35 @@ namespace Block2nd.World
                 }
                 
                 var job = new PreheatSurroundingChunkJob();
-                job.positions = natPosArray;
-                var handle = job.Schedule(idx, 1);
+                
+                job.positions = nativePosArray;
+                job.newChunkFlagArray = newChunkFlagArray;
+                
+                ChunkJobExchange.level = this;
+                ChunkJobExchange.chunkProvider = chunkProvider;
+
+                var handle = job.Schedule(idx, 16);
+                Debug.Log("total job count = " + idx);
+
+                while (!handle.IsCompleted) yield return null;
                 handle.Complete();
+                
+                for (int i = 0; i <= idx; ++i)
+                {
+                    if (newChunkFlagArray[i] > 0)
+                    {
+                        var pos = nativePosArray[i];
+                        chunkProvider.GetChunkGenerator().PopulateChunk(this, pos.x, pos.y);
+
+                        yield return null;
+                    }
+                }
             }
             finally
             {
-                natPosArray.Dispose();
+                nativePosArray.Dispose();
+                newChunkFlagArray.Dispose();
+                
                 chunkProvideLock = false;
             }
             
