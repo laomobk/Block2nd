@@ -29,3 +29,8 @@ https://wwo.lanzoue.com/b0mahu7sf
 
 https://wwo.lanzoue.com/b0maig4kb  
 密码:b2nd
+
+### Linux Build
+
+https://wwo.lanzoue.com/b0malpg6b  
+密码:b2nd
