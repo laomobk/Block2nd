@@ -19,6 +19,7 @@ namespace Block2nd.World
 {
     public class Chunk
     {
+        private int chunkHeight;
         private Level level;
 
         public IntVector3 worldBasePosition;
@@ -29,6 +30,9 @@ namespace Block2nd.World
         public ChunkBlockData[,,] chunkBlocks;
         public int[,] heightMap = new int[16, 16];
         public int[,,] lightMap;
+        
+        public int[] skyLightMap;
+        public int[] blockLightMap;
 
         public bool modified = true;
         public bool dirty = true;
@@ -50,8 +54,12 @@ namespace Block2nd.World
 
             lightMap = new int[16, chunkHeight, 16];
             
-            entityStorage = new VerticalList<List<EntityBase>>(chunkHeight / 16 + 1, 16, 16, 16);
+            skyLightMap = new int[16 * chunkHeight * 16];
+            blockLightMap = new int[16 * chunkHeight * 16];
             
+            entityStorage = new VerticalList<List<EntityBase>>(chunkHeight / 16 + 1, 16, 16, 16);
+
+            this.chunkHeight = chunkHeight;
         }
 
         private float CalculateLightAttenuation(int x, int y, int z)
@@ -483,6 +491,81 @@ namespace Block2nd.World
             }
 
             Profiler.EndSample();
+        }
+        
+        public void UpdateChunkLightMapFullyNew()
+        {
+            Profiler.BeginSample("Update Lightmap Fully");
+
+            Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
+
+            var lightUpdateUnitQueue = new Queue<LightUpdateUnit>();
+            for (int i = 0; i < 256; ++i)
+            {
+                // UpdateLightQueueForSkyLight();
+            }
+
+            Profiler.EndSample();
+        }
+
+        public int GetLightValueByType(int x, int y, int z, LightType type)
+        {
+            int idx = y << 8 + x << 4 + z;
+            
+            switch (type)
+            {
+                case LightType.SKY: return skyLightMap[idx];
+                case LightType.BLOCK: return blockLightMap[idx];
+            }
+
+            return 0;
+        }
+
+        private void UpdateLightQueueForSkyLight(int lx, int lz, Queue<LightUpdateUnit> queue)
+        {
+            int height = GetHeight(lx, lz);
+
+            for (int y = height; y <= chunkHeight; ++y)
+            {
+                queue.Enqueue(new LightUpdateUnit
+                {
+                    localX = lx,
+                    localY = y,
+                    localZ = lz,
+                    lightValue = 15
+                });
+            }
+        }
+
+        private void UpdateLightQueueForBlockLightFully(Queue<LightUpdateUnit> queue)
+        {
+            for (int x = 0; x < 16; ++x)
+            {
+                for (int z = 0; z < 16; ++z)
+                {
+                    for (int y = 0; y < chunkHeight; ++y)
+                    {
+                        var blockData = chunkBlocks[x, y, z];
+                        var lightEffect = BlockMetaDatabase.GetBlockMetaByCode(blockData.blockCode).lightEffect;
+
+                        if (lightEffect > 0)
+                        {
+                            queue.Enqueue(new LightUpdateUnit
+                            {
+                                localX = x,
+                                localY = y,
+                                localZ = z,
+                                lightValue = lightEffect
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SpreadLightByType(Queue<LightUpdateUnit> queue, LightType lightType)
+        {
+            
         }
 
         public void UpdateChunkSkylightForBlock(int x, int y, int z)

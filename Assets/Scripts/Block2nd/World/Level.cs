@@ -364,7 +364,7 @@ namespace Block2nd.World
                 ChunkJobExchange.chunkProvider = chunkProvider;
 
                 var handle = job.Schedule(idx, 16);
-                Debug.Log("total job count = " + idx);
+                Debug.Log("chunk preheat job count = " + idx);
 
                 while (!handle.IsCompleted) yield return null;
                 handle.Complete();
