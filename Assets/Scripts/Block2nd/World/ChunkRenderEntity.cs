@@ -78,7 +78,7 @@ namespace Block2nd.World
             Profiler.BeginSample("Render Chunk Mesh");
             
             chunk.BakeHeightMap();
-            chunk.UpdateChunkLightMapFully();
+            chunk.UpdateChunkLightMapFullyNew();
             
             var chunkBlocks = chunk.chunkBlocks;
             

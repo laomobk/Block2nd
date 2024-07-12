@@ -64,6 +64,7 @@
 				
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
+				return fixed4(i.light.xxx, texColor.a);
 				return fixed4(col, texColor.a);
 			}
 			ENDCG

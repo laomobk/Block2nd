@@ -308,7 +308,7 @@ namespace Block2nd.Client
 					folderName = "Level_01",
 					name = "Level_01",
 					seed = 0,
-					newWorld = true
+					newWorld = false,
 				});
 				return;
 			}

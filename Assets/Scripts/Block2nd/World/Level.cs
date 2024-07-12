@@ -1256,6 +1256,14 @@ namespace Block2nd.World
 
         public void SaveLevelCompletely()
         {
+            /*
+            if (Application.isEditor)
+            {
+                Debug.LogWarning("level will not saved in editor.");
+                return;
+            }
+            */
+            
             if (levelSaveHandler == null)
                 return;
 

@@ -52,6 +52,11 @@ namespace Block2nd.Database
             return null;
         }
 
+        public static int GetBlockLightEffectByCode(int code)
+        {
+            return blocks[code].lightEffect;
+        }
+
         public static BlockBehavior GetBlockBehaviorByCode(int code)
         {
             // 0 is null block.
@@ -117,7 +122,8 @@ namespace Block2nd.Database
         {
             AddBlock(new BlockMeta
             {
-                behavior = new NullBlockBehavior()
+                behavior = new NullBlockBehavior(),
+                lightEffect = -1
             }); // Null
 
             AddBlock(new BlockMeta

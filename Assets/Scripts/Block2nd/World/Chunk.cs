@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
@@ -13,6 +14,7 @@ using Block2nd.Scriptable;
 using Block2nd.UnsafeStructure;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.Profiling;
 
 namespace Block2nd.World
@@ -430,7 +432,7 @@ namespace Block2nd.World
                 return level.GetSkyLight(x + worldBasePosition.x, y, z + worldBasePosition.z, cacheOnly);
             }
 
-            return lightMap[x, y, z];
+            return skyLightMap[(y << 4) + (x << 2) + z];
         }
 
         public IntVector3 WorldToLocal(int x, int z)
@@ -495,6 +497,8 @@ namespace Block2nd.World
         
         public void UpdateChunkLightMapFullyNew()
         {
+            BakeHeightMap();
+            
             Profiler.BeginSample("Update Lightmap Fully");
 
             Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
@@ -502,16 +506,31 @@ namespace Block2nd.World
             var lightUpdateUnitQueue = new Queue<LightUpdateUnit>();
             for (int i = 0; i < 256; ++i)
             {
-                // UpdateLightQueueForSkyLight();
+                UpdateLightQueueForSkyLight(i % 16, i / 16, lightUpdateUnitQueue);
             }
+            UpdateLightByType(lightUpdateUnitQueue, LightType.SKY);
 
             Profiler.EndSample();
         }
 
         public int GetLightValueByType(int x, int y, int z, LightType type)
         {
-            int idx = y << 8 + x << 4 + z;
-            
+            int idx = (y << 4) + (z << 2) + x;
+
+            if (y < 0)
+                return 0;
+
+            if (x < 0 || x >= 16 || z < 0 || z >= 16)
+            {
+                var worldPos = LocalToWorld(x, y, z);
+                var chk = level.GetChunkFromCoords(worldPos.x >> 4, worldPos.z >> 4);
+                var nearLocal = chk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
+                return chk.GetLightValueByType(nearLocal.x, nearLocal.y, nearLocal.z, type);
+            }
+
+            if (idx >= skyLightMap.Length)
+                return 15;
+
             switch (type)
             {
                 case LightType.SKY: return skyLightMap[idx];
@@ -520,20 +539,87 @@ namespace Block2nd.World
 
             return 0;
         }
+        
+        public void SetLightValueByType(int x, int y, int z, LightType type, int lightValue)
+        {
+            int idx = (y << 4) + (z << 2) + x;
+            
+            if (y < 0)
+                return;
+            
+            if (idx >= skyLightMap.Length)
+                return;
+
+            if (x < 0 || x >= 16 || z < 0 || z >= 16)
+            {
+                var worldPos = LocalToWorld(x, y, z);
+                var chk = level.GetChunkFromCoords(worldPos.x >> 4, worldPos.z >> 4);
+                var nearLocal = chk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
+                chk.SetLightValueByType(nearLocal.x, nearLocal.y, nearLocal.z, type, lightValue);
+                return;
+            }
+
+            if (lightValue < 0)
+                lightValue = 0;
+
+            switch (type)
+            {
+                case LightType.SKY: skyLightMap[idx] = lightValue; break;
+                case LightType.BLOCK: blockLightMap[idx] = lightValue; break;
+            }
+        }
 
         private void UpdateLightQueueForSkyLight(int lx, int lz, Queue<LightUpdateUnit> queue)
         {
             int height = GetHeight(lx, lz);
-
-            for (int y = height; y <= chunkHeight; ++y)
+            
+            for (int y = height; y < chunkHeight; ++y)
             {
-                queue.Enqueue(new LightUpdateUnit
+                if (y < 1)
                 {
-                    localX = lx,
-                    localY = y,
-                    localZ = lz,
-                    lightValue = 15
-                });
+                    Debug.Log(lx + ", " + y + ", " + lz);
+                }
+                if (GetHeight(lx + 1, lz) > height)
+                {
+                    queue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx + 1,
+                        localY = y,
+                        localZ = lz,
+                    });
+                }
+                
+                if (GetHeight(lx - 1, lz) > height)
+                {
+                    queue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx - 1,
+                        localY = y,
+                        localZ = lz,
+                    });
+                }
+                
+                if (GetHeight(lx, lz + 1) > height)
+                {
+                    queue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx,
+                        localY = y,
+                        localZ = lz + 1,
+                    });
+                }
+                
+                if (GetHeight(lx, lz - 1) > height)
+                {
+                    queue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx,
+                        localY = y,
+                        localZ = lz - 1,
+                    });
+                }
+
+                SetLightValueByType(lx, y, lz, LightType.SKY, 15);
             }
         }
 
@@ -555,17 +641,135 @@ namespace Block2nd.World
                                 localX = x,
                                 localY = y,
                                 localZ = z,
-                                lightValue = lightEffect
                             });
                         }
+                        
+                        SetLightValueByType(x, y, y, LightType.BLOCK, 15);
                     }
                 }
             }
         }
 
-        private void SpreadLightByType(Queue<LightUpdateUnit> queue, LightType lightType)
+        private void UpdateLightByType(Queue<LightUpdateUnit> lightUpdateUnitQueue, LightType lightType)
         {
+            var tick = 0;
             
+            while (lightUpdateUnitQueue.Count > 0)
+            {
+                if (tick > 10000)
+                {
+                    Debug.LogWarning("UpdateLightByType: too many light update unit!");
+                    break;
+                }
+                
+                var unit = lightUpdateUnitQueue.Dequeue();
+                int lx = unit.localX, ly = unit.localY, lz = unit.localZ;
+
+                var curLightEffect = BlockMetaDatabase.GetBlockLightEffectByCode(
+                    GetBlock(lx, ly, lz).blockCode);
+                var curLightValue = GetLightValueByType(lx, ly, lz, lightType);
+
+                if (curLightEffect < -16)
+                {
+                    continue;
+                }
+
+                var computedLightValue = ComputeAndGetBlockLightNearBy(
+                    lx, ly, lz, curLightEffect, lightType,
+                    out int lightRight, out int lightLeft,
+                    out int lightAbove, out int lightBelow,
+                    out int lightAhead, out int lightBehind);
+
+                if (computedLightValue == curLightValue)
+                    continue; // don't need to spread light
+
+                if (computedLightValue < 12)
+                {
+                    Debug.Log(computedLightValue);
+                }
+
+                SetLightValueByType(lx, ly, lz, lightType, computedLightValue);
+
+                if (lightRight < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx + 1, localY = ly, localZ = lz
+                    });
+                }
+                if (lightLeft < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx - 1, localY = ly, localZ = lz
+                    });
+                }
+                if (lightAbove < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx, localY = ly + 1, localZ = lz
+                    });
+                }
+                if (lightBelow < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx, localY = ly - 1, localZ = lz
+                    });
+                }
+                if (lightAhead < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx, localY = ly, localZ = lz + 1
+                    });
+                }
+                if (lightBehind < computedLightValue)
+                {
+                    lightUpdateUnitQueue.Enqueue(new LightUpdateUnit
+                    {
+                        localX = lx, localY = ly, localZ = lz - 1
+                    });
+                }
+
+                tick++;
+            }
+        }
+
+        private int ComputeBlockLightNearBy(int x, int y, int z, int currentBlockLight, LightType lightType)
+        {
+            int l1 = GetLightValueByType(x + 1, y, z, lightType);
+            int l2 = GetLightValueByType(x - 1, y, z, lightType);
+            int l3 = GetLightValueByType(x, y + 1, z, lightType);
+            int l4 = GetLightValueByType(x, y - 1, z, lightType);
+            int l5 = GetLightValueByType(x, y, z + 1, lightType);
+            int l6 = GetLightValueByType(x, y, z - 1, lightType);
+
+            return Mathf.Max(l1, l2, l3, l4, l5, l6, currentBlockLight);
+        }
+        
+        private int ComputeAndGetBlockLightNearBy(int x, int y, int z, int currentBlockLightEffect, LightType lightType,
+                                                    out int lightRight, out int lightLeft,
+                                                    out int lightAbove, out int lightBelow,
+                                                    out int lightAhead, out int lightBehind)
+        {
+
+            if (lightType == LightType.SKY && y > GetHeight(x, z))
+                currentBlockLightEffect = 15;
+            
+            var effect = currentBlockLightEffect < 0 ? currentBlockLightEffect : 0;
+            
+            lightRight = GetLightValueByType(x + 1, y, z, lightType) + effect;
+            lightLeft = GetLightValueByType(x - 1, y, z, lightType) + effect;
+            lightAbove = GetLightValueByType(x, y + 1, z, lightType) + effect;
+            lightBelow = GetLightValueByType(x, y - 1, z, lightType) + effect;
+            lightAhead = GetLightValueByType(x, y, z + 1, lightType) + effect;
+            lightBehind = GetLightValueByType(x, y, z - 1, lightType) + effect;
+            
+
+            return Mathf.Max(lightRight, lightLeft, lightAbove, lightBelow, lightAhead, lightBehind, 
+                                currentBlockLightEffect);
         }
 
         public void UpdateChunkSkylightForBlock(int x, int y, int z)
@@ -596,6 +800,7 @@ namespace Block2nd.World
 
         private void UpdateChunkSkyLight()
         {
+            
         }
 
         public void AddEntity(EntityBase entity, float worldX, float y, float worldZ)
