@@ -544,10 +544,7 @@ namespace Block2nd.World
         {
             int idx = (y << 4) + (z << 2) + x;
             
-            if (y < 0)
-                return;
-            
-            if (idx >= skyLightMap.Length)
+            if (y < 0 || idx >= skyLightMap.Length)
                 return;
 
             if (x < 0 || x >= 16 || z < 0 || z >= 16)
