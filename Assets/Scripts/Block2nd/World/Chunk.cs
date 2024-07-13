@@ -1,11 +1,16 @@
-﻿using System;
+﻿
+// #define CHK_LIGHT_DEBUG 
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using Block2nd.Behavior;
 using Block2nd.Behavior.Block;
 using Block2nd.Client;
+using Block2nd.Client.GameDebug;
 using Block2nd.Entity;
 using Block2nd.Database;
 using Block2nd.MathUtil;
@@ -16,6 +21,7 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 namespace Block2nd.World
 {
@@ -114,6 +120,46 @@ namespace Block2nd.World
                             heightMap[x, z] = y;
                             break;
                         }
+                    }
+                }
+            }
+
+            Profiler.EndSample();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int CalcLightMapIndex(int x, int y, int z)
+        {
+            return (y << 4) | (z << 2) | x;
+        }
+        
+        public void BakeHeightMapWithSkyLightUpdate()
+        {
+            // TODO: reset this check.
+            /*
+            if (!dirty)
+                return;
+                */
+
+            Profiler.BeginSample("Bake HeightMap");
+
+            var width = chunkBlocks.GetLength(0);
+            var height = chunkBlocks.GetLength(1);
+
+            for (int x = 0; x < width; ++x)
+            {
+                for (int z = 0; z < width; ++z)
+                {
+                    for (int y = height - 1; y >= 0; --y)
+                    {
+                        var code = chunkBlocks[x, y, z].blockCode;
+                        if (code != 0 && (BlockMetaDatabase.types[code] & BlockTypeBits.PlantBit) == 0)
+                        {
+                            heightMap[x, z] = y;
+                            break;
+                        }
+
+                        skyLightMap[CalcLightMapIndex(x, y, z)] = 15;
                     }
                 }
             }
@@ -513,7 +559,7 @@ namespace Block2nd.World
             Profiler.EndSample();
         }
 
-        public int GetLightValueByType(int x, int y, int z, LightType type)
+        public int GetSavedLightValueByType(int x, int y, int z, LightType type)
         {
             int idx = (y << 4) + (z << 2) + x;
 
@@ -525,7 +571,7 @@ namespace Block2nd.World
                 var worldPos = LocalToWorld(x, y, z);
                 var chk = level.GetChunkFromCoords(worldPos.x >> 4, worldPos.z >> 4);
                 var nearLocal = chk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
-                return chk.GetLightValueByType(nearLocal.x, nearLocal.y, nearLocal.z, type);
+                return chk.GetSavedLightValueByType(nearLocal.x, nearLocal.y, nearLocal.z, type);
             }
 
             if (idx >= skyLightMap.Length)
@@ -536,7 +582,7 @@ namespace Block2nd.World
                 case LightType.SKY: return skyLightMap[idx];
                 case LightType.BLOCK: return blockLightMap[idx];
             }
-
+            
             return 0;
         }
         
@@ -558,6 +604,8 @@ namespace Block2nd.World
 
             if (lightValue < 0)
                 lightValue = 0;
+            else if (lightValue > 15)
+                lightValue = 15;
 
             switch (type)
             {
@@ -566,17 +614,46 @@ namespace Block2nd.World
             }
         }
 
+        // TODO: delete this debug api
+        private void PutDebugBall(int chunkWorldX, int chunkWorldZ, int x, int y, int z, 
+                                    Color color, float aliveTime = 999, string label = "")
+        {
+            if (worldBasePosition.x == chunkWorldX && worldBasePosition.z == chunkWorldZ)
+            {
+                var go = GameClientDebugger.Instance.CreateDebugObject(new Vector3(x, y, z) + 
+                                                              worldBasePosition.ToUnityVector3(), color, label);
+                GameObject.Destroy(go, aliveTime);
+            }
+        }
+        
+        // TODO: delete this debug api
+        public IEnumerator DebugLightUpdate()
+        {
+            var lightUpdateUnitQueue = new Queue<LightUpdateUnit>();
+            for (int i = 0; i < 256; ++i)
+            {
+                UpdateLightQueueForSkyLight(i % 16, i / 16, lightUpdateUnitQueue);
+            }
+            
+#if CHK_LIGHT_DEBUG
+            return UpdateLightByType(lightUpdateUnitQueue, LightType.SKY);
+#else
+            yield break;
+#endif
+        }
+
         private void UpdateLightQueueForSkyLight(int lx, int lz, Queue<LightUpdateUnit> queue)
         {
             int height = GetHeight(lx, lz);
+
+            int heightR = GetHeight(lx + 1, lz, true),
+                heightL = GetHeight(lx - 1, lz, true),
+                heightF = GetHeight(lx, lz + 1, true),
+                heightB = GetHeight(lx, lz - 1, true);
             
-            for (int y = height; y < chunkHeight; ++y)
+            for (int y = height + 1; y < chunkHeight; ++y)
             {
-                if (y < 1)
-                {
-                    Debug.Log(lx + ", " + y + ", " + lz);
-                }
-                if (GetHeight(lx + 1, lz) > height)
+                if (heightR > y)
                 {
                     queue.Enqueue(new LightUpdateUnit
                     {
@@ -586,7 +663,7 @@ namespace Block2nd.World
                     });
                 }
                 
-                if (GetHeight(lx - 1, lz) > height)
+                if (heightL > y)
                 {
                     queue.Enqueue(new LightUpdateUnit
                     {
@@ -596,7 +673,7 @@ namespace Block2nd.World
                     });
                 }
                 
-                if (GetHeight(lx, lz + 1) > height)
+                if (heightF > y)
                 {
                     queue.Enqueue(new LightUpdateUnit
                     {
@@ -606,7 +683,7 @@ namespace Block2nd.World
                     });
                 }
                 
-                if (GetHeight(lx, lz - 1) > height)
+                if (heightB > y)
                 {
                     queue.Enqueue(new LightUpdateUnit
                     {
@@ -629,7 +706,7 @@ namespace Block2nd.World
                     for (int y = 0; y < chunkHeight; ++y)
                     {
                         var blockData = chunkBlocks[x, y, z];
-                        var lightEffect = BlockMetaDatabase.GetBlockMetaByCode(blockData.blockCode).lightEffect;
+                        var lightEffect = BlockMetaDatabase.GetBlockMetaByCode(blockData.blockCode).opacity;
 
                         if (lightEffect > 0)
                         {
@@ -647,10 +724,20 @@ namespace Block2nd.World
             }
         }
 
+#if  CHK_LIGHT_DEBUG
+        private IEnumerator UpdateLightByType(Queue<LightUpdateUnit> lightUpdateUnitQueue, LightType lightType)
+        {
+#else
         private void UpdateLightByType(Queue<LightUpdateUnit> lightUpdateUnitQueue, LightType lightType)
         {
+#endif
+        
             var tick = 0;
             
+#if CHK_LIGHT_DEBUG
+            yield return null;
+#endif
+
             while (lightUpdateUnitQueue.Count > 0)
             {
                 if (tick > 10000)
@@ -662,29 +749,30 @@ namespace Block2nd.World
                 var unit = lightUpdateUnitQueue.Dequeue();
                 int lx = unit.localX, ly = unit.localY, lz = unit.localZ;
 
-                var curLightEffect = BlockMetaDatabase.GetBlockLightEffectByCode(
-                    GetBlock(lx, ly, lz).blockCode);
-                var curLightValue = GetLightValueByType(lx, ly, lz, lightType);
+                var blockCode = GetBlock(lx, ly, lz, true).blockCode;
+                var curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
+                var curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
+                
+                var curLightValue = GetSavedLightValueByType(lx, ly, lz, lightType);
 
-                if (curLightEffect < -16)
+                if (curBlockOpacity > 16)
                 {
                     continue;
                 }
 
                 var computedLightValue = ComputeAndGetBlockLightNearBy(
-                    lx, ly, lz, curLightEffect, lightType,
+                    lx, ly, lz, curBlockOpacity, curBlockLight, lightType,
                     out int lightRight, out int lightLeft,
                     out int lightAbove, out int lightBelow,
                     out int lightAhead, out int lightBehind);
-
+                
+#if CHK_LIGHT_DEBUG
+                PutDebugBall(208, 128, lx, ly, lz, Color.red, 0.1f, 
+                    computedLightValue + " C: " + curLightValue + " O: " + curBlockOpacity + " B: " + blockCode);
+#endif
                 if (computedLightValue == curLightValue)
                     continue; // don't need to spread light
-
-                if (computedLightValue < 12)
-                {
-                    Debug.Log(computedLightValue);
-                }
-
+                
                 SetLightValueByType(lx, ly, lz, lightType, computedLightValue);
 
                 if (lightRight < computedLightValue)
@@ -693,6 +781,11 @@ namespace Block2nd.World
                     {
                         localX = lx + 1, localY = ly, localZ = lz
                     });
+                    
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx + 1, ly, lz, Color.green, 0.1f,
+                        "l: " + lightRight);
+#endif
                 }
                 if (lightLeft < computedLightValue)
                 {
@@ -700,6 +793,11 @@ namespace Block2nd.World
                     {
                         localX = lx - 1, localY = ly, localZ = lz
                     });
+                    
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx - 1, ly, lz, Color.green, 0.1f,
+                        "l: " + lightLeft);
+#endif
                 }
                 if (lightAbove < computedLightValue)
                 {
@@ -707,6 +805,11 @@ namespace Block2nd.World
                     {
                         localX = lx, localY = ly + 1, localZ = lz
                     });
+
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx, ly + 1, lz, Color.green, 0.1f,
+                        "l: " + lightAbove);
+#endif
                 }
                 if (lightBelow < computedLightValue)
                 {
@@ -714,6 +817,11 @@ namespace Block2nd.World
                     {
                         localX = lx, localY = ly - 1, localZ = lz
                     });
+                    
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx, ly - 1, lz, Color.green, 0.1f,
+                        "l: " + lightBelow);
+#endif
                 }
                 if (lightAhead < computedLightValue)
                 {
@@ -721,6 +829,11 @@ namespace Block2nd.World
                     {
                         localX = lx, localY = ly, localZ = lz + 1
                     });
+                    
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx, ly, lz + 1, Color.green, 0.1f,
+                        "l: " + lightAhead);
+#endif
                 }
                 if (lightBehind < computedLightValue)
                 {
@@ -728,45 +841,52 @@ namespace Block2nd.World
                     {
                         localX = lx, localY = ly, localZ = lz - 1
                     });
+                    
+#if CHK_LIGHT_DEBUG
+                    PutDebugBall(208, 128, lx, ly, lz - 1, Color.green, 0.1f,
+                        "l: " + lightBehind);
+#endif
                 }
 
                 tick++;
+
+#if CHK_LIGHT_DEBUG
+                yield return null;
+#endif
             }
-        }
-
-        private int ComputeBlockLightNearBy(int x, int y, int z, int currentBlockLight, LightType lightType)
-        {
-            int l1 = GetLightValueByType(x + 1, y, z, lightType);
-            int l2 = GetLightValueByType(x - 1, y, z, lightType);
-            int l3 = GetLightValueByType(x, y + 1, z, lightType);
-            int l4 = GetLightValueByType(x, y - 1, z, lightType);
-            int l5 = GetLightValueByType(x, y, z + 1, lightType);
-            int l6 = GetLightValueByType(x, y, z - 1, lightType);
-
-            return Mathf.Max(l1, l2, l3, l4, l5, l6, currentBlockLight);
+            
+#if CHK_LIGHT_DEBUG
+            yield return null;
+#endif
         }
         
-        private int ComputeAndGetBlockLightNearBy(int x, int y, int z, int currentBlockLightEffect, LightType lightType,
+        private int ComputeAndGetBlockLightNearBy(int x, int y, int z, int opacity, int light, LightType lightType,
                                                     out int lightRight, out int lightLeft,
                                                     out int lightAbove, out int lightBelow,
                                                     out int lightAhead, out int lightBehind)
         {
+            if (lightType == LightType.SKY && y > GetHeight(x, z, true))
+            {
+                // Debug.Log(x + ", " + y + ", " + z);
+                light = 15;
+            }
 
-            if (lightType == LightType.SKY && y > GetHeight(x, z))
-                currentBlockLightEffect = 15;
-            
-            var effect = currentBlockLightEffect < 0 ? currentBlockLightEffect : 0;
-            
-            lightRight = GetLightValueByType(x + 1, y, z, lightType) + effect;
-            lightLeft = GetLightValueByType(x - 1, y, z, lightType) + effect;
-            lightAbove = GetLightValueByType(x, y + 1, z, lightType) + effect;
-            lightBelow = GetLightValueByType(x, y - 1, z, lightType) + effect;
-            lightAhead = GetLightValueByType(x, y, z + 1, lightType) + effect;
-            lightBehind = GetLightValueByType(x, y, z - 1, lightType) + effect;
-            
+            if (opacity == 0)
+                opacity = 1;
 
-            return Mathf.Max(lightRight, lightLeft, lightAbove, lightBelow, lightAhead, lightBehind, 
-                                currentBlockLightEffect);
+            lightRight = GetSavedLightValueByType(x + 1, y, z, lightType);
+            lightLeft = GetSavedLightValueByType(x - 1, y, z, lightType);
+            lightAbove = GetSavedLightValueByType(x, y + 1, z, lightType);
+            lightBelow = GetSavedLightValueByType(x, y - 1, z, lightType);
+            lightAhead = GetSavedLightValueByType(x, y, z + 1, lightType);
+            lightBehind = GetSavedLightValueByType(x, y, z - 1, lightType);
+            
+            return Mathf.Max(lightRight - opacity, 
+                lightLeft - opacity, 
+                lightAbove - opacity, 
+                lightBelow - opacity, 
+                lightAhead - opacity, 
+                lightBehind - opacity, light, 0);
         }
 
         public void UpdateChunkSkylightForBlock(int x, int y, int z)

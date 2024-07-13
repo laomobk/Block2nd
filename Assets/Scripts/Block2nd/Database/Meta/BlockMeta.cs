@@ -81,7 +81,8 @@ namespace Block2nd.Database.Meta
         public bool transparent;
         public bool forceRenderAllFace;
 
-        public int lightEffect = -255;
+        public int opacity = 255;
+        public int light = 0;
 
         public byte initState;
         

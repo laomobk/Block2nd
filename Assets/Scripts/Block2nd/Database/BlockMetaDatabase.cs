@@ -52,9 +52,18 @@ namespace Block2nd.Database
             return null;
         }
 
-        public static int GetBlockLightEffectByCode(int code)
+        public static int GetBlockOpacityByCode(int code)
         {
-            return blocks[code].lightEffect;
+            if (code >= 0 && code < blocks.Count)
+                return blocks[code].opacity;
+            return 0;
+        }
+        
+        public static int GetBlockLightByCode(int code)
+        {
+            if (code >= 0 && code < blocks.Count)
+                return blocks[code].light;
+            return 0;
         }
 
         public static BlockBehavior GetBlockBehaviorByCode(int code)
@@ -123,7 +132,7 @@ namespace Block2nd.Database
             AddBlock(new BlockMeta
             {
                 behavior = new NullBlockBehavior(),
-                lightEffect = -1
+                opacity = 0
             }); // Null
 
             AddBlock(new BlockMeta

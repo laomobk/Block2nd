@@ -124,7 +124,7 @@ namespace Block2nd.World
                     entity.freeCount++;
                 else
                     entity.freeCount = 0;
-                
+
                 if (entity.freeCount > 10)
                 {
                     entityInUseDict.Remove(entity.currentCoordKey);
