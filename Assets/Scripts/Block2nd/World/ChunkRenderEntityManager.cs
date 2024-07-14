@@ -47,20 +47,20 @@ namespace Block2nd.World
             return true;
         }
         
-        public void RenderChunk(Chunk chunk)
+        public void RenderChunk(Chunk chunk, bool force = false)
         {
             if (!IsInRenderDistance(chunk.worldBasePosition.ToUnityVector3()))
                 return;
             
-            RenderChunkInternal(chunk);
+            RenderChunkInternal(chunk, force);
         }
         
-        public void RenderChunkInternal(Chunk chunk)
+        public void RenderChunkInternal(Chunk chunk, bool force = false)
         {
             if (entityInUseDict.TryGetValue(chunk.CoordKey, out var entity))
             {
                 entity.freeCount = 0;
-                entity.RenderChunk(chunk);
+                entity.RenderChunk(chunk, force);
                 return;
             }
             

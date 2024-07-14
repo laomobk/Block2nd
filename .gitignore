@@ -7,6 +7,7 @@ UnityGenerated/
 Library/
 Assets/AssetStoreTools*
 Build/
+Build-Dev/
 Build-Android/
 Build-Linux/
 Logs/

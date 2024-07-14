@@ -396,7 +396,9 @@ namespace Block2nd.Database
                 transparent = true,
                 behavior = new WaterBlockBehavior(),
                 liquid = true,
-                initState = 8
+                initState = 8,
+                opacity = 2,
+                
             });
             
             AddBlock(new BlockMeta

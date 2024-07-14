@@ -64,21 +64,38 @@ namespace Block2nd.World
             subPlantChunk.GetComponent<MeshRenderer>().enabled = state;
         }
         
-        public void RenderChunk(Chunk chunk)
+        public void RenderChunk(Chunk chunk, bool force = false)
         {
-            if (!chunk.dirty && chunk.CoordKey == currentCoordKey && !brandNew)
+            if (force)
             {
                 SetVisible(true);
-                return;
+            }
+            else
+            {
+                if (!chunk.dirty && chunk.CoordKey == currentCoordKey && !brandNew)
+                {
+                    SetVisible(true);
+                    return;
+                }
             }
 
             brandNew = false;
             currentCoordKey = chunk.CoordKey;
 
             Profiler.BeginSample("Render Chunk Mesh");
-            
-            chunk.BakeHeightMapWithSkyLightUpdate();
-            chunk.UpdateChunkLightMapFullyNew();
+
+            if (chunk.lightingState == 0)
+            {
+                // TODO: consider it.
+                chunk.BakeHeightMap();
+                chunk.lightingState = 1;
+            }
+            else
+            {
+                chunk.BakeHeightMap();
+            }
+
+            // chunk.UpdateChunkLightMapFullyNew();
             
             var chunkBlocks = chunk.chunkBlocks;
             

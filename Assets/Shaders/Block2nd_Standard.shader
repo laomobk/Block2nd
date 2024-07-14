@@ -60,11 +60,11 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 texColor = tex2D(_MainTex, i.uv);
-				fixed3 col = texColor.xyz * max(0.5, i.light.x * i.lambert) * (1 - i.light.y * 0.4f);
+				fixed3 col = texColor.xyz * max(0.5, /* i.light.x * */ i.lambert) * (1 - i.light.y * 0.4f);
 				
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				return fixed4(i.light.xxx, texColor.a);
+				return fixed4(col * 0.3 + i.light.xxx * 0.7, texColor.a);
 				return fixed4(col, texColor.a);
 			}
 			ENDCG

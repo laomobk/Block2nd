@@ -314,6 +314,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   client: {fileID: 1216994906}
+  debugObject: {fileID: 2865488171448836289, guid: d79a0775a63eab343834fdf6284d8b0c,
+    type: 3}
 --- !u!4 &107254085
 Transform:
   m_ObjectHideFlags: 0
@@ -678,7 +680,6 @@ MonoBehaviour:
   allItemUI: {fileID: 1968760449}
   chatUI: {fileID: 1726742303}
   chunkStatText: {fileID: 1778049443}
-  holdingItemNameTextAlpha: 0
 --- !u!1 &327452243
 GameObject:
   m_ObjectHideFlags: 0
@@ -975,8 +976,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 104b0c6b0eca4eb4baf6fa9a5215dc14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  player: {fileID: 0}
 --- !u!1 &432808547
 GameObject:
   m_ObjectHideFlags: 0
@@ -1506,10 +1505,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f7d145648ef52f4489de58ce8140bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshFilter: {fileID: 0}
-  posList: []
-  uvList: []
-  triList: 
 --- !u!33 &640615926
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1963,11 +1958,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c98b8222b343509e1a4ffc965b36b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 0}
-  player: {fileID: 0}
-  gameClient: {fileID: 0}
-  oldRotationY: 0
-  oldRotationX: 0
 --- !u!1 &924494716
 GameObject:
   m_ObjectHideFlags: 0
@@ -2059,16 +2049,6 @@ MonoBehaviour:
   uiCamera: {fileID: 1864364269}
   touchCircle: {fileID: 1834080325}
   pressTriggerInterval: 0.3
-  pressTriggerTime: 0
-  pressBeginTime: 0
-  active: 0
-  moveTooFar: 0
-  continuous: 0
-  touchBeginPosition: {x: 0, y: 0}
-  pointerId: 0
-  gameClient: {fileID: 0}
-  rectTransform: {fileID: 0}
-  circleRectTransform: {fileID: 0}
 --- !u!114 &924494721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2081,7 +2061,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d98d62185a6415687df5fd8c7854398, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameClient: {fileID: 0}
   player: {fileID: 972082045}
   sensitivity: 15
 --- !u!1 &939325881
@@ -2244,25 +2223,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f026325c6fdcc4087410ed22c000cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controller: {fileID: 0}
-  gameClient: {fileID: 0}
-  holdingBlockCode: 1
   horAngle: 0
   rotAngle: 0
-  prevPlayerPos: {x: 0, y: 1, z: 0}
-  mouseSpeed: 25
-  selectedBlock:
-    blockCode: 0
-    blockState: 0
-  selectBox: {fileID: 0}
-  dampCameraMotionVelocity: {x: 0, y: 0, z: 0}
-  dampCameraBobblingVelocity: {x: 0, y: 0, z: 0}
   playerController: {fileID: 0}
   playerCamera: {fileID: 1654655558}
   raycastLayerMask:
+    serializedVersion: 2
     m_Bits: 512
   holdingBlockPreview: {fileID: 1783670733}
-  bobbingTime: 0
   entityBase: {fileID: 0}
 --- !u!23 &972082046
 MeshRenderer:
@@ -2313,28 +2281,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa8b4ef084e79474d86d185030e51081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameClient: {fileID: 0}
-  entityBase: {fileID: 0}
-  playerControlSpeed: {x: 0, y: 0, z: 0}
   playerSpeed: {x: 0, y: 0, z: 0}
   externalSpeed: {x: 0, y: 0, z: 0}
   runSpeedRatio: 8
   walkSpeedRatio: 5
-  speedRatio: 1
-  waterCode: 0
-  floating: 0
-  floatBegin: 1
-  jumpBegin: 0
-  externalFloatKeyState: 0
-  targetCameraFov: 0
-  lastSpacePressTime: 0
   flying: 0
   flySpeed: 0
-  inWater: 0
   playerState: 0
   playerCamera: {fileID: 1654655558}
-  audioSource: {fileID: 0}
-  stepTimeClock: 0
 --- !u!33 &972082048
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2369,11 +2323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c440632023a4edbbedc26ac19dbb138, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stepHeight: 1
-  onGround: 0
-  hitFront: 0
-  hitTop: 0
-  gameClient: {fileID: 0}
   forward: {x: 0, y: 0, z: 0}
   gravity: -0.98
   verticalVelocity: 0
@@ -2689,8 +2638,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b8979587e674786aa1025a1e3f641e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 0}
-  inPress: 0
 --- !u!114 &1002256734
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3369,9 +3316,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1452964cf08b4944aa74e4d9008b3ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  count: 0
-  fpsSum: 0
 --- !u!114 &1131276028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3784,7 +3728,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   floatButton: {fileID: 1002256730}
   flyButtons: {fileID: 479871201}
-  playerController: {fileID: 0}
 --- !u!1 &1216994904
 GameObject:
   m_ObjectHideFlags: 0
@@ -3836,18 +3779,12 @@ MonoBehaviour:
   worldTransform: {fileID: 526760868}
   player: {fileID: 972082045}
   initWorldWidth: 384
-  currentLevel: {fileID: 0}
   terrainMaterial: {fileID: 2100000, guid: a954707937c1164489be48accdb3001d, type: 2}
   shaderCandidates:
   - {fileID: 4800000, guid: 2f521f0a66f4c224d9da70d85b4abd5b, type: 3}
   - {fileID: 10703, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   viewDistanceCandidates: 04000000080000000c00000010000000
-  gameClientState: 2
-  viewDistanceCandidateIdx: 0
-  shaderCandidateIdx: 0
-  cursorLocked: 0
-  playerTickCount: 0
 --- !u!1 &1239196042
 GameObject:
   m_ObjectHideFlags: 0
@@ -4176,8 +4113,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dea298488a8481eb1be4ec1318078b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 0}
-  playerTransform: {fileID: 0}
 --- !u!1 &1296319006
 GameObject:
   m_ObjectHideFlags: 0
@@ -4245,9 +4180,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46d750182c1440b5bd0376e44ad90f0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  chunksInCache: 0
-  chunksInRender: 0
 --- !u!114 &1296319010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4300,9 +4232,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8de7850408544dbb9128b6c4da7627a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  staticInfo1: 
-  staticInfo2: 
-  text: {fileID: 0}
 --- !u!1 &1347035011
 GameObject:
   m_ObjectHideFlags: 0
@@ -4593,9 +4522,6 @@ MonoBehaviour:
   firstMenuPagePrefab: {fileID: 4452392738380730571, guid: db2a4db53eeb96945a6fb946f5ec7626,
     type: 3}
   openAtStart: 0
-  lastPagePrefab: {fileID: 0}
-  currentPage: {fileID: 0}
-  image: {fileID: 0}
 --- !u!114 &1370177814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4793,8 +4719,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 104b0c6b0eca4eb4baf6fa9a5215dc14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  player: {fileID: 0}
 --- !u!1 &1414100964
 GameObject:
   m_ObjectHideFlags: 0
@@ -5043,7 +4967,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   width: 160
-  progressRectTransform: {fileID: 0}
 --- !u!1 &1466189218
 GameObject:
   m_ObjectHideFlags: 0
@@ -5097,9 +5020,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9f83a75cf6c4fd282d43520b90a31b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  progressText: {fileID: 0}
-  titleText: {fileID: 0}
-  progressBar: {fileID: 0}
 --- !u!114 &1466189221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5226,8 +5146,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c43c1eba6b24f3bbbc1fbd2017eb051, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 0}
-  inPress: 0
   flySpeed: -5
 --- !u!114 &1470092319
 MonoBehaviour:
@@ -5624,7 +5542,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 17175
+    m_Bits: 49943
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -5665,9 +5583,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inWaterPostMaterial: {fileID: 2100000, guid: 0db1bb0396c5d114d891ee711fa25c62, type: 2}
   sightPostMaterial: {fileID: 2100000, guid: 36774927e20d6e546996b5beb133e9f6, type: 2}
-  waterCode: 0
-  player: {fileID: 0}
-  client: {fileID: 0}
 --- !u!1 &1680405309
 GameObject:
   m_ObjectHideFlags: 0
@@ -5735,9 +5650,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46d750182c1440b5bd0376e44ad90f0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  chunksInCache: 0
-  chunksInRender: 0
 --- !u!114 &1680405313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5790,7 +5702,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 320cb7f70d824857916cf401a08f89c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
 --- !u!1 &1726742301
 GameObject:
   m_ObjectHideFlags: 0
@@ -5873,9 +5784,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46d750182c1440b5bd0376e44ad90f0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
-  chunksInCache: 0
-  chunksInRender: 0
 --- !u!114 &1778049444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7299,8 +7207,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c43c1eba6b24f3bbbc1fbd2017eb051, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 0}
-  inPress: 0
   flySpeed: 5
 --- !u!114 &2116400562
 MonoBehaviour:
@@ -8743,9 +8649,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e05e37cb2dfb4b24a6023cb3c4d3bf61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slotsTransform: {fileID: 0}
-  selectorRectTransform: {fileID: 0}
-  slotCodes: 000000000000000000000000000000000000000000000000000000000000000000000000
 --- !u!1001 &6887867586059766494
 PrefabInstance:
   m_ObjectHideFlags: 0

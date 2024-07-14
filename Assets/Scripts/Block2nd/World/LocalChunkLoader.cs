@@ -29,25 +29,17 @@ namespace Block2nd.World
             
             reader.Dispose();
             gzipStream.Dispose();
-
-            var blocks = knbt.GetChunkBlockDataTensor("Blocks");
-            if (blocks == null)
-            {
-                return null;
-            }
-
-            var height = knbt.GetInt("Height", 128);
             
             Chunk chunk = new Chunk(level, chunkX, chunkZ, level.worldSettings.chunkHeight);
+
+            chunk.SetChunkWithKNBTData(knbt);
             
-            chunk.chunkBlocks = blocks;
             chunk.aabb = new Bounds(
-                new Vector3(8, height / 2f, 8),
-                new Vector3(16, height, 16)
+                new Vector3(8, chunk.chunkHeight / 2f, 8),
+                new Vector3(16, chunk.chunkHeight, 16)
             );
             chunk.BakeHeightMap();
             
-            chunk.populateState = knbt.GetInt("PopulateState");
             chunk.dirty = false;
             chunk.modified = false;
             chunk.saved = true;

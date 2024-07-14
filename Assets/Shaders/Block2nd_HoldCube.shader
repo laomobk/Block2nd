@@ -57,7 +57,7 @@
                 {
                     discard;
                 }
-				return fixed4(col.xyz * i.lambert * _EnvLight, col.a);
+				return fixed4(col.xyz * i.lambert * (_EnvLight * 0.5 + 0.5), col.a);
 			}
 			ENDCG
 		}

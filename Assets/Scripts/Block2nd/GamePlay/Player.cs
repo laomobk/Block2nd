@@ -14,6 +14,7 @@ using Block2nd.World;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
+using LightType = Block2nd.World.LightType;
 
 namespace Block2nd.GamePlay
 {
@@ -94,7 +95,7 @@ namespace Block2nd.GamePlay
                 if (level)
                 {
                     var light = gameClient.CurrentLevel.GetSkyLight((int) pos.x, (int) pos.y, (int) pos.z, true);
-                    holdingBlockPreview.SetEnvLight((15 - light) / 15f);
+                    holdingBlockPreview.SetEnvLight(light / 15f);
                 }
             }
             
@@ -262,6 +263,14 @@ namespace Block2nd.GamePlay
             BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnBeforePlace(
                 ref intPos, level, cp, this);
             
+            // TODO: delete this debug code
+            {
+                var chk = level.GetChunkFromCoords(intPos.x >> 4, intPos.z >> 4, true);
+                var localPos = chk.WorldToLocal(intPos.x, intPos.y, intPos.z);
+                Debug.Log("skylight: " + chk.GetSkyLight(
+                    localPos.x, localPos.y, localPos.z));
+            }
+
             level.SetBlock(holdingBlockCode, intPos.x, intPos.y, intPos.z, true);
             
             BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnAfterPlace(
