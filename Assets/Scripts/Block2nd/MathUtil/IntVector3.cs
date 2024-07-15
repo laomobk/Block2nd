@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Block2nd.MathUtil
@@ -46,21 +47,25 @@ namespace Block2nd.MathUtil
             this.z = z;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ToUnityVector3()
         {
             return new Vector3(x, y, z);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Distance(IntVector3 v)
         {
             return Mathf.Sqrt(DistanceSqure(v));
         } 
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float DistanceSqure(IntVector3 v)
         {
             return Mathf.Pow(v.x - x, 2) + Mathf.Pow(v.y - y, 2) + Mathf.Pow(v.z - z, 2);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float PlaneDistanceSqure(IntVector3 v)
         {
             return Mathf.Pow(v.x - x, 2) + Mathf.Pow(v.z - z, 2);
@@ -71,9 +76,17 @@ namespace Block2nd.MathUtil
             return "(" + x + ", " + y + ", " + z + ")";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntVector3 NewWithFloorToChunkGridCoord(Vector3 v)
         {
             return new IntVector3(Mathf.FloorToInt(v.x / 16), 0, Mathf.FloorToInt(v.z / 16));
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IntVector3 ToChunkCoordPos()
+        {
+            return new IntVector3(x >> 4, y, z >> 4);
         }
     }
 }

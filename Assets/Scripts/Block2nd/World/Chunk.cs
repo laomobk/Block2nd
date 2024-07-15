@@ -55,7 +55,7 @@ namespace Block2nd.World
 
         public bool NeedToSave => !saved || modified;
 
-        // high [L][R][B][F] low
+        // high [LF][LB][RF][RB][L][R][B][F] low
         public int lightUpdateSurroundingBits = 0;
 
         private static int[] lightUpdateQueue = new int[32768];
@@ -800,6 +800,8 @@ namespace Block2nd.World
             
             Profiler.BeginSample("Update Light By Type");
 
+            bool afterReCalcUpdate = false;
+            
             int queueHead = 0, queueBack = 0;
 
             var blockCode = GetBlock(cx, cy, cz, true).blockCode;
@@ -817,8 +819,6 @@ namespace Block2nd.World
             else if (computedLightValue < curSavedLightValue)
             {
                 // recalculate the light that emitted from update point.
-                Debug.Log($"{cx} {cy} {cz} C: {computedLightValue} S: {curSavedLightValue}");
-
                 lightUpdateQueue[queueBack++] = PackLightUpdateEvent(0, 0, 0, curSavedLightValue);
 
                 while (queueHead < queueBack)
@@ -864,6 +864,8 @@ namespace Block2nd.World
                                     if (neighbourBlockSavedLightValue == lightMightBe &&
                                         queueBack + 1 < lightUpdateQueue.Length)
                                     {
+                                        afterReCalcUpdate = true;
+                                        
                                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(
                                             nextDx, nextDy, nextDz, neighbourBlockSavedLightValue);
                                     }
@@ -898,15 +900,39 @@ namespace Block2nd.World
                     out int lightRight, out int lightLeft,
                     out int lightAbove, out int lightBelow,
                     out int lightAhead, out int lightBehind);
-                
+
                 if (computedLightValue == curSavedLightValue)
+                {
+                    if (afterReCalcUpdate)
+                    {
+                        if (nz >= 15)
+                            if (nx >= 15) lightUpdateSurroundingBits |= 32;
+                            else if (nx <= 0) lightUpdateSurroundingBits |= 128;
+                            else lightUpdateSurroundingBits |= 1;
+                        else if (nz <= 0)
+                            if (nx >= 15) lightUpdateSurroundingBits |= 16;
+                            else if (nx <= 0) lightUpdateSurroundingBits |= 64;
+                            else lightUpdateSurroundingBits |= 2;
+                        else if (nx >= 15) lightUpdateSurroundingBits |= 4;
+                        else if (nx <= 0) lightUpdateSurroundingBits |= 8;
+
+                    }
                     continue; // don't need to spread light
+                }
 
                 // 设置越区块检测位，用于表示这次更新是否超越了本区块的范围
-                if (nz >= 16) lightUpdateSurroundingBits |= 1;
-                else if (nz < 0) lightUpdateSurroundingBits |= 2;
-                if (nx >= 16) lightUpdateSurroundingBits |= 4;
-                else if (nx < 0) lightUpdateSurroundingBits |= 8;
+                if (nz >= 15)
+                    if (nx >= 15) lightUpdateSurroundingBits |= 32;
+                    else if (nx <= 0) lightUpdateSurroundingBits |= 128;
+                    else lightUpdateSurroundingBits |= 1;
+                else if (nz <= 0)
+                    if (nx >= 15) lightUpdateSurroundingBits |= 16;
+                    else if (nx <= 0) lightUpdateSurroundingBits |= 64;
+                    else lightUpdateSurroundingBits |= 2;
+                else if (nx >= 15) lightUpdateSurroundingBits |= 4;
+                else if (nx <= 0) lightUpdateSurroundingBits |= 8;
+
+
                 SetLightValueByType(nx, ny, nz, lightType, computedLightValue);
 
                 if (computedLightValue < curSavedLightValue)
@@ -936,10 +962,6 @@ namespace Block2nd.World
                     if (lightLeft < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx - 1, dy, dz);
-                        
-#if CHK_LIGHT_DEBUG
-                        ns += "L";
-#endif
                     }
 
                     if (lightAbove < computedLightValue)

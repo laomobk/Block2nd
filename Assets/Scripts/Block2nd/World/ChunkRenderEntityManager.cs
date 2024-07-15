@@ -54,9 +54,13 @@ namespace Block2nd.World
             
             RenderChunkInternal(chunk, force);
         }
-        
+
         public void RenderChunkInternal(Chunk chunk, bool force = false)
         {
+            if (force)
+            {
+                Debug.Log(chunk.worldBasePosition.ToChunkCoordPos());
+            }
             if (entityInUseDict.TryGetValue(chunk.CoordKey, out var entity))
             {
                 entity.freeCount = 0;
@@ -67,7 +71,7 @@ namespace Block2nd.World
             entity = ProvideFreeRenderEntity(chunk.CoordKey);
             entity.freeCount = 0;
             entity.transform.position = chunk.worldBasePosition.ToUnityVector3();
-            entity.RenderChunk(chunk);
+            entity.RenderChunk(chunk, force);
             entityInUseDict.Add(chunk.CoordKey, entity);
         }
 

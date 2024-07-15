@@ -973,14 +973,14 @@ namespace Block2nd.World
                 return;
 
             var chunk = chunkProvider.ProvideChunk(this, chunkX, chunkZ);
-            var local = chunk.WorldToLocal(x, y, z);
+            var loc = chunk.WorldToLocal(x, y, z);
 
             var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
 
             if (useInitState && blockCode > 0)
                 state = meta.initState;
             
-            chunk.chunkBlocks[local.x, local.y, local.z] = new ChunkBlockData
+            chunk.chunkBlocks[loc.x, loc.y, loc.z] = new ChunkBlockData
             {
                 blockCode = blockCode,
                 blockState = state
@@ -992,8 +992,6 @@ namespace Block2nd.World
             chunk.dirty = true;
             chunk.modified = true;
             
-            var loc = chunk.WorldToLocal(x, y, z);
-            
             if (notify)
             {
                 chunk.ChunkUpdate(loc.x, loc.y, loc.z, 3);
@@ -1002,23 +1000,35 @@ namespace Block2nd.World
             if (updateLighting)
             {
                 chunk.lightUpdateSurroundingBits = 0;
-                Debug.Log("update: " + loc);
+                
                 chunk.UpdateAllLightType(loc.x, loc.y, loc.z);
 
+                Debug.Log($"{chunkX} {chunkZ}");
+                
                 var bit = chunk.lightUpdateSurroundingBits;
-                if ((bit & 1) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1));
-                if ((bit & 2) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1));
-                if ((bit & 4) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ));
-                if ((bit & 8) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ));
+                
+                
+                    if ((bit & 1) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1, true), true);
+                    if ((bit & 2) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1, true), true);
+                    if ((bit & 4) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ, true), true);
+                    if ((bit & 8) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ, true), true);
+                    if ((bit & 16) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ - 1, true), true);
+                    if ((bit & 32) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ + 1, true), true);
+                    if ((bit & 64) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ - 1, true), true);
+                    if ((bit & 128) != 0)
+                        EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ + 1, true), true);
             }
-
-            EnqueueDirtyChunk(chunk);
             
             CheckSurroundingChunkNeedUpdate(loc, chunkX, chunkZ);
+
+            EnqueueDirtyChunk(chunk);
         }
 
         private void CheckSurroundingChunkNeedUpdate(IntVector3 chunkLoc, int chunkX, int chunkZ)
@@ -1037,7 +1047,10 @@ namespace Block2nd.World
         {
             foreach (var task in dirtyChunkQueue)
             {
-                if (task.chunk == chunk) return;
+                if (task.chunk == chunk)
+                {
+                    return;
+                }
             } 
             
             dirtyChunkQueue.Enqueue(new DirtyChunkRenderTask

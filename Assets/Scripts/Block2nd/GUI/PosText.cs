@@ -19,7 +19,7 @@ namespace Block2nd.GUI
         void Update()
         {
             Vector3 pos = this.player.transform.position;
-            this.text.text = "X: " + (int)pos.x + " Y: " + (int)pos.y + " Z: " + (int)pos.z;
+            this.text.text = $"X: {(int)pos.x} Y: {(int)pos.y} Z: {(int)pos.z}  ({(int) pos.x >> 4}, {(int)pos.z >> 4})";
         }
     }
 }
