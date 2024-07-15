@@ -21,6 +21,8 @@ namespace Block2nd.World
                 return null;
             }
             
+            Profiler.BeginSample("Load Chunk From Disk");
+            
             var gzipStream = new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress);
             var reader = new BinaryReader(gzipStream);
 
@@ -43,6 +45,8 @@ namespace Block2nd.World
             chunk.dirty = false;
             chunk.modified = false;
             chunk.saved = true;
+            
+            Profiler.EndSample();
             
             return chunk;
         }

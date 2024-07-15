@@ -84,11 +84,11 @@ namespace Block2nd.World
 
             Profiler.BeginSample("Render Chunk Mesh");
 
-            if ((chunk.lightingState & 1) == 0)
+            if (chunk.lightingState < 1)
             {
                 // TODO: consider it.
                 chunk.BakeHeightMapWithSkyLightUpdate();
-                chunk.lightingState |= 1;
+                chunk.lightingState = 1;
             }
             else
             {

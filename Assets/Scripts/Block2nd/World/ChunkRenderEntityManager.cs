@@ -57,10 +57,6 @@ namespace Block2nd.World
 
         public void RenderChunkInternal(Chunk chunk, bool force = false)
         {
-            if (force)
-            {
-                Debug.Log(chunk.worldBasePosition.ToChunkCoordPos());
-            }
             if (entityInUseDict.TryGetValue(chunk.CoordKey, out var entity))
             {
                 entity.freeCount = 0;

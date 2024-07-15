@@ -49,7 +49,9 @@ namespace Block2nd.Client.GameDebug
 
 			if (Input.GetKeyDown(KeyCode.Backslash))
 			{
-				client.CurrentLevel.ChunkRenderEntityManager.RenderChunk(client.CurrentLevel.GetChunkPlayerIn(), true);
+				var chunk = client.CurrentLevel.GetChunkPlayerIn();
+				Debug.Log("force refresh chunk at chunk pos: " + chunk.worldBasePosition.ToChunkCoordPos());
+				client.CurrentLevel.ChunkRenderEntityManager.RenderChunk(chunk, true);
 			}
 		}
 

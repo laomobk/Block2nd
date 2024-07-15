@@ -141,13 +141,7 @@ namespace Block2nd.World
         
         public void BakeHeightMapWithSkyLightUpdate()
         {
-            // TODO: reset this check.
-            /*
-            if (!dirty)
-                return;
-                */
-
-            Profiler.BeginSample("Bake HeightMap");
+            Profiler.BeginSample("Bake HeightMap With SkyLight Update");
 
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
@@ -574,8 +568,18 @@ namespace Block2nd.World
         
         public void UpdateChunkLightMapFullyNew()
         {
+            /*  do not check surrounding anymore.
+            if (!IsAroundChunksInCache())
+            {
+                Debug.LogWarning(
+                    $"cannot update lighting due to the lack of surrounding chunks: " +
+                    $"{worldBasePosition} ({worldBasePosition.ToChunkCoordPos()})");
+                return;
+            }
+            */
+
             BakeHeightMap();
-            
+
             Profiler.BeginSample("Update Lightmap Fully");
 
             Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
@@ -672,31 +676,30 @@ namespace Block2nd.World
             if (heightF < minHeight) minHeight = heightF;
             if (heightB < minHeight) minHeight = heightB;
             
-            UpdateSkyLightGapNeighbour(cx + 1, cz, heightR, height);
-            UpdateSkyLightGapNeighbour(cx - 1, cz, heightL, height);
-            UpdateSkyLightGapNeighbour(cx, cz + 1, heightF, height);
-            UpdateSkyLightGapNeighbour(cx, cz - 1, heightB, height);
-            UpdateSkyLightGapNeighbour(cx, cz, height, minHeight);
+            UpdateSkyLightGap(cx + 1, cz, heightR, height);
+            UpdateSkyLightGap(cx - 1, cz, heightL, height);
+            UpdateSkyLightGap(cx, cz + 1, heightF, height);
+            UpdateSkyLightGap(cx, cz - 1, heightB, height);
+            UpdateSkyLightGap(cx, cz, height, minHeight);
         }
 
-        private void UpdateSkyLightGapNeighbour(int cx, int cz, int thisHeight, int neighbourHeight)
+        private void UpdateSkyLightGap(int cx, int cz, int heightA, int heightB)
         {
-            int from = thisHeight, to = neighbourHeight;
-            if (thisHeight > neighbourHeight)
+            int from = heightA, to = heightB;
+            if (heightA > heightB)
             {
-                from = neighbourHeight;
-                to = thisHeight;
+                from = heightB;
+                to = heightA;
             }
             
-            /*
-            for (int cy = from; cy <= to; ++cy)
+            if (cx < 0 || cx >= 16 || cz < 0 || cz >= 16)
             {
-                GameObject.Destroy(GameClientDebugger.Instance.CreateDebugObject(
-                    new Vector3(cx, cy, cz) + worldBasePosition.ToUnityVector3(), Color.red,
-                    "L: " + GetSavedLightValueByType(cx, cy, cz, LightType.SKY) + " Hf: " + from + " Ht: " + to), 
-                    3f);
+                var worldPos = LocalToWorld(cx, 0, cz);
+                var chk = level.GetChunkFromCoords(worldPos.x >> 4, worldPos.z >> 4);
+                var nearLocal = chk.WorldToLocal(worldPos.x, worldPos.y, worldPos.z);
+                chk.UpdateSkyLightGap(nearLocal.x, nearLocal.z, heightA, heightB);
+                return;
             }
-            */
 
             for (int y = from; y <= to; ++y)
             {
@@ -784,7 +787,29 @@ namespace Block2nd.World
             return level.GetChunkFromCoords(cx + 1, cz, true) != null && 
                    level.GetChunkFromCoords(cx - 1, cz, true) != null &&
                    level.GetChunkFromCoords(cx, cz + 1, true) != null &&
-                   level.GetChunkFromCoords(cx, cz - 1, true) != null;
+                   level.GetChunkFromCoords(cx, cz - 1, true) != null &&
+                   level.GetChunkFromCoords(cx - 1, cz - 1, true) != null &&
+                   level.GetChunkFromCoords(cx - 1, cz + 1, true) != null &&
+                   level.GetChunkFromCoords(cx + 1, cz - 1, true) != null &&
+                   level.GetChunkFromCoords(cx + 1, cz + 1, true) != null;
+        }
+
+        public IntVector3[] GetAroundChunksPosList()
+        {
+                int cx = worldBasePosition.x >> 4;
+                int cz = worldBasePosition.z >> 4;
+
+                return new[]
+                {
+                    new IntVector3(cx + 1, cz),
+                    new IntVector3(cx - 1, cz),
+                    new IntVector3(cx, cz + 1),
+                    new IntVector3(cx, cz - 1),
+                    new IntVector3(cx - 1, cz - 1),
+                    new IntVector3(cx - 1, cz + 1),
+                    new IntVector3(cx + 1, cz - 1),
+                    new IntVector3(cx + 1, cz + 1)
+                };
         }
 
         public void UpdateAllLightType(int cx, int cy, int cz)
@@ -792,19 +817,16 @@ namespace Block2nd.World
             UpdateLightByType(cx, cy, cz, LightType.SKY);
             UpdateLightByType(cx, cy, cz, LightType.BLOCK);
         }
-
+        
         public void UpdateLightByType(int cx, int cy, int cz, LightType lightType)
         {
-            if (!IsAroundChunksInCache()) 
-                return;
-            
             Profiler.BeginSample("Update Light By Type");
 
             bool afterReCalcUpdate = false;
             
             int queueHead = 0, queueBack = 0;
 
-            var blockCode = GetBlock(cx, cy, cz, true).blockCode;
+            var blockCode = GetBlock(cx, cy, cz, true, false).blockCode;
             var curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
             var curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
 
@@ -850,7 +872,8 @@ namespace Block2nd.World
                                     var nextDz = dz + (((i / 2 + 2) % 3) / 2) * sign;
                                     var neighbourBlockSavedLightValue =
                                         GetSavedLightValueByType(cx + nextDx, cy + nextDy, cz + nextDz, lightType);
-                                    blockCode = GetBlock(cx + nextDx, cy + nextDy, cz + nextDz, true).blockCode;
+                                    blockCode = GetBlock(cx + nextDx, cy + nextDy, cz + nextDz, 
+                                        true, false).blockCode;
                                     var neighbourBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
 
                                     if (neighbourBlockOpacity == 0)
@@ -878,6 +901,8 @@ namespace Block2nd.World
                 queueHead = 0;
             }
             
+            Profiler.BeginSample("BFS Queue Process");
+            
             while (queueHead < queueBack)
             {
                 var packedUpdateEvent = lightUpdateQueue[queueHead++];
@@ -886,7 +911,7 @@ namespace Block2nd.World
 
                 int nx = cx + dx, ny = cy + dy, nz = cz + dz;
 
-                blockCode = GetBlock(cx + dx, cy + dy, cz + dz, true).blockCode;
+                blockCode = GetBlock(cx + dx, cy + dy, cz + dz, true, false).blockCode;
                 curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
                 curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
                 
@@ -948,7 +973,7 @@ namespace Block2nd.World
                 int absDy = dy > 0 ? dy : -dy;
                 int absDz = dz > 0 ? dz : -dz;
 
-                if (absDx + absDy + absDz < 17 && queueBack + 6 < lightUpdateQueue.Length)
+                if (absDx + absDy + absDz < 15 && queueBack + 6 < lightUpdateQueue.Length)
                 {
                     if (lightRight < computedLightValue)
                     {
@@ -1011,6 +1036,8 @@ namespace Block2nd.World
                 #if CHK_LIGHT_DEBUG
                 #endif
             }
+            
+            Profiler.EndSample();
             
             Profiler.EndSample();
         }
