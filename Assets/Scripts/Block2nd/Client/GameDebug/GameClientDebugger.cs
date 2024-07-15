@@ -49,6 +49,7 @@ namespace Block2nd.Client.GameDebug
 
 			if (Input.GetKeyDown(KeyCode.Backslash))
 			{
+				client.CurrentLevel.ChunkRenderEntityManager.RenderChunk(client.CurrentLevel.GetChunkPlayerIn(), true);
 			}
 		}
 

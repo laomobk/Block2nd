@@ -357,6 +357,7 @@ namespace Block2nd.Database
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(52)),
                 transparent = true,
                 forceRenderAllFace = true,
+                opacity = 2
             });
 
             AddBlock(new BlockMeta
@@ -374,7 +375,7 @@ namespace Block2nd.Database
                 blockId = "b2nd:block/grass",
                 blockName = "Grass",
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(49)),
-                transparent = true
+                transparent = true,
             });
 
             AddBlock(new BlockMeta
@@ -411,6 +412,7 @@ namespace Block2nd.Database
                 behavior = new PlantBehavior(),
                 nonCube = true,
                 plant = true,
+                opacity = 0
             });
             
             AddBlock(new BlockMeta
@@ -423,6 +425,7 @@ namespace Block2nd.Database
                 behavior = new PlantBehavior(),
                 nonCube = true,
                 plant = true,
+                opacity = 0
             });
 
             AddBlock(new BlockMeta

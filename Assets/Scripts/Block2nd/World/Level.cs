@@ -25,6 +25,12 @@ using UnityEngine.Serialization;
 
 namespace Block2nd.World
 {
+    internal struct DirtyChunkRenderTask
+    {
+        internal Chunk chunk;
+        internal bool forceRender;
+    }
+    
     public class Level : MonoBehaviour
     {
         public string levelFolderName = "Level_01";
@@ -47,7 +53,7 @@ namespace Block2nd.World
         public Player Player => client.player;
         public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
-        private readonly Queue<Chunk> dirtyChunkQueue = new Queue<Chunk>();
+        private readonly Queue<DirtyChunkRenderTask> dirtyChunkQueue = new Queue<DirtyChunkRenderTask>();
 
         private bool chunkProvideIgnoreDistance;
         private bool breakChunkDisplay;
@@ -119,7 +125,8 @@ namespace Block2nd.World
 
             if (dirtyChunkQueue.Count > 0)
             {
-                chunkRenderEntityManager.RenderChunk(dirtyChunkQueue.Dequeue());
+                var task = dirtyChunkQueue.Dequeue();
+                chunkRenderEntityManager.RenderChunk(task.chunk, task.forceRender);
             }
         }
 
@@ -954,9 +961,10 @@ namespace Block2nd.World
             chunk.modified = true;
             chunk.dirty = true;
         }
-        
+         
         public void SetBlock(int blockCode, int x, int y, int z, 
-                                bool notify = false, bool useInitState = true, byte state = 0)
+                                bool notify = false, bool useInitState = true, byte state = 0,
+                                bool updateLighting = true)
         {
             int chunkX = x >> 4;
             int chunkZ = z >> 4;
@@ -986,16 +994,58 @@ namespace Block2nd.World
             
             var loc = chunk.WorldToLocal(x, y, z);
             
-            // chunk.UpdateAllLightType(loc.x, loc.y, loc.z);
-
             if (notify)
             {
                 chunk.ChunkUpdate(loc.x, loc.y, loc.z, 3);
             }
 
-            if (!dirtyChunkQueue.Contains(chunk))
-                dirtyChunkQueue.Enqueue(chunk);
+            if (updateLighting)
+            {
+                chunk.lightUpdateSurroundingBits = 0;
+                Debug.Log("update: " + loc);
+                chunk.UpdateAllLightType(loc.x, loc.y, loc.z);
+
+                var bit = chunk.lightUpdateSurroundingBits;
+                if ((bit & 1) != 0)
+                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1));
+                if ((bit & 2) != 0)
+                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1));
+                if ((bit & 4) != 0)
+                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ));
+                if ((bit & 8) != 0)
+                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ));
+            }
+
+            EnqueueDirtyChunk(chunk);
+            
+            CheckSurroundingChunkNeedUpdate(loc, chunkX, chunkZ);
         }
+
+        private void CheckSurroundingChunkNeedUpdate(IntVector3 chunkLoc, int chunkX, int chunkZ)
+        {
+            if (chunkLoc.z >= 15)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1), true);
+            else if (chunkLoc.z <= 0) 
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1), true);
+            if (chunkLoc.x >= 15) 
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ), true);
+            else if (chunkLoc.x <= 0) 
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ), true);
+        }
+
+        public void EnqueueDirtyChunk(Chunk chunk, bool forceRender = false)
+        {
+            foreach (var task in dirtyChunkQueue)
+            {
+                if (task.chunk == chunk) return;
+            } 
+            
+            dirtyChunkQueue.Enqueue(new DirtyChunkRenderTask
+            {
+                chunk = chunk,
+                forceRender = forceRender
+            });
+    }
 
         public RayHit RaycastBlocks(Vector3 start, Vector3 end)
         {

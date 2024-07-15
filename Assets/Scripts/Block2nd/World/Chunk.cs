@@ -55,6 +55,9 @@ namespace Block2nd.World
 
         public bool NeedToSave => !saved || modified;
 
+        // high [L][R][B][F] low
+        public int lightUpdateSurroundingBits = 0;
+
         private static int[] lightUpdateQueue = new int[32768];
 
         public Chunk(Level level, int chunkX, int chunkZ, int chunkHeight)
@@ -582,6 +585,8 @@ namespace Block2nd.World
                 UpdateLightQueueForSkyLight(i % 16, i / 16);
             }
 
+            lightingState = 2;
+
             Profiler.EndSample();
         }
 
@@ -641,18 +646,6 @@ namespace Block2nd.World
                 case LightType.BLOCK: blockLightMap[idx] = (byte) lightValue; break;
             }
         }
-
-        // TODO: delete this debug api
-        private void PutDebugBall(int chunkWorldX, int chunkWorldZ, int x, int y, int z, 
-                                    Color color, float aliveTime = 999, string label = "")
-        {
-            if (worldBasePosition.x == chunkWorldX && worldBasePosition.z == chunkWorldZ)
-            {
-                var go = GameClientDebugger.Instance.CreateDebugObject(new Vector3(x, y, z) + 
-                                                              worldBasePosition.ToUnityVector3(), color, label);
-                GameObject.Destroy(go, aliveTime);
-            }
-        }
         
         // TODO: delete this debug api
         public IEnumerator DebugLightUpdate()
@@ -679,11 +672,11 @@ namespace Block2nd.World
             if (heightF < minHeight) minHeight = heightF;
             if (heightB < minHeight) minHeight = heightB;
             
-            UpdateSkyLightGapNeighbour(cx, cz, height, minHeight);
             UpdateSkyLightGapNeighbour(cx + 1, cz, heightR, height);
             UpdateSkyLightGapNeighbour(cx - 1, cz, heightL, height);
             UpdateSkyLightGapNeighbour(cx, cz + 1, heightF, height);
             UpdateSkyLightGapNeighbour(cx, cz - 1, heightB, height);
+            UpdateSkyLightGapNeighbour(cx, cz, height, minHeight);
         }
 
         private void UpdateSkyLightGapNeighbour(int cx, int cz, int thisHeight, int neighbourHeight)
@@ -695,12 +688,15 @@ namespace Block2nd.World
                 to = thisHeight;
             }
             
-            for (int y = from; y <= to; ++y)
+            /*
+            for (int cy = from; cy <= to; ++cy)
             {
                 GameObject.Destroy(GameClientDebugger.Instance.CreateDebugObject(
-                    new Vector3(cx, y, cz) + worldBasePosition.ToUnityVector3(), Color.red,
-                    GetSavedLightValueByType(cx, y, cz, LightType.SKY) + ""), 3f);
+                    new Vector3(cx, cy, cz) + worldBasePosition.ToUnityVector3(), Color.red,
+                    "L: " + GetSavedLightValueByType(cx, cy, cz, LightType.SKY) + " Hf: " + from + " Ht: " + to), 
+                    3f);
             }
+            */
 
             for (int y = from; y <= to; ++y)
             {
@@ -708,7 +704,32 @@ namespace Block2nd.World
             }
         }
         
-        private int ComputeAndGetBlockLightNearBy(int x, int y, int z, int opacity, int light, LightType lightType,
+        private int ComputeBlockLightNearBy(int cx, int cy, int cz, int opacity, int light, LightType lightType)
+        {
+            if (opacity == 0)
+                opacity = 1;
+
+            int lightRight = GetSavedLightValueByType(cx + 1, cy, cz, lightType);
+            int lightLeft = GetSavedLightValueByType(cx - 1, cy, cz, lightType);
+            int lightAbove = GetSavedLightValueByType(cx, cy + 1, cz, lightType);
+            int lightBelow = GetSavedLightValueByType(cx, cy - 1, cz, lightType);
+            int lightAhead = GetSavedLightValueByType(cx, cy, cz + 1, lightType);
+            int lightBehind = GetSavedLightValueByType(cx, cy, cz - 1, lightType);
+            
+            if (lightType == LightType.SKY && cy > GetHeight(cx, cz, true))
+            {
+                return 15;
+            }
+
+            return Mathf.Max(lightRight - opacity, 
+                lightLeft - opacity, 
+                lightAbove - opacity, 
+                lightBelow - opacity, 
+                lightAhead - opacity, 
+                lightBehind - opacity, light, 0);
+        }
+        
+        private int ComputeAndGetBlockLightNearBy(int cx, int cy, int cz, int opacity, int light, LightType lightType,
             out int lightRight, out int lightLeft,
             out int lightAbove, out int lightBelow,
             out int lightAhead, out int lightBehind)
@@ -717,14 +738,14 @@ namespace Block2nd.World
             if (opacity == 0)
                 opacity = 1;
 
-            lightRight = GetSavedLightValueByType(x + 1, y, z, lightType);
-            lightLeft = GetSavedLightValueByType(x - 1, y, z, lightType);
-            lightAbove = GetSavedLightValueByType(x, y + 1, z, lightType);
-            lightBelow = GetSavedLightValueByType(x, y - 1, z, lightType);
-            lightAhead = GetSavedLightValueByType(x, y, z + 1, lightType);
-            lightBehind = GetSavedLightValueByType(x, y, z - 1, lightType);
+            lightRight = GetSavedLightValueByType(cx + 1, cy, cz, lightType);
+            lightLeft = GetSavedLightValueByType(cx - 1, cy, cz, lightType);
+            lightAbove = GetSavedLightValueByType(cx, cy + 1, cz, lightType);
+            lightBelow = GetSavedLightValueByType(cx, cy - 1, cz, lightType);
+            lightAhead = GetSavedLightValueByType(cx, cy, cz + 1, lightType);
+            lightBehind = GetSavedLightValueByType(cx, cy, cz - 1, lightType);
             
-            if (lightType == LightType.SKY && y > GetHeight(x, z, true))
+            if (lightType == LightType.SKY && cy > GetHeight(cx, cz, true))
             {
                 return 15;
             }
@@ -737,7 +758,6 @@ namespace Block2nd.World
                 lightBehind - opacity, light, 0);
         }
 
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int PackLightUpdateEvent(int dx, int dy, int dz, int lightValue = 0)
         {
@@ -750,9 +770,9 @@ namespace Block2nd.World
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void UnpackLightUpdateEvent(int packedEvent, out int dx, out int dy, out int dz, out int lightValue)
         {
-            dx = packedEvent & 0x3f - 32;
-            dy = (packedEvent >> 6) & 0x3f - 32;
-            dz = (packedEvent >> 12) & 0x3f - 32;
+            dx = (packedEvent & 0x3f) - 32;
+            dy = ((packedEvent >> 6) & 0x3f) - 32;
+            dz = ((packedEvent >> 12) & 0x3f) - 32;
             lightValue = (packedEvent >> 18) & 0x3f;
         }
 
@@ -779,10 +799,82 @@ namespace Block2nd.World
                 return;
             
             Profiler.BeginSample("Update Light By Type");
-            
+
             int queueHead = 0, queueBack = 0;
 
-            lightUpdateQueue[queueBack++] = PackLightUpdateEvent(0, 0, 0);
+            var blockCode = GetBlock(cx, cy, cz, true).blockCode;
+            var curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
+            var curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
+
+            var computedLightValue = ComputeBlockLightNearBy(
+                cx, cy, cz, curBlockOpacity, curBlockLight, LightType.SKY);
+            var curSavedLightValue = GetSavedLightValueByType(cx, cy, cz, lightType);
+
+            if (computedLightValue > curSavedLightValue)
+            {
+                lightUpdateQueue[queueBack++] = PackLightUpdateEvent(0, 0, 0);
+            }
+            else if (computedLightValue < curSavedLightValue)
+            {
+                // recalculate the light that emitted from update point.
+                Debug.Log($"{cx} {cy} {cz} C: {computedLightValue} S: {curSavedLightValue}");
+
+                lightUpdateQueue[queueBack++] = PackLightUpdateEvent(0, 0, 0, curSavedLightValue);
+
+                while (queueHead < queueBack)
+                {
+                    var packedUpdateEvent = lightUpdateQueue[queueHead++];
+                    UnpackLightUpdateEvent(packedUpdateEvent, out int dx, out int dy, out int dz, out int prevLightValue);
+
+                    int nx = cx + dx, ny = cy + dy, nz = cz + dz;
+
+                    curSavedLightValue = GetSavedLightValueByType(nx, ny, nz, lightType);
+
+                    if (curSavedLightValue == prevLightValue)  // it might be the light emitted from update point.
+                    {
+                        SetLightValueByType(nx, ny, nz, lightType, 0);
+
+                        if (prevLightValue > 0)
+                        {
+                            int absDx = dx > 0 ? dx : -dx;
+                            int absDy = dy > 0 ? dy : -dy;
+                            int absDz = dz > 0 ? dz : -dz;
+
+                            if (absDx + absDy + absDz < 17)
+                            {
+                                for (int i = 0; i < 6; ++i)
+                                {
+                                    var sign = (i % 2) * 2 - 1; // 1 -1 1 -1...
+                                    var nextDx = dx + (((i / 2) % 3) / 2) * sign;
+                                    var nextDy = dy + (((i / 2 + 1) % 3) / 2) * sign;
+                                    var nextDz = dz + (((i / 2 + 2) % 3) / 2) * sign;
+                                    var neighbourBlockSavedLightValue =
+                                        GetSavedLightValueByType(cx + nextDx, cy + nextDy, cz + nextDz, lightType);
+                                    blockCode = GetBlock(cx + nextDx, cy + nextDy, cz + nextDz, true).blockCode;
+                                    var neighbourBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
+
+                                    if (neighbourBlockOpacity == 0)
+                                    {
+                                        neighbourBlockOpacity = 1;
+                                    }
+
+                                    var lightMightBe = prevLightValue - neighbourBlockOpacity;
+                                    if (lightMightBe < 0) lightMightBe = 0;
+
+                                    if (neighbourBlockSavedLightValue == lightMightBe &&
+                                        queueBack + 1 < lightUpdateQueue.Length)
+                                    {
+                                        lightUpdateQueue[queueBack++] = PackLightUpdateEvent(
+                                            nextDx, nextDy, nextDz, neighbourBlockSavedLightValue);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                queueHead = 0;
+            }
             
             while (queueHead < queueBack)
             {
@@ -792,28 +884,39 @@ namespace Block2nd.World
 
                 int nx = cx + dx, ny = cy + dy, nz = cz + dz;
 
-                var blockCode = GetBlock(cx + dx, cy + dy, cz + dz, true).blockCode;
-                var curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
-                var curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
+                blockCode = GetBlock(cx + dx, cy + dy, cz + dz, true).blockCode;
+                curBlockOpacity = BlockMetaDatabase.GetBlockOpacityByCode(blockCode);
+                curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
                 
-                var curLightValue = GetSavedLightValueByType(nx, ny, nz, lightType);
+                curSavedLightValue = GetSavedLightValueByType(nx, ny, nz, lightType);
 
                 if (curBlockOpacity == 0)
                     curBlockOpacity = 1;
                 
-                var computedLightValue = ComputeAndGetBlockLightNearBy(
+                computedLightValue = ComputeAndGetBlockLightNearBy(
                     nx, ny, nz, curBlockOpacity, curBlockLight, lightType,
                     out int lightRight, out int lightLeft,
                     out int lightAbove, out int lightBelow,
                     out int lightAhead, out int lightBehind);
                 
-                if (computedLightValue == curLightValue)
+                if (computedLightValue == curSavedLightValue)
                     continue; // don't need to spread light
-                
+
+                // 设置越区块检测位，用于表示这次更新是否超越了本区块的范围
+                if (nz >= 16) lightUpdateSurroundingBits |= 1;
+                else if (nz < 0) lightUpdateSurroundingBits |= 2;
+                if (nx >= 16) lightUpdateSurroundingBits |= 4;
+                else if (nx < 0) lightUpdateSurroundingBits |= 8;
                 SetLightValueByType(nx, ny, nz, lightType, computedLightValue);
-                
-                if (computedLightValue < curLightValue)
+
+                if (computedLightValue < curSavedLightValue)
                     continue;
+                
+                #if CHK_LIGHT_DEBUG
+                
+                string ns = "";
+                
+                #endif
 
                 int absDx = dx > 0 ? dx : -dx;
                 int absDy = dy > 0 ? dy : -dy;
@@ -824,33 +927,67 @@ namespace Block2nd.World
                     if (lightRight < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx + 1, dy, dz);
+                        
+#if CHK_LIGHT_DEBUG
+                        ns += "R";
+#endif
                     }
 
                     if (lightLeft < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx - 1, dy, dz);
+                        
+#if CHK_LIGHT_DEBUG
+                        ns += "L";
+#endif
                     }
 
                     if (lightAbove < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx, dy + 1, dz);
+                        
+#if CHK_LIGHT_DEBUG
+                        ns += "T";
+#endif
                     }
 
                     if (lightBelow < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx, dy - 1, dz);
+                        
+#if CHK_LIGHT_DEBUG
+                        ns += "D";
+#endif
                     }
 
                     if (lightAhead < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx, dy, dz + 1);
+                        
+#if CHK_LIGHT_DEBUG
+                        ns += "A";
+#endif
                     }
 
                     if (lightBehind < computedLightValue)
                     {
                         lightUpdateQueue[queueBack++] = PackLightUpdateEvent(dx, dy, dz - 1);
+
+#if CHK_LIGHT_DEBUG
+                        ns += "B";
+#endif
                     }
                 }
+                
+#if CHK_LIGHT_DEBUG
+                GameClientDebugger.Instance.CreateDebugObject(
+                    new Vector3(nx, ny, nz) + worldBasePosition.ToUnityVector3(), Color.red,
+                    $"L: {computedLightValue} QB: {queueBack} P: {cx} {cy} {cz} D: {dx} {dy} {dz}" + 
+                    $" NP: {nx} {ny} {nz} NS: {ns}");
+#endif
+                
+                #if CHK_LIGHT_DEBUG
+                #endif
             }
             
             Profiler.EndSample();

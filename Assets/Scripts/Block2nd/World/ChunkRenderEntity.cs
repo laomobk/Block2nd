@@ -63,7 +63,7 @@ namespace Block2nd.World
             subLiquidChunk.GetComponent<MeshRenderer>().enabled = state;
             subPlantChunk.GetComponent<MeshRenderer>().enabled = state;
         }
-        
+
         public void RenderChunk(Chunk chunk, bool force = false)
         {
             if (force)
@@ -84,19 +84,22 @@ namespace Block2nd.World
 
             Profiler.BeginSample("Render Chunk Mesh");
 
-            if (chunk.lightingState == 0)
+            if ((chunk.lightingState & 1) == 0)
             {
                 // TODO: consider it.
-                chunk.BakeHeightMap();
-                chunk.lightingState = 1;
+                chunk.BakeHeightMapWithSkyLightUpdate();
+                chunk.lightingState |= 1;
             }
             else
             {
                 chunk.BakeHeightMap();
             }
-
-            // chunk.UpdateChunkLightMapFullyNew();
             
+            if (chunk.lightingState < 2)
+            {
+                chunk.UpdateChunkLightMapFullyNew();
+            }
+
             var chunkBlocks = chunk.chunkBlocks;
             
             var opMesh = new Mesh();

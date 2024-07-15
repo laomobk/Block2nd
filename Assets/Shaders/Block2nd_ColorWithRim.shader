@@ -6,8 +6,10 @@
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
         LOD 100
+
+		Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {
@@ -49,7 +51,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return _Color * (i.rim * 0.5 + 0.5);
+                return fixed4((_Color * (i.rim * 0.5 + 0.5)).xyz, 0.3);
             }
             ENDCG
         }
