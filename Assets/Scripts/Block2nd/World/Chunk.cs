@@ -41,6 +41,8 @@ namespace Block2nd.World
         
         public byte[] skyLightMap;
         public byte[] blockLightMap;
+        
+        public bool[] cleanSkyLightColumn = new bool[256];
 
         public bool modified = true;
         public bool dirty = true;
@@ -271,6 +273,7 @@ namespace Block2nd.World
 
             chunkBlocks[x, y, z] = data;
 
+            RelightBlocksInGap(x, y, z);
 
             if (heightMap[x, z] < y && updateHeightMap)
             {
@@ -278,6 +281,12 @@ namespace Block2nd.World
             }
 
             dirty = true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Calc2DMapIndex(int x, int y)
+        {
+            return x << 4 | y;
         }
 
         public void SetBlockState(int x, int y, int z, byte state, bool worldPos, bool updateMesh)
@@ -480,6 +489,21 @@ namespace Block2nd.World
 
             return skyLightMap[CalcLightMapIndex(x, y, z)];
         }
+        
+        public int GetBlockLight(int x, int y, int z, bool cacheOnly = false)
+        {
+            var height = chunkBlocks.GetLength(1);
+
+            if (y >= height || y < 0)
+                return 0;
+            
+            if (x < 0 || x >= 16 || z < 0 || z >= 16)
+            {
+                return level.GetBlockLight(x + worldBasePosition.x, y, z + worldBasePosition.z, cacheOnly);
+            }
+
+            return blockLightMap[CalcLightMapIndex(x, y, z)];
+        }
 
         public bool CanThisBlockSeeTheSky(int cx, int cy, int cz)
         {
@@ -521,10 +545,17 @@ namespace Block2nd.World
         {
             chunkHeight = data.GetInt("Height", 128);
             populateState = data.GetInt("PopulateState");
+            // TODO: enable them when finish the lighting system.
             // lightingState = data.GetInt("LightingState");
             
             // skyLightMap = data.GetByteArray("SkyLightMap");
             // blockLightMap = data.GetByteArray("BlockLightMap");
+
+            if (lightingState >= 2)
+            {
+                for (int i = 0; i < 256; ++i)
+                    cleanSkyLightColumn[i] = true;
+            }
             
             chunkBlocks = data.GetChunkBlockDataTensor("Blocks");
             if (chunkBlocks == null)
@@ -584,14 +615,25 @@ namespace Block2nd.World
 
             Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
 
-            for (int i = 0; i < 256; ++i)
-            {
-                UpdateLightQueueForSkyLight(i % 16, i / 16);
-            }
+            CheckAndUpdateSkyLights();
 
             lightingState = 2;
 
             Profiler.EndSample();
+        }
+
+        public void CheckAndUpdateSkyLights()
+        {
+            for (int x = 0; x < 16; ++x)
+            {
+                for (int z = 0; z < 16; ++z)
+                {
+                    if (cleanSkyLightColumn[Calc2DMapIndex(x, z)])
+                        continue;
+                    
+                    UpdateLightQueueForSkyLight(x, z);
+                }
+            }
         }
 
         public int GetSavedLightValueByType(int x, int y, int z, LightType type)
@@ -748,9 +790,11 @@ namespace Block2nd.World
             lightAhead = GetSavedLightValueByType(cx, cy, cz + 1, lightType);
             lightBehind = GetSavedLightValueByType(cx, cy, cz - 1, lightType);
             
-            if (lightType == LightType.SKY && cy > GetHeight(cx, cz, true))
+            if (lightType == LightType.SKY)
             {
-                return 15;
+                if (cy > GetHeight(cx, cz, true))
+                    return 15;
+                light = 0;
             }
 
             return Mathf.Max(lightRight - opacity, 
@@ -1040,6 +1084,37 @@ namespace Block2nd.World
             Profiler.EndSample();
             
             Profiler.EndSample();
+        }
+
+        protected void RelightBlocksInGap(int cx, int cy, int cz)
+        {
+            // invoked before the height map updated. 
+
+            int height = GetHeight(cx, cz);
+            int newHeight = height;
+
+            if (cy > height) 
+                newHeight = height;
+            
+            if (height == newHeight) 
+                return;
+
+            if (height > newHeight)
+            {
+                for (int y = newHeight; y <= height; ++y)
+                {
+                    SetLightValueByType(cx, y, cz, LightType.SKY, 0);
+                }
+            }
+            else
+            {
+                for (int y = height; y <= newHeight; ++y)
+                {
+                    SetLightValueByType(cx, y, cz, LightType.SKY, 15);
+                }
+            }
+
+            cleanSkyLightColumn[Calc2DMapIndex(cx, cz)] = false;
         }
 
         public void UpdateChunkSkylightForBlock(int x, int y, int z)

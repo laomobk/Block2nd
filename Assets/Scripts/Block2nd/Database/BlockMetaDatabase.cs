@@ -518,6 +518,18 @@ namespace Block2nd.Database
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(54)),
                 transparent = false,
             });
+            
+            AddBlock(new BlockMeta
+            {
+                blockCode = blocks.Count,
+                blockId = "b2nd:block/torch",
+                blockName = "Torch",
+                behavior = new StickBlockBehavior(BlockSoundDescriptor.SoundDigWood),
+                shape = new StickShape(AtlasTextureDescriptor.Default.GetUVByIndex(80)),
+                transparent = true,
+                light = 14,
+                opacity = 0,
+            });
         }
     }
 }

@@ -7,12 +7,12 @@ namespace Block2nd.Behavior.Block
     {
         public static readonly NullBlockBehavior Default = new NullBlockBehavior();
         
-        private static NullBlockBehavior instance = null;
+        private static NullBlockBehavior _instance = null;
         public override BlockBehavior CreateInstance()
         {
-            if (instance == null)
-                instance = new NullBlockBehavior();
-            return instance;
+            if (_instance == null)
+                _instance = new NullBlockBehavior();
+            return _instance;
         }
 
         public override bool CanRaycast()

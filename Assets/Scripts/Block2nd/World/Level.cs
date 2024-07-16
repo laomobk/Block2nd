@@ -80,6 +80,9 @@ namespace Block2nd.World
         private ChunkRenderEntityManager chunkRenderEntityManager;
         public ChunkRenderEntityManager ChunkRenderEntityManager => chunkRenderEntityManager;
 
+        private NativeArray<IntVector3> nativePosArray;
+        private NativeArray<int> newChunkFlagArray;
+        private bool nativeArrayDisposed = true;
 
         [HideInInspector] public LevelSaveHandler levelSaveHandler;
         [HideInInspector] public int seed;
@@ -336,55 +339,57 @@ namespace Block2nd.World
             var arrSize = (radius * 2 + 1) * (radius * 2 + 1);
             var idx = 0;
 
-            var nativePosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
-            var newChunkFlagArray = new NativeArray<int>(arrSize, Allocator.TempJob);
-
-            try
-            {
-                for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
-                {
-                    for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
-                    {
-
-                        if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
-                        {
-                            nativePosArray[idx++] = new IntVector3(cx, cz);
-                        }
-                    }
-                }
-
-                var job = new PreheatSurroundingChunkJob();
-
-                job.positions = nativePosArray;
-                job.newChunkFlagArray = newChunkFlagArray;
-
-                ChunkJobExchange.level = this;
-                ChunkJobExchange.chunkProvider = chunkProvider;
-
-                var handle = job.Schedule(idx, 16);
-                Debug.Log("chunk preheat job count = " + idx);
-
-                while (!handle.IsCompleted) yield return null;
-                handle.Complete();
-
-                for (int i = 0; i <= idx; ++i)
-                {
-                    if (newChunkFlagArray[i] > 0)
-                    {
-                        var pos = nativePosArray[i];
-                        chunkProvider.GetChunkGenerator().PopulateChunk(this, pos.x, pos.y);
-
-                        yield return null;
-                    }
-                }
-            }
-            finally
+            if (!nativeArrayDisposed)
             {
                 nativePosArray.Dispose();
                 newChunkFlagArray.Dispose();
-
-                chunkProvideLock = false;
             }
+
+            nativePosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
+            newChunkFlagArray = new NativeArray<int>(arrSize, Allocator.TempJob);
+
+            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+            {
+                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                {
+
+                    if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
+                    {
+                        nativePosArray[idx++] = new IntVector3(cx, cz);
+                    }
+                }
+            }
+
+            var job = new PreheatSurroundingChunkJob();
+
+            job.positions = nativePosArray;
+            job.newChunkFlagArray = newChunkFlagArray;
+
+            ChunkJobExchange.level = this;
+            ChunkJobExchange.chunkProvider = chunkProvider;
+
+            var handle = job.Schedule(idx, 16);
+            Debug.Log("chunk preheat job count = " + idx);
+
+            while (!handle.IsCompleted) yield return null;
+            handle.Complete();
+
+            for (int i = 0; i <= idx; ++i)
+            {
+                if (newChunkFlagArray[i] > 0)
+                {
+                    var pos = nativePosArray[i];
+                    chunkProvider.GetChunkGenerator().PopulateChunk(this, pos.x, pos.y);
+
+                    yield return null;
+                }
+            }
+            
+            nativePosArray.Dispose();
+            newChunkFlagArray.Dispose();
+            nativeArrayDisposed = true;
+
+            chunkProvideLock = false;
 
             yield break;
         }
@@ -791,6 +796,24 @@ namespace Block2nd.World
                 return 0;
 
             return chunk.skyLightMap[chunk.CalcLightMapIndex(chunkLocalPos.x, chunkLocalPos.y, chunkLocalPos.z)];
+        }
+        
+        public int GetBlockLight(int x, int y, int z, bool cacheOnly = false)
+        {
+            Chunk chunk;
+            chunk = cacheOnly
+                ? chunkProvider.GetChunkInCache(this, x >> 4, z >> 4)
+                : GetChunkFromCoords(x >> 4, z >> 4);
+
+            if (chunk == null)
+                return 0;
+
+            var chunkLocalPos = chunk.WorldToLocal(x, y, z);
+
+            if (y < 0 || y >= worldSettings.chunkHeight)
+                return 0;
+
+            return chunk.blockLightMap[chunk.CalcLightMapIndex(chunkLocalPos.x, chunkLocalPos.y, chunkLocalPos.z)];
         }
         
         public int GetHeight(int x, int z, bool cacheOnly = false)
