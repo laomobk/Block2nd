@@ -21,6 +21,16 @@ namespace Block2nd.GUI
         public AllItemUI allItemUI;
         public ChatUI chatUI;
         public ChunkStatText chunkStatText;
+        public GameObject debugUI;
+
+        private void Start()
+        {
+            #if !UNITY_EDITOR
+            
+            debugUI.SetActive(false);
+            
+            #endif
+        }
 
         private float holdingItemNameTextAlpha;
 
@@ -60,6 +70,11 @@ namespace Block2nd.GUI
         public void SetGUIBackgroundState(bool state)
         {
             gameMenu.SetBackgroundState(state);
+        }
+
+        public void ToggleDebugUI()
+        {
+            debugUI.SetActive(!debugUI.active);
         }
     }
 }

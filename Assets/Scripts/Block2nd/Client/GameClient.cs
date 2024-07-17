@@ -151,6 +151,11 @@ namespace Block2nd.Client
 						OpenAllItems();
 					}
 				}
+
+				if (Input.GetKeyDown(KeyCode.F3))
+				{
+					guiCanvasManager.ToggleDebugUI();
+				}
 			}
 
 			if (gameClientState == GameClientState.CHAT)
