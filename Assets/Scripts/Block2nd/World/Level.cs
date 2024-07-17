@@ -40,6 +40,7 @@ namespace Block2nd.World
 
         [Range(0, 14400)] public int levelTime;
         public int levelTimeSpeed = 1;
+        public bool simulateTime = true;
 
         private ChunkManager chunkManager;
         private TerrainNoiseGenerator terrainNoise;
@@ -60,7 +61,6 @@ namespace Block2nd.World
 
         private bool chunkProvideIgnoreDistance;
         private bool breakChunkDisplay;
-        private bool skipChunkProvidingWhileDisplay;
 
         private GameClient client;
 
@@ -90,8 +90,14 @@ namespace Block2nd.World
         [HideInInspector] public LevelSaveHandler levelSaveHandler;
         [HideInInspector] public int seed;
 
+        #region Ambient Colors Inspect Settings
+        
         public Color glowHorizonColor;
         public Color noonHorizonColor;
+        public Color nightHorizonColor;
+
+        public Color noonHeavenColor;
+        public Color nightHeavenColor;
 
         public Color noonSkyColor;
         public Color nightSkyColor;
@@ -99,6 +105,8 @@ namespace Block2nd.World
         public AnimationCurve horizonColorBlendCurve;
         public AnimationCurve dayAndNightColorBlendCurve;
 
+        #endregion
+        
         public ChunkManager ChunkManager
         {
             get { return chunkManager; }
@@ -149,8 +157,9 @@ namespace Block2nd.World
 
         public void RefreshChunkRender()
         {
+            Debug.Log($"refresh chunk render, sync lock = {syncProvideAndRenderLock}" +
+                      $", provide lock = {chunkProvideLock}");
             breakChunkDisplay = true;
-            chunkProvideIgnoreDistance = true;
         }
 
         public void SetChunkProvider(IChunkProvider chunkProvider)
@@ -240,8 +249,11 @@ namespace Block2nd.World
             client.guiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
             chunkRenderEntityManager.Tick();
 
-            levelTime = (levelTime + levelTimeSpeed) % 14400;
-            UpdateLightColorByTime();
+            if (simulateTime)
+            {
+                levelTime = (levelTime + levelTimeSpeed) % 14400;
+                UpdateLightColorByTime();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -258,10 +270,13 @@ namespace Block2nd.World
             var dayAndNightBlendFactor = dayAndNightColorBlendCurve.Evaluate(levelTime / 14400f);
             if (dayAndNightBlendFactor < 0) dayAndNightBlendFactor = 0;
 
-            ShaderUniformManager.Instance.skyHorizonColor = glowHorizonColor * horizonBlendFactor +
-                                                            noonHorizonColor * (1 - horizonBlendFactor);
+            ShaderUniformManager.Instance.skyHorizonColor = 
+                dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor + noonHorizonColor * (1 - horizonBlendFactor)) + 
+                (1 - dayAndNightBlendFactor) * nightHorizonColor;
             ShaderUniformManager.Instance.skyLightColor = noonSkyColor * dayAndNightBlendFactor +
                                                           nightSkyColor * (1 - dayAndNightBlendFactor);
+            ShaderUniformManager.Instance.heavenColor = noonHeavenColor * dayAndNightBlendFactor +
+                                                        nightHeavenColor * (1 - dayAndNightBlendFactor);
         }
 
         public void ProvideChunksSurrounding(
@@ -275,16 +290,22 @@ namespace Block2nd.World
             {
                 if (!chunkProvideLock && !syncProvideAndRenderLock)
                 {
-                    if (!chunkProvideIgnoreDistance)
+                    if (!breakChunkDisplay)
                     {
-                        if ((lastChunkProvidePosition - position).magnitude < 48 /* 3 chunks far*/)
+                        if (!chunkProvideIgnoreDistance)
                         {
-                            return;
+                            var distance = client.gameSettings.viewDistance < 16 ? 32 : 48;
+                            if ((lastChunkProvidePosition - position).magnitude < distance)
+                            {
+                                return;
+                            }
                         }
-                    }
-                    else
-                    {
-                        chunkProvideIgnoreDistance = false;
+                        else
+                        {
+                            chunkProvideIgnoreDistance = false;
+                        }
+                    } else {
+                        breakChunkDisplay = false;
                     }
 
                     StartCoroutine(ChunkDisplayCoroutine(position, radius));
@@ -316,7 +337,12 @@ namespace Block2nd.World
             yield return StartCoroutine(ProvideChunksSurroundingCoroutineWithJob(position, radius));
             yield return StartCoroutine(RenderChunksSurrounding(position, radius));
 
-            breakChunkDisplay = false;
+            Debug.Log("Finished: ChunkDisplayCoroutine");
+            if (breakChunkDisplay)
+            {
+                chunkProvideIgnoreDistance = true;
+                breakChunkDisplay = false;
+            }
 
             syncProvideAndRenderLock = false;
         }
@@ -468,7 +494,6 @@ namespace Block2nd.World
             }
 
             chunkProvideIgnoreDistance = true;
-            skipChunkProvidingWhileDisplay = false;
 
             progressUI.SetTitle("Saving world...");
             progressUI.SetProgress("");
@@ -553,9 +578,13 @@ namespace Block2nd.World
 
         public IEnumerator RenderChunksSurrounding(Vector3 position, int distance)
         {
+            Debug.Log("Start: RenderChunksSurrounding");
+            
             var posList = CalculateChunkPositionList(position, distance);
 
             chunkRenderLock = true;
+
+            int count = 0;
 
             foreach (var pos in posList)
             {
@@ -568,11 +597,15 @@ namespace Block2nd.World
                         chunkProvider.TryGetChunk(this, aPos.x, aPos.y);
                     }
                     chunkRenderEntityManager.RenderChunk(chunk);
+                    ++count;
                     yield return null;
                 }
 
                 if (breakChunkDisplay)
+                {
+                    Debug.Log($"RenderChunksSurrounding break, rendered {count} chunk(s).");
                     break;
+                }
             }
 
             chunkRenderLock = false;

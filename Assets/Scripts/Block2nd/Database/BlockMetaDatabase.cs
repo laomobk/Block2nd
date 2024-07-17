@@ -376,6 +376,7 @@ namespace Block2nd.Database
                 blockName = "Grass",
                 shape = new CubeBlockShape(CubeBlockShape.CubeAppearance.NewSameFace(49)),
                 transparent = true,
+                opacity = 1
             });
 
             AddBlock(new BlockMeta

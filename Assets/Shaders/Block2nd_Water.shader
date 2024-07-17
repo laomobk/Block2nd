@@ -80,7 +80,7 @@
 					discard;
 
 				fixed4 skyLight = max(0.35, i.light.r) * _SkyLightColor;
-				fixed4 blockLight = i.light.g * _BlockLightColor;
+				fixed4 blockLight = max(0.35, i.light.g) * _BlockLightColor;
 
 				float blendFactor = min(i.light.r, _SkyLightLuminance);
 				fixed4 blendedLight = (blendFactor) * skyLight + (1 - blendFactor) * blockLight;

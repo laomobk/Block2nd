@@ -33,11 +33,5 @@ namespace Block2nd.GUI.Hierarchical.Buttons
             var level = levels[levelIdx];
             buttonText.text = "View Distance: " + level;
         }
-
-        public void SwitchDistance()
-        {
-            gameClient.SwitchDistance();
-            UpdateLabel();
-        }
     }
 }

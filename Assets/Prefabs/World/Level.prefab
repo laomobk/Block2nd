@@ -48,6 +48,7 @@ MonoBehaviour:
   levelName: Level_01
   levelTime: 0
   levelTimeSpeed: 1
+  simulateTime: 1
   worldSettings: {fileID: 11400000, guid: 2c7949822500ebc47b2577083b24acdc, type: 2}
   blockParticlePrefab: {fileID: 1534006773791382, guid: b3f96261af0a26d4493fdc9863b97899,
     type: 3}
@@ -57,8 +58,11 @@ MonoBehaviour:
   seed: 0
   glowHorizonColor: {r: 0.9622642, g: 0.6749287, b: 0.34042364, a: 0}
   noonHorizonColor: {r: 0.6901961, g: 0.8117647, b: 1, a: 1}
+  nightHorizonColor: {r: 0.01775543, g: 0.087257415, b: 0.1792453, a: 1}
+  noonHeavenColor: {r: 0.3820755, g: 0.6469003, b: 1, a: 1}
+  nightHeavenColor: {r: 0.01775543, g: 0.087257415, b: 0.1792453, a: 1}
   noonSkyColor: {r: 1, g: 1, b: 1, a: 0}
-  nightSkyColor: {r: 0.154, g: 0.154, b: 0.154, a: 0}
+  nightSkyColor: {r: 0.35, g: 0.35, b: 0.35, a: 0}
   horizonColorBlendCurve:
     serializedVersion: 2
     m_Curve:

@@ -60,7 +60,6 @@ namespace Block2nd.Client
 		public IGameGUI currentGUI;
 
 		private int playerTickCount = 0;
-
 		private static GameClient _instance;
 
 		public static GameClient Instance => _instance;
@@ -125,11 +124,6 @@ namespace Block2nd.Client
 				if (Input.GetKeyDown(KeyCode.L))
 				{
 					SwitchShader();
-				}
-
-				if (Input.GetKeyDown(KeyCode.K))
-				{
-					SwitchDistance();
 				}
 
 				if (Input.GetKeyDown(KeyCode.F))
@@ -223,6 +217,13 @@ namespace Block2nd.Client
 		private void ClientTick()
 		{
 			
+		}
+
+		public bool TryGetCurrentLevel(out Level level)
+		{
+			level = currentLevel != null ? currentLevel.GetComponent<Level>() : null;
+
+			return level != null;
 		}
 
 		public void ClientSendMessage(string message)
@@ -480,19 +481,6 @@ namespace Block2nd.Client
 				guiCanvasManager.chatUI.Focus();
 				guiCanvasManager.chatUI.Set(initText);
 			}
-		}
-
-		public int SwitchDistance()
-		{
-			if (viewDistanceCandidateIdx < viewDistanceCandidates.Length)
-			{
-				viewDistanceCandidateIdx = (viewDistanceCandidateIdx + 1) % viewDistanceCandidates.Length;
-				gameSettings.viewDistance = viewDistanceCandidates[viewDistanceCandidateIdx];
-			}
-
-			GetCurrentLevel().RefreshChunkRender();
-			
-			return viewDistanceCandidateIdx;
 		}
 
 		public void SetFogState(bool state)

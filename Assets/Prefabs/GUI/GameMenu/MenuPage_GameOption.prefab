@@ -487,6 +487,17 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 3359309199934908019}
+        m_MethodName: OnExit
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 7067890529912609555}
         m_MethodName: ExitPage
         m_Mode: 1
@@ -906,6 +917,7 @@ MonoBehaviour:
   graphicButton: {fileID: 1297533090675506170}
   viewDistanceButton: {fileID: 1297533092001047896}
   musicButton: {fileID: 186240997082325892}
+  backButton: {fileID: 1297533091528005630}
 --- !u!1 &8613369226195572532
 GameObject:
   m_ObjectHideFlags: 0

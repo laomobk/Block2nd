@@ -12,6 +12,7 @@ namespace Block2nd.CommandLine
             commandDict.Add("tp", new CommandTeleport());
             commandDict.Add("fly", new CommandFly());
             commandDict.Add("fill", new CommandFill());
+            commandDict.Add("time", new CommandTime());
         }
 
         public static ICommand Get(string prefix)
