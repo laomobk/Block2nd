@@ -17,11 +17,17 @@ namespace Block2nd.CommandLine.Command
 
             foreach (var arg in args)
             {
-                if (arg == "set")
+                switch (arg)
                 {
-                    state = 1;
-                } else if (arg == "time") 
-                    continue;
+                    case "set":
+                        state = 1;
+                        break;
+                    case "speed":
+                        state = 2;
+                        break;
+                    case "time":
+                        continue;
+                }
 
                 switch (state)
                 {
@@ -36,6 +42,19 @@ namespace Block2nd.CommandLine.Command
                             if (rt.GameClient.TryGetCurrentLevel(out Level level))
                             {
                                 level.levelTime = timeNum;
+                            }
+
+                            return null;
+                        }
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (int.TryParse(arg, out int num))
+                        {
+                            if (rt.GameClient.TryGetCurrentLevel(out Level level))
+                            {
+                                level.levelTimeSpeed = num;
                             }
 
                             return null;

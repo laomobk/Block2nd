@@ -55,7 +55,7 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				return fixed4(1, 1, 1, (sin(_Time.w * 5) * 0.5 + 0.5) * 0.3 + 0.2);
+				return fixed4(1, 1, 1, (sin(_Time.w * 5) * 0.5 + 0.5) * 0.2);
 			}
 			ENDCG
 		}

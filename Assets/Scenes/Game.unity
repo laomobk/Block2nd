@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.011413776, g: 0.052667074, b: 0.10967777, a: 1}
+  m_IndirectSpecularColor: {r: 0.56651795, g: 0.72872525, b: 0.9756823, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -797,6 +797,7 @@ MonoBehaviour:
   allItemUI: {fileID: 1968760449}
   chatUI: {fileID: 1726742303}
   chunkStatText: {fileID: 1778049443}
+  debugUI: {fileID: 1427654498}
 --- !u!1 &327452243
 GameObject:
   m_ObjectHideFlags: 0
@@ -3236,8 +3237,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 25}
-  m_SizeDelta: {x: -22.186401, y: 26.21207}
+  m_AnchoredPosition: {x: -0.11999512, y: 15.700012}
+  m_SizeDelta: {x: -5.621887, y: 24.42131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1107742955
 MonoBehaviour:
@@ -3809,15 +3810,15 @@ RectTransform:
   m_GameObject: {fileID: 1189559132}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_Children: []
   m_Father: {fileID: 1107742954}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.64990234, y: -0.0000076293945}
-  m_SizeDelta: {x: -15.649536, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1818.0107, y: 99.64421}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1189559134
 MonoBehaviour:
@@ -3839,11 +3840,11 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: a1e7f5b40f9e5b04aac1d154496eb05a, type: 3}
-    m_FontSize: 16
+    m_FontSize: 51
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 1
-    m_MaxSize: 40
+    m_MaxSize: 51
     m_Alignment: 3
     m_AlignByGeometry: 0
     m_RichText: 0
