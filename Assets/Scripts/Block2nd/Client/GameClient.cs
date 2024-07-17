@@ -61,6 +61,10 @@ namespace Block2nd.Client
 
 		private int playerTickCount = 0;
 
+		private static GameClient _instance;
+
+		public static GameClient Instance => _instance;
+
 		private void OnApplicationQuit()
 		{
 			StartCoroutine(SaveAndQuitCoroutine(false));
@@ -68,7 +72,19 @@ namespace Block2nd.Client
 
 		private void Awake()
 		{
+			if (_instance != null)
+			{
+				DestroyImmediate(_instance);
+			}
+
+			_instance = this;
+
 			commandRuntime = new CommandRuntime(this);
+		}
+
+		private void OnDestroy()
+		{
+			_instance = null;
 		}
 
 		private void Start()

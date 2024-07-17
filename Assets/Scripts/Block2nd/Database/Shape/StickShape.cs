@@ -11,10 +11,12 @@ namespace Block2nd.Database.Meta
         protected static Color[] colors;
 
         protected Vector2 originUV;
+        protected Color color;
         
-        public StickShape(Vector2 originAtlasUV)
+        public StickShape(Vector2 originAtlasUV, Color color)
         {
             originUV = originAtlasUV + new Vector2(0.02734375f, 0);
+            this.color = color;
             
             InitStickMeshData();
         }
@@ -23,8 +25,8 @@ namespace Block2nd.Database.Meta
         {
             var meshBuilder = new MeshBuilder();
 
+            meshBuilder.SetQuadColor(color, color, color, color);
             meshBuilder.SetQuadUV(originUV, 0.0078125f, 0.0390625f);
-            meshBuilder.SetQuadColor(Color.white, Color.white, Color.white, Color.white);
             
             // Front
             meshBuilder.AddQuad(
@@ -58,7 +60,7 @@ namespace Block2nd.Database.Meta
             colors = meshBuilder.colors.ToArray();
         }
         
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0)
+        public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0)
         {
             return new BlockMesh
             {

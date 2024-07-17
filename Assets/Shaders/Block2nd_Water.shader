@@ -29,6 +29,7 @@
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 				float3 normal : NORMAL;
+				float4 color : COLOR;
 			};
 
 			struct v2f
@@ -37,12 +38,19 @@
 				float4 vertex : SV_POSITION;
 				float lambert : TEXCOORD1;
 				float fresnel : TEXCOORD2;
+				float4 light : TEXCOORD3;
 				
 				UNITY_FOG_COORDS(4)
 			};
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+
+			fixed4 _SkyLightColor;
+			fixed4 _BlockLightColor;
+			fixed4 _SkyHorizonColor;
+
+			fixed _SkyLightLuminance;
 			
 			v2f vert (appdata v)
 			{
@@ -57,6 +65,7 @@
 				float3 norm = UnityObjectToWorldNormal(v.normal);
 
 				o.fresnel = 1 - min(0.4f, saturate(dot(view, norm)));
+				o.light = v.color;
 
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				
@@ -70,14 +79,20 @@
 				if (texColor.a == 0)
 					discard;
 
+				fixed4 skyLight = max(0.35, i.light.r) * _SkyLightColor;
+				fixed4 blockLight = i.light.g * _BlockLightColor;
+
+				float blendFactor = min(i.light.r, _SkyLightLuminance);
+				fixed4 blendedLight = (blendFactor) * skyLight + (1 - blendFactor) * blockLight;
+
 				fixed3 col = texColor.xyz * i.lambert;
 
 				float alpha = texColor.a + 0.1f;
 
 				alpha = alpha * (0.5 + 0.5 * saturate(i.fresnel) + 0.38);
-				col = col * (saturate(i.fresnel) + 0.26);
+				col = col * (saturate(i.fresnel) + 0.26) * blendedLight;
 				
-				UNITY_APPLY_FOG(i.fogCoord, col);
+				UNITY_APPLY_FOG_COLOR(i.fogCoord, col, _SkyHorizonColor);
 
 				return fixed4(col, saturate(alpha));
 			}

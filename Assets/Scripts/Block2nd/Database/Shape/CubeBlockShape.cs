@@ -156,7 +156,7 @@ namespace Block2nd.Database.Meta
             }
         }
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0)
+        public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0)
         {
             byte posIdx = 0, colorsIdx = 0, texcoordsIdx = 0, trianglesIdx = 0;
 
@@ -167,20 +167,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.frontTexIdx);
 
-                var color = new Color((lightAttenuation & 15) / 15f, (aoBits >> 6) & 1, 1);
+                var color = new Color(
+                    (lightAttenuation & 15) / 15f, ((lightAttenuation >> 24) & 15) / 15f, (aoBits >> 6) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 4) & 1;
+                color.b = (aoBits >> 4) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 7) & 1;
+                color.b = (aoBits >> 7) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 5) & 1;
+                color.b = (aoBits >> 5) & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
                 _BuildFace(
@@ -192,20 +193,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.backTexIdx);
 
-                var color = new Color(((lightAttenuation >> 4) & 15) / 15f, (aoBits >> 3) & 1, 1);
+                var color = new Color(
+                    ((lightAttenuation >> 4) & 15) / 15f, ((lightAttenuation >> 28) & 15) / 15f, (aoBits >> 3) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 1) & 1;
+                color.b = (aoBits >> 1) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 2) & 1;
+                color.b = (aoBits >> 2) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = aoBits & 1;
+                color.b = aoBits & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
                 
@@ -218,20 +220,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.leftTexIdx);
 
-                var color = new Color(((lightAttenuation >> 8) & 15) / 15f, (aoBits >> 7) & 1, 1);
+                var color = new Color(
+                    ((lightAttenuation >> 8) & 15) / 15f, ((lightAttenuation >> 32) & 15) / 15f, (aoBits >> 7) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 5) & 1;
+                color.b = (aoBits >> 5) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 3) & 1;
+                color.b = (aoBits >> 3) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 1) & 1;
+                color.b = (aoBits >> 1) & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
 
@@ -244,20 +247,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.rightTexIdx);
 
-                var color = new Color(((lightAttenuation >> 12) & 15) / 15f, (aoBits >> 2) & 1, 1);
+                var color = new Color(
+                    ((lightAttenuation >> 12) & 15) / 15f, ((lightAttenuation >> 36) & 15) / 15f, (aoBits >> 2) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = aoBits & 1;
+                color.b = aoBits & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 6) & 1;
+                color.b = (aoBits >> 6) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 4) & 1;
+                color.b = (aoBits >> 4) & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
                 _BuildFace(
@@ -269,20 +273,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.topTexIdx);
 
-                var color = new Color(((lightAttenuation >> 16) & 15) / 15f, (aoBits >> 4) & 1, 1);
+                var color = new Color(
+                    ((lightAttenuation >> 16) & 15) / 15f, ((lightAttenuation >> 40) & 15) / 15f, (aoBits >> 4) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = aoBits & 1;
+                color.b = aoBits & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 5) & 1;
+                color.b = (aoBits >> 5) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 1) & 1;
+                color.b = (aoBits >> 1) & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
                 _BuildFace(
@@ -294,20 +299,21 @@ namespace Block2nd.Database.Meta
             {
                 var texcoordOrigin = AtlasTextureDescriptor.Default.GetUVByIndex(appearance.bottomTexIdx);
 
-                var color = new Color(((lightAttenuation >> 20) & 15) / 15f, (aoBits >> 2) & 1, 1);
+                var color = new Color(
+                    ((lightAttenuation >> 20) & 15) / 15f, ((lightAttenuation >> 44) & 15) / 15f, (aoBits >> 2) & 1);
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 6) & 1;
+                color.b = (aoBits >> 6) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 3) & 1;
+                color.b = (aoBits >> 3) & 1;
                 tempColorsArray[colorsIdx++] = color;
-                color.g = (aoBits >> 7) & 1;
+                color.b = (aoBits >> 7) & 1;
                 tempColorsArray[colorsIdx++] = color;
 
                 bool flip = false;
                 if (aoBits > 0)
                 {
-                    flip = tempColorsArray[colorsIdx - 3].g + tempColorsArray[colorsIdx - 2].g >
-                           tempColorsArray[colorsIdx - 4].g + tempColorsArray[colorsIdx - 1].g;
+                    flip = tempColorsArray[colorsIdx - 3].b + tempColorsArray[colorsIdx - 2].b >
+                           tempColorsArray[colorsIdx - 4].b + tempColorsArray[colorsIdx - 1].b;
                 }
 
                 _BuildFace(

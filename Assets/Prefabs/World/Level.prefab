@@ -46,14 +46,157 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelFolderName: Level_01
   levelName: Level_01
+  levelTime: 0
+  levelTimeSpeed: 1
   worldSettings: {fileID: 11400000, guid: 2c7949822500ebc47b2577083b24acdc, type: 2}
   blockParticlePrefab: {fileID: 1534006773791382, guid: b3f96261af0a26d4493fdc9863b97899,
     type: 3}
   chunkPrefab: {fileID: 1353389129824702, guid: 57d381d19974b484e94fdb9705acdb49,
     type: 3}
-  breakChunkRender: 0
   gravity: {x: 0, y: -0.98, z: 0}
   seed: 0
+  glowHorizonColor: {r: 0.9622642, g: 0.6749287, b: 0.34042364, a: 0}
+  noonHorizonColor: {r: 0.6901961, g: 0.8117647, b: 1, a: 1}
+  noonSkyColor: {r: 1, g: 1, b: 1, a: 0}
+  nightSkyColor: {r: 0.154, g: 0.154, b: 0.154, a: 0}
+  horizonColorBlendCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.49639237
+    - serializedVersion: 3
+      time: 0.10005331
+      value: -0.00020160526
+      inSlope: 0.0045890748
+      outSlope: 0.0045890748
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.10316753
+    - serializedVersion: 3
+      time: 0.39873475
+      value: 0.0006590346
+      inSlope: -0.018485868
+      outSlope: -0.018485868
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.16140871
+      outWeight: 0.39394286
+    - serializedVersion: 3
+      time: 0.5005245
+      value: 0.999998
+      inSlope: 0.037662383
+      outSlope: 0.037662383
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.30688184
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.60455626
+      value: 0.005057156
+      inSlope: 0.02784676
+      outSlope: 0.02784676
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.45074874
+    - serializedVersion: 3
+      time: 0.90260756
+      value: 0.0050110654
+      inSlope: -0.000005709922
+      outSlope: -0.000005709922
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.093031034
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.9999986
+      value: 0.9965391
+      inSlope: -0
+      outSlope: -0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.22924139
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  dayAndNightColorBlendCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.50603867
+      inSlope: 4.9181433
+      outSlope: 4.9181433
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.100181386
+      value: 0.9987451
+      inSlope: -0.009487246
+      outSlope: -0.009487246
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.1973093
+    - serializedVersion: 3
+      time: 0.40113515
+      value: 0.99826574
+      inSlope: -0.038309246
+      outSlope: -0.038309246
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.18054684
+    - serializedVersion: 3
+      time: 0.49986553
+      value: 0.502089
+      inSlope: -6.012175
+      outSlope: -6.012175
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.6010987
+      value: -0.00024230964
+      inSlope: -0.0052470677
+      outSlope: -0.0052470677
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.18570828
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.9002983
+      value: -0.0016866624
+      inSlope: 0.0008537077
+      outSlope: 0.0008537077
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.15837386
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.50603867
+      inSlope: 5.0924444
+      outSlope: 5.0924444
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &114771931947235232
 MonoBehaviour:
   m_ObjectHideFlags: 0

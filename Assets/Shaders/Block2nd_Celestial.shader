@@ -1,4 +1,4 @@
-﻿Shader "B2nd/Block2nd_Clouds"
+﻿Shader "B2nd/Block2nd_Celestial"
 {
 	Properties
 	{
@@ -6,15 +6,17 @@
 	}
 	SubShader
 	{
-		Tags { "Queue"="Transparent+1" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Tags { "Queue"="Transparent+1" "IgnoreProjector"="True" "RenderType"="Background" }
 		LOD 100
 		
 		Blend SrcAlpha OneMinusSrcAlpha
+		ZTest Less
 
 		Pass
 		{
-		    Cull off
-		
+			Cull off
+			ZTest Less
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -27,23 +29,21 @@
 			{
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
+				float3 normal : NORMAL;
 			};
 
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
-				
-				UNITY_FOG_COORDS(4)
 			};
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-
-			float3 _PlayerPos;
-
-			float4 _SkyLightColor;
-			float4 _SkyHorizonColor;
+			
+            float luminance(float3 color) {
+                return color.r * 0.2125 + color.g * 0.7154 + color.b * 0.0721;
+            }
 			
 			v2f vert (appdata v)
 			{
@@ -51,29 +51,17 @@
 
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
-				UNITY_TRANSFER_FOG(o,o.vertex);
 				
 				return o;
 			}
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				i.uv.x += _Time.x / 100;
-				i.uv.x -= _PlayerPos.x / 3000;
-				i.uv.y -= _PlayerPos.z / 3000;
+				fixed4 texColor = tex2D(_MainTex, i.uv);
 
-				fixed4 col = tex2D(_MainTex, i.uv);
+				texColor.a = luminance(texColor.xyz);
 
-				if (col.a < 0.1)
-					discard;
-				
-				UNITY_APPLY_FOG_COLOR(i.fogCoord, col, _SkyHorizonColor);
-
-				col = col * _SkyLightColor;
-				col.a = 0.75f;
-				
-				return col;
+				return texColor;
 			}
 			ENDCG
 		}

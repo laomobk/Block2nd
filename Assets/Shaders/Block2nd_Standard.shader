@@ -26,14 +26,14 @@
 			{
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
-				float3 light : COLOR;
+				float4 light : COLOR;
 				float3 normal : NORMAL;
 			};
 
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
-				float3 light : TEXCOORD2;
+				float4 light : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 				float lambert : TEXCOORD1;
 				
@@ -42,7 +42,12 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			
+
+			fixed4 _SkyLightColor;
+			fixed4 _BlockLightColor;
+			fixed4 _SkyHorizonColor;
+			float _SkyLightLuminance;
+
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -60,11 +65,21 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				fixed4 texColor = tex2D(_MainTex, i.uv);
-				fixed3 col = texColor.xyz * max(0.5, i.lambert) * max(0.35, i.light.x) * (1 - i.light.y * 0.4f);
-				
-				UNITY_APPLY_FOG_COLOR(i.fogCoord, col, unity_FogColor);
 
-				// return fixed4(col * 0.3 + i.light.xxx * 0.7, texColor.a);
+
+				fixed4 skyLight = max(0.35, i.light.r) * _SkyLightColor;
+				fixed4 blockLight = i.light.g * _BlockLightColor;
+
+				float blendFactor = min(i.light.r, _SkyLightLuminance);
+				fixed4 blendedLight = (i.light.a * (blendFactor) * skyLight + max(1 - i.light.a, (1 - blendFactor) * blockLight));
+
+				float lambert = max(0.6, i.light.r) * i.lambert;
+
+				fixed3 col = texColor.xyz * lambert * blendedLight * (1 - i.light.b * 0.4f);
+				
+				UNITY_APPLY_FOG_COLOR(i.fogCoord, col, _SkyHorizonColor);
+
+				// return fixed4((_SkyLightLuminance * (_SkyLightLuminance > 0.5f)).xxx, texColor.a);
 				return fixed4(col, texColor.a);
 			}
 			ENDCG

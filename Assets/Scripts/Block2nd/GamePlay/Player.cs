@@ -267,8 +267,9 @@ namespace Block2nd.GamePlay
             {
                 var chk = level.GetChunkFromCoords(intPos.x >> 4, intPos.z >> 4, true);
                 var localPos = chk.WorldToLocal(intPos.x, intPos.y, intPos.z);
-                Debug.Log("skylight: " + chk.GetSkyLight(
-                    localPos.x, localPos.y, localPos.z));
+                Debug.Log(
+                    $"skylight: {chk.GetSkyLight(localPos.x, localPos.y, localPos.z)} " +
+                    $"blocklight: {chk.GetBlockLight(localPos.x, localPos.y, localPos.z)}");
             }
 
             level.SetBlock(holdingBlockCode, intPos.x, intPos.y, intPos.z, true);

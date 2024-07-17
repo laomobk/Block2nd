@@ -122,8 +122,7 @@ namespace Block2nd.World
                 {
                     for (int y = height - 1; y >= 0; --y)
                     {
-                        var code = chunkBlocks[x, y, z].blockCode;
-                        if (code != 0 && (BlockMetaDatabase.types[code] & BlockTypeBits.PlantBit) == 0)
+                        if (chunkBlocks[x, y, z].IsSolid())
                         {
                             heightMap[x, z] = y;
                             break;
@@ -246,8 +245,6 @@ namespace Block2nd.World
         public void SetBlock(int blockCode, int x, int y, int z,
             bool worldPos, bool updateMesh, bool updateHeightMap, byte state)
         {
-            int ox = x, oy = y, oz = z;
-
             var width = chunkBlocks.GetLength(0);
             var height = chunkBlocks.GetLength(1);
 
@@ -275,12 +272,15 @@ namespace Block2nd.World
 
             RelightBlocksInGap(x, y, z);
 
-            if (heightMap[x, z] < y && updateHeightMap)
+            if (updateHeightMap &&  
+                blockCode != 0 && (BlockMetaDatabase.types[blockCode] & BlockTypeBits.PlantBit) == 0
+                && heightMap[x, z] < y)
             {
                 heightMap[x, z] = y;
             }
 
             dirty = true;
+            modified = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -387,38 +387,38 @@ namespace Block2nd.World
             return exposed;
         }
 
-        public int GetLightAttenuation(int x, int y, int z, int exposedFace)
+        public long GetLightAttenuation(int x, int y, int z, int exposedFace)
         {
-            int attenuation = 0;
+            long attenuation = 0;
 
             if ((exposedFace & 1) != 0)
             {
-                attenuation |= GetSkyLight(x, y, z + 1);
+                attenuation |= GetSkyLight(x, y, z + 1) | ((long)GetBlockLight(x, y, z + 1) << 24);
             }
 
             if ((exposedFace & 2) != 0)
             {
-                attenuation |= GetSkyLight(x, y, z - 1) << 4;
+                attenuation |= (GetSkyLight(x, y, z - 1) << 4) | ((long)GetBlockLight(x, y, z - 1) << 28);
             }
 
             if ((exposedFace & 4) != 0)
             {
-                attenuation |= GetSkyLight(x - 1, y, z) << 8;
+                attenuation |= (GetSkyLight(x - 1, y, z) << 8) | ((long)GetBlockLight(x - 1, y, z) << 32);
             }
 
             if ((exposedFace & 8) != 0)
             {
-                attenuation |= GetSkyLight(x + 1, y, z) << 12;
+                attenuation |= (GetSkyLight(x + 1, y, z) << 12) | ((long)GetBlockLight(x + 1, y, z) << 36);
             }
 
             if ((exposedFace & 16) != 0)
             {
-                attenuation |= GetSkyLight(x, y + 1, z) << 16;
+                attenuation |= (GetSkyLight(x, y + 1, z) << 16) | ((long)GetBlockLight(x, y + 1, z) << 40);
             }
 
             if ((exposedFace & 32) != 0)
             {
-                attenuation |= GetSkyLight(x, y - 1, z) << 20;
+                attenuation |= (GetSkyLight(x, y - 1, z) << 20) | ((long)GetBlockLight(x, y - 1, z) << 44);
             }
 
             return attenuation;
@@ -629,8 +629,10 @@ namespace Block2nd.World
                 for (int z = 0; z < 16; ++z)
                 {
                     if (cleanSkyLightColumn[Calc2DMapIndex(x, z)])
+                    {
                         continue;
-                    
+                    }
+
                     UpdateLightQueueForSkyLight(x, z);
                 }
             }
@@ -761,9 +763,11 @@ namespace Block2nd.World
             int lightAhead = GetSavedLightValueByType(cx, cy, cz + 1, lightType);
             int lightBehind = GetSavedLightValueByType(cx, cy, cz - 1, lightType);
             
-            if (lightType == LightType.SKY && cy > GetHeight(cx, cz, true))
+            if (lightType == LightType.SKY)
             {
-                return 15;
+                if (cy > GetHeight(cx, cz, true))
+                    return 15;
+                light = 0;  // don't consider the block itself light value.
             }
 
             return Mathf.Max(lightRight - opacity, 
@@ -875,7 +879,7 @@ namespace Block2nd.World
             var curBlockLight = BlockMetaDatabase.GetBlockLightByCode(blockCode);
 
             var computedLightValue = ComputeBlockLightNearBy(
-                cx, cy, cz, curBlockOpacity, curBlockLight, LightType.SKY);
+                cx, cy, cz, curBlockOpacity, curBlockLight, lightType);
             var curSavedLightValue = GetSavedLightValueByType(cx, cy, cz, lightType);
 
             if (computedLightValue > curSavedLightValue)
@@ -1089,28 +1093,31 @@ namespace Block2nd.World
         protected void RelightBlocksInGap(int cx, int cy, int cz)
         {
             // invoked before the height map updated. 
-
             int height = GetHeight(cx, cz);
             int newHeight = height;
 
             if (cy > height) 
                 newHeight = height;
-            
-            if (height == newHeight) 
+
+            for (; newHeight > 0 && !GetBlock(cx, newHeight, cz).IsSolid(); --newHeight) {}
+
+            if (height == newHeight)
+            {
                 return;
+            }
 
             if (height > newHeight)
             {
                 for (int y = newHeight; y <= height; ++y)
                 {
-                    SetLightValueByType(cx, y, cz, LightType.SKY, 0);
+                    SetLightValueByType(cx, y, cz, LightType.SKY, 15);
                 }
             }
             else
             {
                 for (int y = height; y <= newHeight; ++y)
                 {
-                    SetLightValueByType(cx, y, cz, LightType.SKY, 15);
+                    SetLightValueByType(cx, y, cz, LightType.SKY, 0);
                 }
             }
 

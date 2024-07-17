@@ -8,7 +8,7 @@ namespace Block2nd.Database.Meta
         {
         }
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits)
+        public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits)
         {
             if ((exposedFace & 16) != 0)
             {

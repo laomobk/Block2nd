@@ -54,7 +54,7 @@ namespace Block2nd.Render
             }
 
             Graphics.Blit(renderTexture, dest, sightPostMaterial);
-            renderTexture.Release();
+            RenderTexture.ReleaseTemporary(renderTexture);
         }
     }
 }

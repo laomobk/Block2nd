@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Block2nd.Behavior;
 using Block2nd.Database;
 using Block2nd.Database.Meta;
@@ -30,12 +31,19 @@ namespace Block2nd.World
             blockState = 0,
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Transparent()
         {
             var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
             if (meta != null)
                 return meta.transparent;
             return true;  // air block is transparent.
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsSolid()
+        {
+            return blockCode != 0 && (BlockMetaDatabase.types[blockCode] & BlockTypeBits.PlantBit) == 0;
         }
 
         public override string ToString()

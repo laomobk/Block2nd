@@ -27,5 +27,5 @@ Material:
     - _BlendRatio: -0.67
     - _StepRatio: 1
     m_Colors:
-    - _HorizonColor: {r: 0.6901961, g: 0.8117647, b: 1, a: 1}
-    - _TopColor: {r: 0.3820755, g: 0.6469003, b: 1, a: 1}
+    - _HorizonColor: {r: 0.6901961, g: 0.8117647, b: 1, a: 0}
+    - _TopColor: {r: 0.3820755, g: 0.6469003, b: 1, a: 0}

@@ -40,7 +40,7 @@ namespace Block2nd.Database.Meta
             this.texIdx = texIdx;
         }
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0)
+        public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0)
         {
             var uvOriginal = AtlasTextureDescriptor.Default.GetUVByIndex(texIdx);
 
@@ -58,7 +58,7 @@ namespace Block2nd.Database.Meta
             _uvs[6] = uvRT;
             _uvs[7] = uvRight;
             
-            var color = new Color((15 - ((lightAttenuation >> 16) & 15)) / 15f, (aoBits >> 4) & 1, 1);
+            var color = new Color(((lightAttenuation >> 16) & 15) / 15f, ((lightAttenuation >> 40) & 15) / 15f, (aoBits >> 4));
             _colors[0] = color;
             _colors[1] = color;
             _colors[2] = color;

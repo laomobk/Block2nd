@@ -38,6 +38,9 @@ namespace Block2nd.World
 
         public System.Random random;
 
+        [Range(0, 14400)] public int levelTime;
+        public int levelTimeSpeed = 1;
+
         private ChunkManager chunkManager;
         private TerrainNoiseGenerator terrainNoise;
 
@@ -87,6 +90,15 @@ namespace Block2nd.World
         [HideInInspector] public LevelSaveHandler levelSaveHandler;
         [HideInInspector] public int seed;
 
+        public Color glowHorizonColor;
+        public Color noonHorizonColor;
+
+        public Color noonSkyColor;
+        public Color nightSkyColor;
+        
+        public AnimationCurve horizonColorBlendCurve;
+        public AnimationCurve dayAndNightColorBlendCurve;
+
         public ChunkManager ChunkManager
         {
             get { return chunkManager; }
@@ -104,6 +116,8 @@ namespace Block2nd.World
                 new EarthChunkGenerator(worldSettings));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
+
+            levelTime = TimeToLevelTime(9, 0);
         }
 
         private void Start()
@@ -225,6 +239,29 @@ namespace Block2nd.World
 
             client.guiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
             chunkRenderEntityManager.Tick();
+
+            levelTime = (levelTime + levelTimeSpeed) % 14400;
+            UpdateLightColorByTime();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TimeToLevelTime(int hour, int minute)
+        {
+            return hour * 60 + minute;
+        }
+
+        private void UpdateLightColorByTime()
+        {
+            var horizonBlendFactor = horizonColorBlendCurve.Evaluate(levelTime / 14400f);
+            if (horizonBlendFactor < 0) horizonBlendFactor = 0;
+            
+            var dayAndNightBlendFactor = dayAndNightColorBlendCurve.Evaluate(levelTime / 14400f);
+            if (dayAndNightBlendFactor < 0) dayAndNightBlendFactor = 0;
+
+            ShaderUniformManager.Instance.skyHorizonColor = glowHorizonColor * horizonBlendFactor +
+                                                            noonHorizonColor * (1 - horizonBlendFactor);
+            ShaderUniformManager.Instance.skyLightColor = noonSkyColor * dayAndNightBlendFactor +
+                                                          nightSkyColor * (1 - dayAndNightBlendFactor);
         }
 
         public void ProvideChunksSurrounding(
@@ -879,7 +916,7 @@ namespace Block2nd.World
             return GetChunkFromCoords((int) playerPos.x >> 4, (int) playerPos.z >> 4, cacheOnly);
         }
 
-    public ChunkBlockData GetBlock(Vector3 pos, 
+        public ChunkBlockData GetBlock(Vector3 pos, 
                                         bool autoGenerate = true, bool cacheOnly = false)
         {
             return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out Chunk _, autoGenerate, cacheOnly);
@@ -999,18 +1036,12 @@ namespace Block2nd.World
             if (useInitState && blockCode > 0)
                 state = meta.initState;
             
-            chunk.chunkBlocks[loc.x, loc.y, loc.z] = new ChunkBlockData
-            {
-                blockCode = blockCode,
-                blockState = state
-            };
-            
+            chunk.SetBlock(blockCode, loc.x, loc.y, loc.z, 
+                false, false, true, state);
+
             if (blockCode > 0)
                 meta.behavior.OnInit(new IntVector3(x, y, z), this, chunk, client.player);
 
-            chunk.dirty = true;
-            chunk.modified = true;
-            
             if (notify)
             {
                 chunk.ChunkUpdate(loc.x, loc.y, loc.z, 3);
@@ -1021,8 +1052,6 @@ namespace Block2nd.World
                 chunk.lightUpdateSurroundingBits = 0;
                 
                 chunk.UpdateAllLightType(loc.x, loc.y, loc.z);
-                
-                
 
                 var bit = chunk.lightUpdateSurroundingBits;
                 if ((bit & 1) != 0)

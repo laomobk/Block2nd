@@ -14,7 +14,7 @@ namespace Block2nd.Database.Meta
         public Vector3[] positions;
         public int[] triangles;
         public Vector2[] texcoords;
-        public Color[] colors;
+        public Color[] colors;  // ([SkyLight], [BlockLight], [AOBits], [EffectedBySkyLight]
 
         public byte positionCount;
         public byte triangleCount;
@@ -35,7 +35,7 @@ namespace Block2nd.Database.Meta
         ///     8 比特数，低到高位依次代表面：前 后 左 右 上 下 是否发生管线衰减。
         /// </param>
         /// <returns></returns>
-        public abstract BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits = 0);
+        public abstract BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0);
 
         public Vector3 GetCenterPoint()
         {
@@ -58,7 +58,7 @@ namespace Block2nd.Database.Meta
     {
         public Mesh mesh;
 
-        public override BlockMesh GetShapeMesh(int exposedFace, int lightAttenuation, int aoBits)
+        public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits)
         {
             return new BlockMesh
             {
