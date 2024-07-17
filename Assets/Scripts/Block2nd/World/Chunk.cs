@@ -765,7 +765,7 @@ namespace Block2nd.World
             
             if (lightType == LightType.SKY)
             {
-                if (cy > GetHeight(cx, cz, true))
+                if (cy >= GetHeight(cx, cz, true))
                     return 15;
                 light = 0;  // don't consider the block itself light value.
             }
@@ -866,8 +866,14 @@ namespace Block2nd.World
             UpdateLightByType(cx, cy, cz, LightType.BLOCK);
         }
         
+#if UNITY_EDITOR
+        public void UpdateLightByType(int cx, int cy, int cz, LightType lightType, bool verbose = false)
+        {
+#else
         public void UpdateLightByType(int cx, int cy, int cz, LightType lightType)
         {
+#endif
+
             Profiler.BeginSample("Update Light By Type");
 
             bool afterReCalcUpdate = false;
@@ -881,7 +887,17 @@ namespace Block2nd.World
             var computedLightValue = ComputeBlockLightNearBy(
                 cx, cy, cz, curBlockOpacity, curBlockLight, lightType);
             var curSavedLightValue = GetSavedLightValueByType(cx, cy, cz, lightType);
-
+            
+            #if UNITY_EDITOR
+            
+            if (verbose) {
+                GameObject.Destroy(GameClientDebugger.Instance.CreateDebugObject(
+                    new Vector3(cx, cy, cz) + worldBasePosition.ToUnityVector3(), Color.red,
+                    $"C: {computedLightValue} S: {curSavedLightValue}"),2f);
+            }
+            
+            #endif
+            
             if (computedLightValue > curSavedLightValue)
             {
                 lightUpdateQueue[queueBack++] = PackLightUpdateEvent(0, 0, 0);
@@ -1122,37 +1138,6 @@ namespace Block2nd.World
             }
 
             cleanSkyLightColumn[Calc2DMapIndex(cx, cz)] = false;
-        }
-
-        public void UpdateChunkSkylightForBlock(int x, int y, int z)
-        {
-            BakeHeightMapPartial(x, z);
-            var height = GetHeight(x, z);
-
-            if (y == height)
-            {
-                for (; y >= 0; --y)
-                {
-                    if (GetBlock(x, y, z).Transparent())
-                    {
-                        int value = 3;
-                        if (GetHeight(x - 1, z, true, true) > y &&
-                            GetHeight(x + 1, z, true, true) > y &&
-                            GetHeight(x, z + 1, true, true) > y &&
-                            GetHeight(x, z - 1, true, true) > y)
-                        {
-                            value = 6;
-                        }
-
-                        lightMap[x, y, z] = value;
-                    }
-                }
-            }
-        }
-
-        private void UpdateChunkSkyLight()
-        {
-            
         }
 
         public void AddEntity(EntityBase entity, float worldX, float y, float worldZ)
