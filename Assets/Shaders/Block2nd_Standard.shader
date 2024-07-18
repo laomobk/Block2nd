@@ -66,7 +66,6 @@
 			{
 				fixed4 texColor = tex2D(_MainTex, i.uv);
 
-
 				fixed4 skyLight = max(0.35, i.light.r) * _SkyLightColor;
 				fixed4 blockLight = max(0.35, i.light.g) * _BlockLightColor;
 

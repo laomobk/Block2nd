@@ -13,8 +13,6 @@ namespace Block2nd.CommandLine.Command
         {
             int state = 0;
             
-            Debug.Log(ArrayFormat.Format(args));
-
             foreach (var arg in args)
             {
                 switch (arg)

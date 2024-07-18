@@ -101,5 +101,10 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
                 level.RefreshChunkRender();
             }
         }
+
+        public void ToggleDebugUi()
+        {
+            GameClient.Instance.guiCanvasManager.ToggleDebugUI();
+        }
     }
 }

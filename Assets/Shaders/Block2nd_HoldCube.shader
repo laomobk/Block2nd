@@ -38,7 +38,13 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			float _EnvLight;
+			float4 _EnvLight;
+			
+			fixed4 _SkyLightColor;
+			fixed4 _BlockLightColor;
+			fixed4 _SkyHorizonColor;
+			
+			float _SkyLightLuminance;
 			
 			v2f vert (appdata v)
 			{
@@ -52,12 +58,20 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = tex2D(_MainTex, i.uv);
-                if (col.a < 0.1)
-                {
-                    discard;
-                }
-				return fixed4(col.xyz * i.lambert * (_EnvLight * 0.5 + 0.5), col.a);
+				fixed4 texColor = tex2D(_MainTex, i.uv);
+
+				if (texColor.a == 0)
+					discard;
+				
+				fixed4 skyLight = max(0.35, _EnvLight.r) * _SkyLightColor;
+				fixed4 blockLight = max(0.35, _EnvLight.g) * _BlockLightColor;
+
+				float blendFactor = min(_EnvLight.r, _SkyLightLuminance);
+				fixed4 blendedLight = ((blendFactor) * skyLight + (1 - blendFactor) * blockLight);
+
+				fixed3 col = saturate(texColor.xyz * i.lambert * blendedLight);
+
+				return fixed4(col, texColor.a);
 			}
 			ENDCG
 		}

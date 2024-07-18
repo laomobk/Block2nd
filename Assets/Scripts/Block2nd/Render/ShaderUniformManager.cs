@@ -39,10 +39,10 @@ namespace Block2nd.Render
             {
                 Shader.SetGlobalColor(SkyLightColor, skyLightColor);
                 Shader.SetGlobalColor(BlockLightColor, blockLightColor);
-                Shader.SetGlobalColor(SkyHorizonColor, skyHorizonColor * skyLightColor);
+                Shader.SetGlobalColor(SkyHorizonColor, skyHorizonColor);
                 Shader.SetGlobalFloat(SkyLightLuminance, skyLightColor.grayscale);
                 
-                skyBoxMaterial.SetColor(HorizonColor, skyHorizonColor * skyLightColor);
+                skyBoxMaterial.SetColor(HorizonColor, skyHorizonColor);
                 skyBoxMaterial.SetColor(TopColor, heavenColor * skyLightColor);
             }
         }

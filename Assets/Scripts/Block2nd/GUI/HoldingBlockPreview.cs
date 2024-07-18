@@ -36,9 +36,9 @@ namespace Block2nd.GUI
 			// transform.eulerAngles = gameClient.player.playerCamera.transform.eulerAngles;
 		}
 
-		public void SetEnvLight(float light)
+		public void SetEnvLight(float skyLight, float blockLight)
 		{
-			material.SetFloat("_EnvLight", light);
+			material.SetVector("_EnvLight", new Vector4(skyLight, blockLight));
 		}
 
 		public void SetMeshFromShape(BlockShape shape, int lightAttenuation)

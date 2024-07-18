@@ -90,13 +90,17 @@ namespace Block2nd.GamePlay
 
             if (gameClient.GameClientState == GameClientState.GAME)
             {
-                var pos = transform.position;
+                var pos = playerCamera.transform.position;
                 var level = gameClient.CurrentLevel;
 
                 if (level)
                 {
-                    var light = gameClient.CurrentLevel.GetSkyLight((int) pos.x, (int) pos.y, (int) pos.z, true);
-                    holdingBlockPreview.SetEnvLight(light / 15f);
+                    var skyLight = gameClient.CurrentLevel.GetSkyLight(
+                        (int) pos.x, (int) pos.y, (int) pos.z, true);
+                    var blockLight = gameClient.CurrentLevel.GetBlockLight(
+                        (int) pos.x, (int) pos.y, (int) pos.z, true);
+                    
+                    holdingBlockPreview.SetEnvLight(skyLight / 15f, blockLight / 15f);
                 }
             }
             

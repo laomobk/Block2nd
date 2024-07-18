@@ -27,7 +27,7 @@ namespace Block2nd.GUI
                 var used = Profiler.GetMonoUsedSizeLong();
                 var total = Profiler.GetMonoHeapSizeLong();
                 
-                text.text = $"Used Memory: {(int)((double)used / total * 100f)}% ({used / 1024 / 1024}MB) of {total / 1024 / 1024}MB";
+                text.text = $"Allocated: {used / 1024 / 1024}MB  Managed: {total / 1024 / 1024}MB";
                 yield return new WaitForSeconds(0.25f);
             }
         }

@@ -104,6 +104,9 @@ namespace Block2nd.World
         
         public AnimationCurve horizonColorBlendCurve;
         public AnimationCurve dayAndNightColorBlendCurve;
+        public AnimationCurve horizonEmissionCurve;
+        public AnimationCurve horizonSkyLightBlendCurve;
+        public AnimationCurve horizonPlayerSightBlendCurve;
 
         #endregion
         
@@ -249,7 +252,7 @@ namespace Block2nd.World
             client.guiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
             chunkRenderEntityManager.Tick();
 
-            if (simulateTime)
+            if (simulateTime && client.GameClientState == GameClientState.GAME)
             {
                 levelTime = (levelTime + levelTimeSpeed) % 14400;
                 UpdateLightColorByTime();
@@ -269,12 +272,42 @@ namespace Block2nd.World
             
             var dayAndNightBlendFactor = dayAndNightColorBlendCurve.Evaluate(levelTime / 14400f);
             if (dayAndNightBlendFactor < 0) dayAndNightBlendFactor = 0;
+            
+            var horizonEmissionAdd = horizonEmissionCurve.Evaluate(levelTime / 14400f);
 
-            ShaderUniformManager.Instance.skyHorizonColor = 
-                dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor + noonHorizonColor * (1 - horizonBlendFactor)) + 
-                (1 - dayAndNightBlendFactor) * nightHorizonColor;
+            var horizonSkyLightBlendFactor = horizonSkyLightBlendCurve.Evaluate(levelTime / 14400f);
+            if (horizonSkyLightBlendFactor < 0) horizonSkyLightBlendFactor = 0;
+            
+            var playerSightBlendFactor = horizonPlayerSightBlendCurve.Evaluate(levelTime / 14400f);
+
+            var playerTorwardSun = 
+                1 - Mathf.Abs((client.player.transform.localEulerAngles.y - 180f) - 
+                              Mathf.Sign(playerSightBlendFactor) * 90) / 90f;
+
+            if (playerTorwardSun <= 1 && playerTorwardSun >= 0)
+            {
+                playerTorwardSun = Mathf.Sqrt(playerTorwardSun);
+                horizonBlendFactor *= playerTorwardSun;
+            }
+            else
+            {
+                horizonBlendFactor = 0;
+                playerTorwardSun = 0;
+            }
+
+            horizonBlendFactor *= horizonBlendFactor;
+            horizonEmissionAdd *= playerTorwardSun;
+
             ShaderUniformManager.Instance.skyLightColor = noonSkyColor * dayAndNightBlendFactor +
                                                           nightSkyColor * (1 - dayAndNightBlendFactor);
+
+            ShaderUniformManager.Instance.skyHorizonColor = 
+                (1 - horizonSkyLightBlendFactor) * (
+                    (1 + horizonEmissionAdd) *
+                    (dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor + 
+                                               noonHorizonColor * (1 - horizonBlendFactor)) + 
+                     (1 - dayAndNightBlendFactor) * nightHorizonColor));
+            
             ShaderUniformManager.Instance.heavenColor = noonHeavenColor * dayAndNightBlendFactor +
                                                         nightHeavenColor * (1 - dayAndNightBlendFactor);
         }
