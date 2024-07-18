@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Block2nd.Client;
+using Block2nd.Client.GameDebug;
 using Block2nd.GUI;
 using Block2nd.Render;
 using Block2nd.Database;
@@ -374,7 +375,7 @@ namespace Block2nd.GamePlay
             if (currentLevel != null)
             {
                 var hit = currentLevel.RaycastBlocks(playerPos, playerPos + playerCamera.transform.forward * 10);
-                raycastBlockHit = hit;
+                    raycastBlockHit = hit;
 
                 if (hit != null)
                 {
@@ -384,6 +385,12 @@ namespace Block2nd.GamePlay
                     {
                         selectBox.UpdateDetectBox(meta.shape, hit.ToIntVector3().ToUnityVector3(),
                             currentLevel.GetExposedFace(hit.blockX, hit.blockY, hit.blockZ));
+                    }
+                    else
+                    {
+                        
+                        Destroy(GameClientDebugger.Instance.CreateDebugObject(
+                            new Vector3(hit.blockX, hit.blockY, hit.blockZ), Color.red), 1f);
                     }
                 }
             }

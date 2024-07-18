@@ -12,8 +12,8 @@ namespace TestPhys
         public Text camText;
         public Text aabbHitText;
         public Text unityHitText;
-        
-        private AABB aabb = new AABB(-1, -1, -1, 1, 1, 1); 
+
+        private AABB aabb = new AABB(-1.5f, -1, -1.5f, -.5f, 1, -.5f);
         
         private void Start()
         {

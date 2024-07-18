@@ -265,8 +265,9 @@ namespace Block2nd.Phys
                 direction = 3;
             else if (hitPoint == YZ2)
                 direction = 4;
-
-            return new RayHit((int) minX, (int) minY, (int) minZ, direction, hitPoint);
+            
+            return new RayHit(Mathf.FloorToInt(minX), Mathf.FloorToInt(minY), Mathf.FloorToInt(minZ), 
+                                direction, hitPoint);
         }
 
         /// <summary>
