@@ -57,6 +57,16 @@ namespace Block2nd.GamePlay
         public Vector3 Position => transform.position;
 
         [HideInInspector] public PlayerEntityBase entityBase;
+        
+        public IntVector3 IntPosition
+        {
+            get
+            {
+                var pos = transform.position;
+                return new IntVector3(
+                    Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z));
+            }
+        }
 
         private void Awake()
         {
@@ -90,15 +100,15 @@ namespace Block2nd.GamePlay
 
             if (gameClient.GameClientState == GameClientState.GAME)
             {
-                var pos = playerCamera.transform.position;
+                var (ix, iy, iz) = IntPosition;
                 var level = gameClient.CurrentLevel;
 
                 if (level)
                 {
                     var skyLight = gameClient.CurrentLevel.GetSkyLight(
-                        (int) pos.x, (int) pos.y, (int) pos.z, true);
+                        ix, iy, iz, true);
                     var blockLight = gameClient.CurrentLevel.GetBlockLight(
-                        (int) pos.x, (int) pos.y, (int) pos.z, true);
+                        ix, iy, iz, true);
                     
                     holdingBlockPreview.SetEnvLight(skyLight / 15f, blockLight / 15f);
                 }
@@ -268,7 +278,7 @@ namespace Block2nd.GamePlay
             BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode).behavior.OnBeforePlace(
                 ref intPos, level, cp, this);
             
-            // TODO: delete this debug code
+            #if UNITY_EDITOR
             {
                 var chk = level.GetChunkFromCoords(intPos.x >> 4, intPos.z >> 4, true);
                 var localPos = chk.WorldToLocal(intPos.x, intPos.y, intPos.z);
@@ -276,6 +286,7 @@ namespace Block2nd.GamePlay
                     $"skylight: {chk.GetSkyLight(localPos.x, localPos.y, localPos.z)} " +
                     $"blocklight: {chk.GetBlockLight(localPos.x, localPos.y, localPos.z)}");
             }
+            #endif
 
             level.SetBlock(holdingBlockCode, intPos.x, intPos.y, intPos.z, true);
             

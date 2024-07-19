@@ -81,12 +81,25 @@ namespace Block2nd.MathUtil
         {
             return new IntVector3(Mathf.FloorToInt(v.x / 16), 0, Mathf.FloorToInt(v.z / 16));
         }
-
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IntVector3 ToChunkCoordPos()
         {
             return new IntVector3(x >> 4, y, z >> 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IntVector3 FromFloorVector3(Vector3 v)
+        {
+            return new IntVector3(
+                Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z));
+        }
+
+        public void Deconstruct(out int x, out int y, out int z)
+        {
+            x = this.x;
+            y = this.y;
+            z = this.z;
         }
     }
 }

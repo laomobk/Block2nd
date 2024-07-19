@@ -221,7 +221,8 @@ namespace Block2nd.GamePlay
             {
                 floating = false;
                 
-                inWater = gameClient.CurrentLevel.GetBlock(transform.position).blockCode == waterCode;
+                inWater = gameClient.CurrentLevel.GetBlock(
+                    IntVector3.FromFloorVector3(transform.position)).blockCode == waterCode;
                 
                 if (Input.GetKey(KeyCode.LeftShift))
                 {

@@ -10,6 +10,7 @@ namespace Block2nd.GameSave
         public int seed = 0;
         public DateTime lastWriteTime;
         public bool newWorld;
+        public int levelTime;
 
         public override string ToString()
         {

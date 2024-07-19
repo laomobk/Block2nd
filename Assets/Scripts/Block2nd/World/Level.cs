@@ -109,6 +109,8 @@ namespace Block2nd.World
         public AnimationCurve horizonSkyLightBlendCurve;
         public AnimationCurve horizonPlayerSightBlendCurve;
 
+        private float playerCurrentSkyLightToSet = 1f;
+
         #endregion
         
         public ChunkManager ChunkManager
@@ -141,6 +143,12 @@ namespace Block2nd.World
         private void OnDestroy()
         {
             StopAllCoroutines();
+        }
+
+        private void Update()
+        {
+            if (client.GameClientState == GameClientState.GAME)
+                UpdateLightColorByTime();
         }
 
         private void LateUpdate()
@@ -256,7 +264,11 @@ namespace Block2nd.World
             if (simulateTime && client.GameClientState == GameClientState.GAME)
             {
                 levelTime = (levelTime + levelTimeSpeed) % 14400;
-                UpdateLightColorByTime();
+                
+                var (ix, iy, iz) = client.player.IntPosition;
+                var playerCurrentSkyLight = GetSkyLight(ix, iy, iz);
+
+                playerCurrentSkyLightToSet = Mathf.Lerp(playerCurrentSkyLightToSet, playerCurrentSkyLight / 15f, 0.2f);
             }
         }
 
@@ -303,11 +315,12 @@ namespace Block2nd.World
                                                           nightSkyColor * (1 - dayAndNightBlendFactor);
 
             ShaderUniformManager.Instance.skyHorizonColor = 
+                playerCurrentSkyLightToSet * (
                 (1 - horizonSkyLightBlendFactor) * (
                     (1 + horizonEmissionAdd) *
                     (dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor + 
                                                noonHorizonColor * (1 - horizonBlendFactor)) + 
-                     (1 - dayAndNightBlendFactor) * nightHorizonColor));
+                     (1 - dayAndNightBlendFactor) * nightHorizonColor)));
             
             ShaderUniformManager.Instance.heavenColor = noonHeavenColor * dayAndNightBlendFactor +
                                                         nightHeavenColor * (1 - dayAndNightBlendFactor);
@@ -996,7 +1009,14 @@ namespace Block2nd.World
         public ChunkBlockData GetBlock(Vector3 pos, 
                                         bool autoGenerate = true, bool cacheOnly = false)
         {
-            return GetBlock((int) pos.x, (int) pos.y, (int) pos.z, out Chunk _, autoGenerate, cacheOnly);
+            return GetBlock(Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.y), Mathf.FloorToInt(pos.z), 
+                            out Chunk _, autoGenerate, cacheOnly);
+        }
+        
+        public ChunkBlockData GetBlock(IntVector3 pos, 
+            bool autoGenerate = true, bool cacheOnly = false)
+        {
+            return GetBlock(pos.x, pos.y, pos.z, out Chunk _, autoGenerate, cacheOnly);
         }
         
         public ChunkBlockData GetBlock(int x, int y, int z, 
@@ -1437,6 +1457,7 @@ namespace Block2nd.World
             levelKnbt.SetString("Name", levelName);
             levelKnbt.SetInt("Type", chunkProvider.GetChunkGenerator().GetId());
             levelKnbt.SetInt("Seed", worldSettings.seed);
+            levelKnbt.SetInt("LevelTime", levelTime);
             
             levelKnbt.Write(levelDataWriter);
             

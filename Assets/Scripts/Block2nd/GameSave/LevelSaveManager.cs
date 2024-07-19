@@ -39,7 +39,8 @@ namespace Block2nd.GameSave
             preview.terrainType = levelKnbt.GetInt("Type");
             preview.lastWriteTime = info.LastWriteTime;
             preview.seed = levelKnbt.GetInt("Seed");
-
+            preview.levelTime = levelKnbt.GetInt("LevelTime", 540);
+            
             return preview;
         }
         

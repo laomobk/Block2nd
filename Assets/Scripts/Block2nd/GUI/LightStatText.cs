@@ -20,18 +20,20 @@ namespace Block2nd.GUI
 
         void Update()
         {
-            var playerPos = GameClient.Instance.player.playerCamera.transform.position;
+            var (ix, iy, iz) = GameClient.Instance.player.IntPosition;
             var level = GameClient.Instance.CurrentLevel;
             if (level == null)
                 return;
-
+            
             var skyLight = level.GetSkyLight(
-                (int) playerPos.x, (int) playerPos.y, (int) playerPos.z, true);
+                ix, iy, iz, true);
             var blockLight = level.GetBlockLight(
-                (int) playerPos.x, (int) playerPos.y, (int) playerPos.z, true);
+                ix, iy, iz, true);
 
-            text.text = $"L: {Mathf.Max(skyLight, blockLight)} ({skyLight} sky, {blockLight} block) / " +
-                        $"{ShaderUniformManager.Instance.skyLightColor.grayscale:0.00} LM";
+            var levelTime = level.levelTime;
+
+            text.text = $"L: {Mathf.Max(skyLight, blockLight)} ({skyLight} sky, {blockLight} block) | " +
+                        $"{ShaderUniformManager.Instance.skyLightColor.grayscale:0.00} LM | LT: {levelTime} ";
         }
     }
 }

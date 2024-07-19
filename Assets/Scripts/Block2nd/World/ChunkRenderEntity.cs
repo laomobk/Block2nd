@@ -81,30 +81,13 @@ namespace Block2nd.World
 
             brandNew = false;
             currentCoordKey = chunk.CoordKey;
+            
+            chunk.OnPreRender();
 
             Profiler.BeginSample("Render Chunk Mesh");
 
-            if (chunk.lightingState < 1)
-            {
-                // TODO: consider it.
-                chunk.BakeHeightMapWithSkyLightUpdate();
-                chunk.lightingState = 1;
-            }
-            else
-            {
-                chunk.BakeHeightMap();
-            }
-            
-            if (chunk.lightingState < 2)
-            {
-                chunk.UpdateChunkLightMapFullyNew();
-            } else if (chunk.lightingState < 3)
-            {
-                chunk.CheckAndUpdateSkyLights(true);
-            }
-
             var chunkBlocks = chunk.chunkBlocks;
-            
+
             var opMesh = new Mesh();
             var trMesh = new Mesh();
             var lqMesh = new Mesh();

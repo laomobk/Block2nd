@@ -225,6 +225,12 @@ namespace Block2nd.World
 
             return chunkBlocks[x, y, z];
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkBlockData GetBlockFast(int x, int y, int z)
+        {
+            return chunkBlocks[x, y, z];
+        }
 
         public ChunkBlockData GetBlock(IntVector3 pos, bool searchLevel = false)
         {
@@ -475,6 +481,12 @@ namespace Block2nd.World
 
             return heightMap[x, z];
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetHeightFast(int x, int z)
+        {
+            return heightMap[x, z];
+        }
 
         public int GetSkyLight(int x, int y, int z, bool cacheOnly = false)
         {
@@ -546,11 +558,16 @@ namespace Block2nd.World
         {
             chunkHeight = data.GetInt("Height", 128);
             populateState = data.GetInt("PopulateState");
-            // TODO: enable them when finish the lighting system.
-            // lightingState = data.GetInt("LightingState");
             
-            // skyLightMap = data.GetByteArray("SkyLightMap");
-            // blockLightMap = data.GetByteArray("BlockLightMap");
+            lightingState = data.GetInt("LightingState");
+            
+            var skyLightMapRead = data.GetByteArray("SkyLightMap");
+            var blockLightMapRead = data.GetByteArray("BlockLightMap");
+
+            if (skyLightMapRead != null)
+                skyLightMap = skyLightMapRead;
+            if (blockLightMapRead != null)
+                blockLightMap = blockLightMapRead;
 
             if (lightingState >= 2)
             {
@@ -617,10 +634,40 @@ namespace Block2nd.World
             Array.Clear(lightMap, 0, 16 * 16 * level.worldSettings.chunkHeight);
 
             CheckAndUpdateSkyLights();
+            UpdateBlockLights(true);
 
             lightingState = 2;
 
             Profiler.EndSample();
+        }
+
+        public void UpdateBlockLights(bool withSurroundingChunkCheck = false)
+        {
+            lightUpdateSurroundingBits = 0;
+            
+            for (int x = 0; x < 16; ++x)
+            {
+                for (int z = 0; z < 16; ++z)
+                {
+                    var height = heightMap[x, z];
+                    for (int y = height; y >= 0; --y)
+                    {
+                        var blockLight = BlockMetaDatabase.GetBlockMetaByCode(
+                            chunkBlocks[x, y, z].blockCode)?.light;
+                        
+                        if (blockLight != null && blockLight > 0)
+                        {
+                            UpdateLightByType(x, y, z, LightType.BLOCK);
+                        }
+                    }
+                }
+            }
+            
+            if (withSurroundingChunkCheck)
+                level.ScheduleSurroundingChunkUpdateForLightUpdate(
+                    lightUpdateSurroundingBits, 
+                    worldBasePosition.x >> 4, 
+                    worldBasePosition.z >> 4);
         }
 
         public void CheckAndUpdateSkyLights(bool withSurroundingChunkCheck = false)
@@ -1179,6 +1226,32 @@ namespace Block2nd.World
             }
 
             list.Add(entity);
+        }
+
+        public void OnPreRender()
+        {
+            Profiler.BeginSample("Chunk Pre Render");
+            
+            if (lightingState < 1)
+            {
+                // TODO: consider it.
+                BakeHeightMapWithSkyLightUpdate();
+                lightingState = 1;
+            }
+            else
+            {
+                BakeHeightMap();
+            }
+            
+            if (lightingState < 2)
+            {
+                UpdateChunkLightMapFullyNew();
+            } else if (lightingState < 3)
+            {
+                CheckAndUpdateSkyLights(true);
+            }
+            
+            Profiler.EndSample();
         }
     }
 }

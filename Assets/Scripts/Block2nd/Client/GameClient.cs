@@ -331,6 +331,7 @@ namespace Block2nd.Client
 					name = "Level_01",
 					seed = 0,
 					newWorld = false,
+					levelTime = 540,
 				});
 				return;
 			}
@@ -378,10 +379,12 @@ namespace Block2nd.Client
 			yield return null;
 			
 			currentLevel = Instantiate(levelPrefab, worldTransform);
-			var level = currentLevel.GetComponent<Level>();
 			
+			var level = currentLevel.GetComponent<Level>();
+
 			level.seed = preview.seed;
 			level.random = new System.Random(preview.seed);
+			level.levelTime = preview.levelTime;
 
 			if (chunkProvider != null)
 				level.SetChunkProvider(chunkProvider);
