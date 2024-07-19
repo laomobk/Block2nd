@@ -61,6 +61,7 @@ namespace Block2nd.World
 
         private bool chunkProvideIgnoreDistance;
         private bool breakChunkDisplay;
+        private bool chunkProvidingInDisplay = true;
 
         private GameClient client;
 
@@ -367,7 +368,15 @@ namespace Block2nd.World
         {
             syncProvideAndRenderLock = true;
 
-            yield return StartCoroutine(ProvideChunksSurroundingCoroutineWithJob(position, radius));
+            if (chunkProvidingInDisplay)
+            {
+                yield return StartCoroutine(ProvideChunksSurroundingCoroutineWithJob(position, radius));
+            }
+            else
+            {
+                chunkProvidingInDisplay = true;
+            }
+
             yield return StartCoroutine(RenderChunksSurrounding(position, radius));
 
             Debug.Log("Finished: ChunkDisplayCoroutine");
@@ -534,6 +543,8 @@ namespace Block2nd.World
             yield return null;
 
             SaveLevelCompletely();
+
+            chunkProvidingInDisplay = false;
 
             chunkProvideLock = false;
         }
@@ -1118,29 +1129,33 @@ namespace Block2nd.World
                 chunk.lightUpdateSurroundingBits = 0;
                 
                 chunk.UpdateAllLightType(loc.x, loc.y, loc.z);
-
-                var bit = chunk.lightUpdateSurroundingBits;
-                if ((bit & 1) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1, true), true);
-                if ((bit & 2) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1, true), true);
-                if ((bit & 4) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ, true), true);
-                if ((bit & 8) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ, true), true);
-                if ((bit & 16) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ - 1, true), true);
-                if ((bit & 32) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ + 1, true), true);
-                if ((bit & 64) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ - 1, true), true);
-                if ((bit & 128) != 0)
-                    EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ + 1, true), true);
+                var bits = chunk.lightUpdateSurroundingBits;
+                ScheduleSurroundingChunkUpdateForLightUpdate(bits, chunkX, chunkZ);
             }
             
             CheckSurroundingChunkNeedUpdate(loc, chunkX, chunkZ);
 
             EnqueueDirtyChunk(chunk);
+        }
+
+        public void ScheduleSurroundingChunkUpdateForLightUpdate(int bits, int chunkX, int chunkZ)
+        {
+            if ((bits & 1) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ + 1, true), true);
+            if ((bits & 2) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX, chunkZ - 1, true), true);
+            if ((bits & 4) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ, true), true);
+            if ((bits & 8) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ, true), true);
+            if ((bits & 16) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ - 1, true), true);
+            if ((bits & 32) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX + 1, chunkZ + 1, true), true);
+            if ((bits & 64) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ - 1, true), true);
+            if ((bits & 128) != 0)
+                EnqueueDirtyChunk(GetChunkFromCoords(chunkX - 1, chunkZ + 1, true), true);
         }
 
         private void CheckSurroundingChunkNeedUpdate(IntVector3 chunkLoc, int chunkX, int chunkZ)

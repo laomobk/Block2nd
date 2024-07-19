@@ -100,7 +100,7 @@ namespace Block2nd.World
                 chunk.UpdateChunkLightMapFullyNew();
             } else if (chunk.lightingState < 3)
             {
-                chunk.CheckAndUpdateSkyLights();
+                chunk.CheckAndUpdateSkyLights(true);
             }
 
             var chunkBlocks = chunk.chunkBlocks;

@@ -43,6 +43,7 @@ namespace Block2nd.World
         public byte[] blockLightMap;
         
         public bool[] cleanSkyLightColumn = new bool[256];
+        public int[] dirtyColumnRange = new int[256];
 
         public bool modified = true;
         public bool dirty = true;
@@ -622,20 +623,42 @@ namespace Block2nd.World
             Profiler.EndSample();
         }
 
-        public void CheckAndUpdateSkyLights()
+        public void CheckAndUpdateSkyLights(bool withSurroundingChunkCheck = false)
         {
+            lightUpdateSurroundingBits = 0;
+            
             for (int x = 0; x < 16; ++x)
             {
                 for (int z = 0; z < 16; ++z)
                 {
-                    if (cleanSkyLightColumn[Calc2DMapIndex(x, z)])
+                    int idx = Calc2DMapIndex(x, z);
+                    if (cleanSkyLightColumn[idx])
                     {
                         continue;
                     }
 
-                    UpdateLightQueueForSkyLight(x, z);
+                    cleanSkyLightColumn[idx] = true;
+
+                    if (dirtyColumnRange[idx] > 0)
+                    {
+                        int range = dirtyColumnRange[idx];
+                        int heightA = range & 0xff, heightB = (range >> 8) & 0xff;
+                        UpdateSkyLightGap(x, z, heightA, heightB);
+                        
+                        dirtyColumnRange[idx] = 0;
+                    }
+                    else
+                    {
+                        UpdateLightQueueForSkyLight(x, z);
+                    }
                 }
             }
+            
+            if (withSurroundingChunkCheck)
+                level.ScheduleSurroundingChunkUpdateForLightUpdate(
+                    lightUpdateSurroundingBits, 
+                    worldBasePosition.x >> 4, 
+                    worldBasePosition.z >> 4);
         }
 
         public int GetSavedLightValueByType(int x, int y, int z, LightType type)
@@ -765,7 +788,7 @@ namespace Block2nd.World
             
             if (lightType == LightType.SKY)
             {
-                if (cy >= GetHeight(cx, cz, true))
+                if (cy > GetHeight(cx, cz, true))
                     return 15;
                 light = 0;  // don't consider the block itself light value.
             }
@@ -1113,31 +1136,27 @@ namespace Block2nd.World
             int newHeight = height;
 
             if (cy > height) 
-                newHeight = height;
+                newHeight = cy;
 
-            for (; newHeight > 0 && !GetBlock(cx, newHeight, cz).IsSolid(); --newHeight) {}
+            for (; newHeight > 0 && !GetBlock(cx, newHeight, cz).IsSolid(); --newHeight) { }
 
             if (height == newHeight)
             {
                 return;
             }
 
+            int idx = Calc2DMapIndex(cx, cz);
+
             if (height > newHeight)
             {
-                for (int y = newHeight; y <= height; ++y)
-                {
-                    SetLightValueByType(cx, y, cz, LightType.SKY, 15);
-                }
+                dirtyColumnRange[idx] = ((height& 0xff) << 8)  | (newHeight & 0xff);
             }
             else
             {
-                for (int y = height; y <= newHeight; ++y)
-                {
-                    SetLightValueByType(cx, y, cz, LightType.SKY, 0);
-                }
+                dirtyColumnRange[idx] = ((newHeight & 0xff) << 8) | (height & 0xff);
             }
-
-            cleanSkyLightColumn[Calc2DMapIndex(cx, cz)] = false;
+            
+            cleanSkyLightColumn[idx] = false;
         }
 
         public void AddEntity(EntityBase entity, float worldX, float y, float worldZ)
