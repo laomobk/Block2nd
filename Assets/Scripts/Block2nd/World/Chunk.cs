@@ -546,8 +546,10 @@ namespace Block2nd.World
 
             tree.SetInt("Height", chunkBlocks.GetLength(1));
             tree.SetChunkBlockDataTensor("Blocks", chunkBlocks);
+            
             tree.SetByteArray("SkyLightMap", skyLightMap);
             tree.SetByteArray("BlockLightMap", blockLightMap);
+            
             tree.SetInt("PopulateState", populateState);
             tree.SetInt("LightingState", lightingState);
 
@@ -557,17 +559,22 @@ namespace Block2nd.World
         public bool SetChunkWithKNBTData(KNBTTagCompound data)
         {
             chunkHeight = data.GetInt("Height", 128);
-            populateState = data.GetInt("PopulateState");
             
+            populateState = data.GetInt("PopulateState");
             lightingState = data.GetInt("LightingState");
             
             var skyLightMapRead = data.GetByteArray("SkyLightMap");
             var blockLightMapRead = data.GetByteArray("BlockLightMap");
 
             if (skyLightMapRead != null)
+            {
                 skyLightMap = skyLightMapRead;
+            }
+
             if (blockLightMapRead != null)
+            {
                 blockLightMap = blockLightMapRead;
+            }
 
             if (lightingState >= 2)
             {
@@ -763,6 +770,8 @@ namespace Block2nd.World
                 case LightType.SKY: skyLightMap[idx] = (byte) lightValue; break;
                 case LightType.BLOCK: blockLightMap[idx] = (byte) lightValue; break;
             }
+
+            modified = true;
         }
         
         // TODO: delete this debug api
