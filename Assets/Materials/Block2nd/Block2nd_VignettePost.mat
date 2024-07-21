@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Skybox
-  m_Shader: {fileID: 4800000, guid: 286b43ba556078f4ba5a11b5cec548e3, type: 3}
+  m_Name: Block2nd_VignettePost
+  m_Shader: {fileID: 4800000, guid: 01248b81aa89fc34bb262191fd9a636f, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -23,9 +23,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: 9cae642e707ff0c419697404f198d073, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BlendRatio: -0.67
-    - _StepRatio: 1
-    m_Colors:
-    - _HorizonColor: {r: 0.6893245, g: 0.81082535, b: 0.9989355, a: 0.9999957}
-    - _TopColor: {r: 0.38128448, g: 0.6456348, b: 0.99810106, a: 0}
+    - _Strength: 0.30000004
+    m_Colors: []

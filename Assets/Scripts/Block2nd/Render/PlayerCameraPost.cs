@@ -3,13 +3,14 @@ using Block2nd.Client;
 using Block2nd.Database;
 using Block2nd.GamePlay;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Block2nd.Render
 {
     public class PlayerCameraPost : MonoBehaviour
     {
         public Material inWaterPostMaterial;
-        public Material sightPostMaterial;
+        public Material vignettePostMaterial;
 
         private int waterCode;
         private Player player;
@@ -28,12 +29,7 @@ namespace Block2nd.Render
 
             RenderTexture renderTexture;
 
-            if (Application.isMobilePlatform)
-            {
-                renderTexture = dest;
-            } else {
-                renderTexture = RenderTexture.GetTemporary(src.descriptor);
-            }
+            renderTexture = RenderTexture.GetTemporary(src.descriptor);
 
             if (client.CurrentLevel != null)
             {
@@ -47,13 +43,9 @@ namespace Block2nd.Render
             {
                 Graphics.Blit(src, renderTexture);
             }
-
-            if (Application.isMobilePlatform)
-            {
-                return;
-            }
-
-            Graphics.Blit(renderTexture, dest, sightPostMaterial);
+            
+            Graphics.Blit(renderTexture, dest, vignettePostMaterial);
+            
             RenderTexture.ReleaseTemporary(renderTexture);
         }
     }

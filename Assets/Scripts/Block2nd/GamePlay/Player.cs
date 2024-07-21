@@ -52,7 +52,6 @@ namespace Block2nd.GamePlay
         private float bobbingTime = 0f;
 
         public Inventory Inventory => inventory;
-        public IntVector3 IntPos => new IntVector3(transform.position);
 
         public Vector3 Position => transform.position;
 

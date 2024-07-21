@@ -47,7 +47,8 @@ namespace Block2nd.GUI.Hierarchical.CreateWorldUI
                 folderName = willBeSaveName,
                 name = inputField.text,
                 seed = seed,
-                terrainType = terrainType
+                terrainType = terrainType,
+                levelTime = 540,
             };
             
             Debug.Log("Create New World: " + inputField.text + " | " + willBeSaveName + "|" + seed);
