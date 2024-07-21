@@ -1,5 +1,6 @@
 ﻿using System;
 using Block2nd.Database;
+using Block2nd.Database.Meta;
 using Block2nd.GamePlay;
 using UnityEngine;
 
@@ -23,25 +24,31 @@ namespace Block2nd.GUI.GameGUI
             transform.Find("Canvas/_BG").gameObject.SetActive(Application.isMobilePlatform);
         }
 
-        public GameObject GetSlot(int idx)
+        public ItemSlot GetSlot(int idx)
         {
             if (idx < 0 || idx >= 9)
             {
                 return null;
             }
 
-            return slotsTransform.transform.GetChild(idx).gameObject;
+            return slotsTransform.transform.GetChild(idx).GetComponent<ItemSlot>();
         }
 
-        public void SetSlotMesh(int idx, Mesh mesh, int code)
+        public void SetSlotMesh(int idx, BlockMeta meta)
         {
-            slotCodes[idx] = code;
+            var shapeMesh = meta.shape.GetGuiShapeMesh(out bool isCube, out int atlasTextureId, out var _);
+            slotCodes[idx] = meta.blockCode;
             
-            var slotGameObject = GetSlot(idx);
-            if (slotGameObject == null)
+            var slot = GetSlot(idx);
+            if (slot == null)
                 return;
-            DestroyImmediate(slotGameObject.GetComponent<MeshFilter>().sharedMesh, true);
-            slotGameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
+            
+            if (isCube)
+                slot.SetRenderMode(SlotRenderMode.CUBE);
+            else
+                slot.SetRenderMode(SlotRenderMode.PLANE);
+            
+            slot.SetMesh(shapeMesh);
         }
 
         public void RenderInventory(Inventory inventory)
@@ -62,13 +69,7 @@ namespace Block2nd.GUI.GameGUI
                 if (meta == null)
                     continue;
 
-                var shapeMesh = meta.shape.GetShapeMesh(255, 0);
-                var mesh = new Mesh();
-                mesh.vertices = shapeMesh.positions;
-                mesh.uv = shapeMesh.texcoords;
-                mesh.triangles = shapeMesh.triangles;
-                mesh.RecalculateNormals();
-                SetSlotMesh(i, mesh, code);
+                SetSlotMesh(i, meta);
             }
         }
     }

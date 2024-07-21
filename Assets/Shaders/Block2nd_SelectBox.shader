@@ -3,8 +3,8 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		
-		_BorderTex ("BorderTexture", 2D) = "white" {}
+
+		_Color ("Color", Color) = (1, 1, 1, 1)
 	}
 	SubShader
 	{
@@ -41,8 +41,7 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
-			
-			sampler2D _BorderTex;
+			float4 _Color;
 			
 			v2f vert (appdata v)
 			{
@@ -55,7 +54,9 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				return fixed4(1, 1, 1, (sin(_Time.w * 5) * 0.5 + 0.5) * 0.2);
+				fixed4 color = tex2D(_MainTex, i.uv);
+				
+				return color * _Color;
 			}
 			ENDCG
 		}

@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Block2nd.Database.Meta;
+using Block2nd.Model;
 using Block2nd.Phys;
+using Block2nd.Utils;
 using UnityEngine;
 
 namespace Block2nd.Render
@@ -10,51 +12,44 @@ namespace Block2nd.Render
 	public class SelectBox : MonoBehaviour
 	{
 		private MeshFilter meshFilter;
-
-		private List<Vector3> posList = new List<Vector3>();
-		private List<Vector2> uvList = new List<Vector2>();
-		private List<int> triList = new List<int>();
+		private Mesh mesh;
 
 		private void Awake()
 		{
+			mesh = new Mesh();
 			meshFilter = GetComponent<MeshFilter>();
+			meshFilter.sharedMesh = mesh;
 		}
 
-		public void UpdateDetectBox(BlockShape shape, Vector3 position, int exposedFace)
+		public void UpdateDetectBox(AABB aabb, Vector3 position, int exposedFace)
 		{
-			posList.Clear();
-			uvList.Clear();
-			triList.Clear();
+			var meshBuilder = new MeshBuilder();
 
-			var shapeMesh = shape.GetShapeMesh(exposedFace, 0, 0);
-
-			var mesh = new Mesh();
-
-			for (int i = 0; i < shapeMesh.positionCount; ++i)
-			{
-				posList.Add(shapeMesh.positions[i]);
-			}
+			var width = aabb.maxX - aabb.minX;
+			var height = aabb.maxY - aabb.minY;
+			var depth = aabb.maxZ - aabb.minZ;
 			
+			meshBuilder.SetQuadUV(Vector2.zero, 1, 1);
 			
-			for (int i = 0; i < shapeMesh.texcoordCount; ++i)
-			{
-				uvList.Add(shapeMesh.texcoords[i]);
-			}
+			meshBuilder.AddQuad(new Vector3(aabb.maxX, aabb.minY, aabb.maxZ), 
+				Vector3.left, Vector3.up, width, height);
+			meshBuilder.AddQuad(new Vector3(aabb.minX, aabb.minY, aabb.minZ), 
+				Vector3.right, Vector3.up, width, height);
+			meshBuilder.AddQuad(new Vector3(aabb.maxX, aabb.minY, aabb.minZ), 
+				Vector3.forward, Vector3.up, depth, height);
+			meshBuilder.AddQuad(new Vector3(aabb.minX, aabb.minY, aabb.maxZ), 
+				Vector3.back, Vector3.up, depth, height);
+			meshBuilder.AddQuad(new Vector3(aabb.maxX, aabb.maxY, aabb.maxZ), 
+				Vector3.left, Vector3.back, width, depth);
+			meshBuilder.AddQuad(new Vector3(aabb.minX, aabb.minY, aabb.minZ), 
+				Vector3.right, Vector3.forward, width, depth);
 			
-			
-			for (int i = 0; i < shapeMesh.triangleCount; ++i)
-			{
-				triList.Add(shapeMesh.triangles[i]);
-			}
-
-			mesh.vertices = posList.ToArray();
-			mesh.triangles = triList.ToArray();
-			mesh.uv = uvList.ToArray();
+			mesh.Clear();
+			mesh.vertices = meshBuilder.vertices.ToArray();
+			mesh.triangles = meshBuilder.indices.ToArray();
+			mesh.uv = meshBuilder.texcoords.ToArray();
 
 			transform.position = position;
-			
-			DestroyImmediate(meshFilter.sharedMesh, true);
-			meshFilter.sharedMesh = mesh;
 		}
 	}
 }

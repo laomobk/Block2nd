@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Block2nd.Database.Meta;
 using UnityEngine;
 
 namespace Block2nd.Utils
@@ -46,7 +47,7 @@ namespace Block2nd.Utils
         ///   +-------+
         ///   0       1
         /// </summary>
-        public void AddQuad(Vector3 origin, Vector3 right, Vector3 up, float width, float height, bool invert = false)
+        public void AddQuad(Vector3 origin, Vector3 right, Vector3 up, float width, float height, bool invert = true)
         {
             up.Normalize();
             right.Normalize();
@@ -88,6 +89,22 @@ namespace Block2nd.Utils
             colors.Add(QuadVertex1Color);
             colors.Add(QuadVertex2Color);
             colors.Add(QuadVertex3Color);
+        }
+
+        public BlockMesh GetBlockMesh()
+        {
+            return new BlockMesh
+            {
+                positions = vertices.ToArray(),
+                colors = colors.ToArray(),
+                texcoords = texcoords.ToArray(),
+                triangles = indices.ToArray(),
+
+                positionCount = vertices.Count,
+                triangleCount = indices.Count,
+                colorsCount = colors.Count,
+                texcoordCount = texcoords.Count,
+            };
         }
     }
 }

@@ -55,8 +55,17 @@ namespace Block2nd.Model
                 var meshFilter = baseModelNode.GetComponent<MeshFilter>();
                 var meshRenderer = baseModelNode.GetComponent<MeshRenderer>();
 
-                meshFilter.sharedMesh = renderer.GetMesh();
+                var mesh = new Mesh();
+
+                meshFilter.sharedMesh = mesh;
                 meshRenderer.material = material;
+
+                var blockMesh = renderer.GetBlockMesh();
+
+                mesh.vertices = blockMesh.positions;
+                mesh.colors = blockMesh.colors;
+                mesh.triangles = blockMesh.triangles;
+                mesh.uv = blockMesh.texcoords;
 
                 for (int i = renderer.ChildRenderers.Count - 1; i >= 0; --i)
                 {

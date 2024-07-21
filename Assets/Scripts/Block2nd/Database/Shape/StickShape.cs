@@ -12,11 +12,15 @@ namespace Block2nd.Database.Meta
 
         protected Vector2 originUV;
         protected Color color;
+        protected int uvIdx;
+
+        protected BlockMesh guiBlockMesh = new BlockMesh();
         
-        public StickShape(Vector2 originAtlasUV, Color color)
+        public StickShape(int uvIdx, Color color)
         {
-            originUV = originAtlasUV + new Vector2(0.02734375f, 0);
+            originUV = AtlasTextureDescriptor.Default.GetUVByIndex(uvIdx) + new Vector2(0.02734375f, 0);
             this.color = color;
+            this.uvIdx = uvIdx;
             
             InitStickMeshData();
         }
@@ -58,6 +62,14 @@ namespace Block2nd.Database.Meta
             triangles = meshBuilder.indices.ToArray();
             texcoords = meshBuilder.texcoords.ToArray();
             colors = meshBuilder.colors.ToArray();
+            
+            var guiMeshBuilder = new MeshBuilder();
+            guiMeshBuilder.SetQuadUV(
+                AtlasTextureDescriptor.Default.GetUVByIndex(uvIdx), 0.0625f, 0.0625f);
+            guiMeshBuilder.AddQuad(Vector3.zero, Vector3.right, Vector3.up, 1, 1);
+            guiBlockMesh.positions = guiMeshBuilder.vertices.ToArray();
+            guiBlockMesh.texcoords = guiMeshBuilder.texcoords.ToArray();
+            guiBlockMesh.triangles = guiMeshBuilder.indices.ToArray();
         }
         
         public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0)
@@ -74,6 +86,14 @@ namespace Block2nd.Database.Meta
                 texcoordCount = 24,
                 colorsCount = 24,
             };
+        }
+
+        public override BlockMesh GetGuiShapeMesh(out bool isCube, out int atlasTextureId, out int uvIdx)
+        {
+            isCube = false;
+            atlasTextureId = 0;
+            uvIdx = this.uvIdx;
+            return guiBlockMesh;
         }
     }
 }

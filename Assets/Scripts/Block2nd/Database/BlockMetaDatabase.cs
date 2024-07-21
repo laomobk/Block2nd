@@ -526,7 +526,7 @@ namespace Block2nd.Database
                 blockId = "b2nd:block/torch",
                 blockName = "Torch",
                 behavior = new StickBlockBehavior(BlockSoundDescriptor.SoundDigWood),
-                shape = new StickShape(AtlasTextureDescriptor.Default.GetUVByIndex(80), new Color(0, 1, 0, 0)),
+                shape = new StickShape(80, new Color(0, 1, 0, 0)),
                 transparent = true,
                 light = 14,
                 opacity = 0,

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Block2nd.Database.Meta;
 using UnityEngine;
 
 namespace Block2nd.Model
@@ -15,7 +16,7 @@ namespace Block2nd.Model
             this.localPos = localPos;
         }
 
-        public abstract Mesh GetMesh();
+        public abstract BlockMesh GetBlockMesh();
         
         public BoxModelRenderer AddBox(
             Vector3 offset, Vector3 localPos, float depth, float width, float height,

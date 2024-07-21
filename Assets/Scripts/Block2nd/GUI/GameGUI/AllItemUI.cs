@@ -1,6 +1,8 @@
 ﻿using System;
 using Block2nd.Database;
+using Block2nd.Database.Meta;
 using Block2nd.GamePlay;
+using Block2nd.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,10 +28,12 @@ namespace Block2nd.GUI.GameGUI
                 ui.OnGridClick(idx);
             }
         }
-        
+
+        [SerializeField] private GameObject itemSlotPrefab;
+
         private Player player;
         private InventoryUI inventoryUI;
-        
+
         private Transform slotsTransform;
         private Transform gridRootTransform;
         
@@ -39,16 +43,17 @@ namespace Block2nd.GUI.GameGUI
 
         private void Awake()
         {
-            inventoryUI = GameObject.FindGameObjectWithTag("Inventory").GetComponent<InventoryUI>();
-            player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+            inventoryUI = GameObject.FindGameObjectWithTag("Inventory")?.GetComponent<InventoryUI>();
+            player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<Player>();
             gridRootTransform = transform.Find("Canvas/Clickables").transform;
             slotsTransform = transform.Find("Slots");
         }
 
         private void Start()
         {
-            FillSlots();
+            InitItemSlots();
             SetupGridButtons();
+            FillSlots();
         }
 
         private void SetupGridButtons()
@@ -59,18 +64,42 @@ namespace Block2nd.GUI.GameGUI
                     new AllItemGridClickEvent(i, this).Invoke);
             }
         }
-        
-        public void SetSlotMesh(int idx, Mesh mesh)
+
+        private void InitItemSlots()
+        {
+            var layer = LayerMask.NameToLayer("GUIPanel");
+            float beginX = -2.51f, beginY = 0;
+            
+            for (int i = 0; i < 9; ++i)
+            {
+                for (int j = 0; j < 8; ++j)
+                {
+                    var slot = Instantiate(itemSlotPrefab, slotsTransform);
+                    GameObjectUtils.SetLayerToAllChildrenAndSelf(slot.transform, layer);
+                    
+                    var slotTransform = slot.transform;
+                    slotTransform.localPosition = new Vector3(beginX + j * 3.52f, beginY - i * 3.52f);
+                    slotTransform.localScale = new Vector3(0.84757f, 0.84757f, 0.84757f);
+                }
+            }
+        }
+
+        public void SetSlotMesh(int idx, BlockMeta meta)
         {
             idx -= beginIndex;
             
-            var slotGameObject = slotsTransform.GetChild(idx).gameObject;
+            var shapeMesh = meta.shape.GetGuiShapeMesh(out bool isCube, out int atlasTextureId, out var _);
             
-            if (slotGameObject == null)
+            var slot = slotsTransform.GetChild(idx).GetComponent<ItemSlot>();
+            if (slot == null)
                 return;
             
-            DestroyImmediate(slotGameObject.GetComponent<MeshFilter>().sharedMesh, true);
-            slotGameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
+            if (isCube)
+                slot.SetRenderMode(SlotRenderMode.CUBE);
+            else
+                slot.SetRenderMode(SlotRenderMode.PLANE);
+            
+            slot.SetMesh(shapeMesh);
         }
 
         private void FillSlots()
@@ -80,14 +109,8 @@ namespace Block2nd.GUI.GameGUI
                 var meta = BlockMetaDatabase.GetBlockMetaByCode(i + 1);
                 if (meta == null)
                     continue;
-
-                var shapeMesh = meta.shape.GetShapeMesh(255, 0);
-                var mesh = new Mesh();
-                mesh.vertices = shapeMesh.positions;
-                mesh.uv = shapeMesh.texcoords;
-                mesh.triangles = shapeMesh.triangles;
-                mesh.RecalculateNormals();
-                SetSlotMesh(i, mesh);
+                
+                SetSlotMesh(i, meta);
             }
         }
 

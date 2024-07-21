@@ -12,8 +12,14 @@ namespace TitlePage
         
         void Start()
         {
+            var game = "Block2nd ";
             text = GetComponent<Text>();
-            text.text = "Block2nd " + GameVersion.Subtitle + " " + GameVersion.Version + 
+            #if !UNITY_64
+
+            game = "Block2nd(32bit) ";
+            
+            #endif
+            text.text = game + GameVersion.Subtitle + " " + GameVersion.Version + 
                         (ClientSharedData.zoz ? " for Suzumiya Haruhi" : "");
         }
     }

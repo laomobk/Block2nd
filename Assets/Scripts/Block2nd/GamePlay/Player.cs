@@ -239,9 +239,7 @@ namespace Block2nd.GamePlay
             if (meta == null)
                 return;
 
-            var level = gameClient.CurrentLevel;
-
-            holdingBlockPreview.SetMeshFromShape(meta.shape, 0);   
+            holdingBlockPreview.SetMeshFromMeta(meta);   
             
             holdingBlockCode = meta.blockCode;
 
@@ -398,7 +396,8 @@ namespace Block2nd.GamePlay
                     var meta = BlockMetaDatabase.GetBlockMetaByCode(blockCode);
                     if (meta != null)
                     {
-                        selectBox.UpdateDetectBox(meta.shape, hit.ToIntVector3().ToUnityVector3(),
+                        var aabb = meta.behavior.GetAABB(0, 0, 0);
+                        selectBox.UpdateDetectBox(aabb, hit.ToIntVector3().ToUnityVector3(),
                             currentLevel.GetExposedFace(hit.blockX, hit.blockY, hit.blockZ));
                     }
                     else

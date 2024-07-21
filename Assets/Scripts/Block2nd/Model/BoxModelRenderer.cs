@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Block2nd.Database.Meta;
+using UnityEngine;
 
 namespace Block2nd.Model
 {
@@ -9,7 +10,7 @@ namespace Block2nd.Model
 
         private float texX, texY, uvWidth, uvHeight, uvDepth;
 
-        private Mesh bakedMesh;
+        private BlockMesh bakedMesh;
         
         private Vector3 original;
         private Vector3 forward;
@@ -71,7 +72,7 @@ namespace Block2nd.Model
             var texcoords = new Vector2[24];
             var indices = new int[36];
             
-            bakedMesh = new Mesh();
+            bakedMesh = new BlockMesh();
 
             byte posIdx = 0, texcoordsIdx = 0, trianglesIdx = 0;
             
@@ -106,12 +107,12 @@ namespace Block2nd.Model
                 texX + uvDepth + uvWidth, texY + uvHeight, uvDepth, uvHeight, 
                 positions, texcoords, indices);  // Y-
 
-            bakedMesh.vertices = positions;
+            bakedMesh.positions = positions;
             bakedMesh.triangles = indices;
-            bakedMesh.uv = texcoords;
+            bakedMesh.texcoords = texcoords;
         }
 
-        public override Mesh GetMesh()
+        public override BlockMesh GetBlockMesh()
         {
             return bakedMesh;
         }

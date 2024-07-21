@@ -16,10 +16,10 @@ namespace Block2nd.Database.Meta
         public Vector2[] texcoords;
         public Color[] colors;  // ([SkyLight], [BlockLight], [AOBits], [EffectedBySkyLight]
 
-        public byte positionCount;
-        public byte triangleCount;
-        public byte texcoordCount;
-        public byte colorsCount;
+        public int positionCount;
+        public int triangleCount;
+        public int texcoordCount;
+        public int colorsCount;
     }
     
     [Serializable]
@@ -36,6 +36,14 @@ namespace Block2nd.Database.Meta
         /// </param>
         /// <returns></returns>
         public abstract BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0);
+
+        public virtual BlockMesh GetGuiShapeMesh(out bool isCube, out int atlasTextureId, out int uvIdx)
+        {
+            isCube = true;
+            atlasTextureId = 0;
+            uvIdx = 0;
+            return GetShapeMesh(255, 0);
+        }
 
         public Vector3 GetCenterPoint()
         {

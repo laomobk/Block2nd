@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Block2nd.Utils;
 using UnityEngine;
 
 namespace Block2nd.Database.Meta
@@ -29,15 +30,24 @@ namespace Block2nd.Database.Meta
         private static Vector2[] _uvs = new Vector2[8];
         private static Color[] _colors = new Color[8];
         
-
         private static Vector2 _uvUp = new Vector2(0, AtlasTextureDescriptor.Default.VStep);
         private static Vector2 _uvRight = new Vector2(AtlasTextureDescriptor.Default.UStep, 0);
 
         private int texIdx;
 
+        protected BlockMesh guiBlockMesh = new BlockMesh();
+
         public PlantShape(int texIdx)
         {
             this.texIdx = texIdx;
+            
+            var guiMeshBuilder = new MeshBuilder();
+            guiMeshBuilder.SetQuadUV(
+                AtlasTextureDescriptor.Default.GetUVByIndex(texIdx), 0.0625f, 0.0625f);
+            guiMeshBuilder.AddQuad(new Vector3(0.1f, 0, 0), Vector3.right, Vector3.up, 0.8f, 0.8f);
+            guiBlockMesh.positions = guiMeshBuilder.vertices.ToArray();
+            guiBlockMesh.texcoords = guiMeshBuilder.texcoords.ToArray();
+            guiBlockMesh.triangles = guiMeshBuilder.indices.ToArray();
         }
 
         public override BlockMesh GetShapeMesh(int exposedFace, long lightAttenuation, int aoBits = 0)
@@ -80,6 +90,14 @@ namespace Block2nd.Database.Meta
                 texcoordCount = 8,
                 triangleCount = 12
             };
+        }
+
+        public override BlockMesh GetGuiShapeMesh(out bool isCube, out int atlasTextureId, out int uvIdx)
+        {
+            isCube = false;
+            atlasTextureId = 0;
+            uvIdx = texIdx;
+            return guiBlockMesh;
         }
     }
 }

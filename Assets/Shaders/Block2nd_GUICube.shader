@@ -2,7 +2,6 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
@@ -11,9 +10,10 @@
 		
 		Blend SrcAlpha OneMinusSrcAlpha
 		
-
 		Pass
 		{
+			Cull off
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -34,21 +34,21 @@
 				float lambert : TEXCOORD1;
 			};
 
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
+			sampler2D _TerrainTexture;
+			float4 _TerrainTexture_ST;
 			
 			v2f vert (appdata v)
 			{
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				o.uv = TRANSFORM_TEX(v.uv, _TerrainTexture);
 				o.lambert = clamp(dot(v.normal, normalize(float3(-1, 1, -1))), 0.8, 1);
 				return o;
 			}
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = tex2D(_MainTex, i.uv);
+				fixed4 col = tex2D(_TerrainTexture, i.uv);
                 if (col.a < 0.1)
                 {
                     discard;
