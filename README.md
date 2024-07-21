@@ -4,6 +4,8 @@
 
 ![screenshot4.png](Misc/screenshot4.png)
 
+![screenshot](Misc/screenshot_7.png)
+
 ![screenshot2.png](Misc/screenshot2.png "Screenshot")
 
 ![screenshot3.png](Misc/screenshot1.png "Screenshot")
@@ -11,6 +13,8 @@
 ![screenshot](Misc/screenshot5.png "Game Screenshot")
 
 ![screenshot3.png](Misc/screenshot3.png)
+
+![screenshot](Misc/screenshot_6.png)
 
 #### 移动端UI适配
 
