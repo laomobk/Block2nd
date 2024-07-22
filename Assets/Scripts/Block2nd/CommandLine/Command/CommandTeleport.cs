@@ -19,7 +19,7 @@ namespace Block2nd.CommandLine.Command
                 float y = Single.Parse(args[2]);
                 float z = Single.Parse(args[3]);
             
-                rt.GameClient.player.ResetPlayer(new Vector3(x, y, z));
+                rt.GameClient.Player.ResetPlayer(new Vector3(x, y, z));
 
                 return null;
             }

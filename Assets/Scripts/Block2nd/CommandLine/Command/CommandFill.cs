@@ -8,7 +8,7 @@ namespace Block2nd.CommandLine.Command
     {
         public CommandRuntimeError Execute(CommandRuntime rt, string[] args)
         {
-            var playerPos = rt.GameClient.player.Position;
+            var playerPos = rt.GameClient.Player.Position;
 
             if (args.Length != 8)
             {

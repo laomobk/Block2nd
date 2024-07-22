@@ -81,7 +81,7 @@ namespace Block2nd.World
                     entity.freeCount = 0;
             }
             
-            gameClient.guiCanvasManager.chunkStatText.SetChunksInRender(entityInUseDict.Count);
+            gameClient.GuiCanvasManager.chunkStatText.SetChunksInRender(entityInUseDict.Count);
         }
 
         private bool IsInRenderDistance(Vector3 pos)

@@ -104,7 +104,7 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
 
         public void ToggleDebugUi()
         {
-            GameClient.Instance.guiCanvasManager.ToggleDebugUI();
+            GameClient.Instance.GuiCanvasManager.ToggleDebugUI();
         }
     }
 }

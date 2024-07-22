@@ -22,9 +22,13 @@ namespace Block2nd.GUI
         public ChatUI chatUI;
         public ChunkStatText chunkStatText;
         public GameObject debugUI;
+        public GameObject sight;
 
         private void Start()
         {
+            if (Application.isMobilePlatform)
+                sight.SetActive(false);
+            
             #if !UNITY_EDITOR
             
             debugUI.SetActive(false);

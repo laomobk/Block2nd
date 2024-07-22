@@ -95,7 +95,7 @@ namespace Block2nd.GamePlay
             
             selectBox.gameObject.SetActive(raycastBlockHit != null);
             
-            gameClient.guiCanvasManager.inventoryUI.RenderInventory(inventory);
+            gameClient.GuiCanvasManager.inventoryUI.RenderInventory(inventory);
 
             if (gameClient.GameClientState == GameClientState.GAME)
             {
@@ -210,7 +210,7 @@ namespace Block2nd.GamePlay
             var holdingBlockMeta = BlockMetaDatabase.GetBlockMetaByCode(holdingBlockCode);
             if (holdingBlockMeta != null)
             {
-                gameClient.guiCanvasManager.SetGUIItemNameText(
+                gameClient.GuiCanvasManager.SetGUIItemNameText(
                     holdingBlockMeta.blockName + " (" + holdingBlockMeta.blockId + ")");
             }
         }

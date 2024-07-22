@@ -20,7 +20,7 @@ namespace Block2nd.GUI
 
         void Update()
         {
-            var (ix, iy, iz) = GameClient.Instance.player.IntPosition;
+            var (ix, iy, iz) = GameClient.Instance.Player.IntPosition;
             var level = GameClient.Instance.CurrentLevel;
             if (level == null)
                 return;

@@ -7,7 +7,7 @@ namespace Block2nd.GUI.Hierarchical.Buttons
     {
         public void TeleportPlayer()
         {
-            GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>().player.RandomTeleportPlayer();
+            GameObject.FindGameObjectWithTag("GameClient").GetComponent<GameClient>().Player.RandomTeleportPlayer();
         }
     }
 }

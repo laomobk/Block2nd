@@ -127,7 +127,7 @@ namespace Block2nd.World
                 updateMesh, updateHeightmap, state);
 
             BlockMetaDatabase.GetBlockBehaviorByCode(blockCode).OnInit(
-                new IntVector3(x, y, z), gameClient.CurrentLevel, chunk, gameClient.player);
+                new IntVector3(x, y, z), gameClient.CurrentLevel, chunk, gameClient.Player);
 
         }
 
@@ -257,7 +257,7 @@ namespace Block2nd.World
 
         public IEnumerator ChunkManagementWorkerCoroutine()
         {
-            var player = gameClient.player;
+            var player = gameClient.Player;
 
             chunkWorkerRunning = true;
 

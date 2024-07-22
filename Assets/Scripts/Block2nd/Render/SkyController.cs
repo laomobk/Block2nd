@@ -14,7 +14,7 @@ namespace Block2nd.Render
 
         void Update()
         {
-            var playerPos = GameClient.Instance.player.Position;
+            var playerPos = GameClient.Instance.Player.Position;
             transform.position = new Vector3(playerPos.x, playerPos.y, playerPos.z);
         }
     }

@@ -96,7 +96,7 @@ namespace Block2nd.GUI
         public void OnPanelClick(Vector2 screenPos)
         {
             var level = gameClient.CurrentLevel;
-            var player = gameClient.player;
+            var player = gameClient.Player;
 
             var ray = player.playerCamera.ScreenPointToRay(screenPos);
 
@@ -110,7 +110,7 @@ namespace Block2nd.GUI
         public void OnPanelLongPress(Vector2 screenPos)
         {
             var level = gameClient.CurrentLevel;
-            var player = gameClient.player;
+            var player = gameClient.Player;
 
             var ray = player.playerCamera.ScreenPointToRay(screenPos);
 

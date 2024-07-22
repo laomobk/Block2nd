@@ -6,10 +6,7 @@ namespace Block2nd.Render
 {
     public class VignettePostController: MonoBehaviour
     {
-        [SerializeField] private Material postMaterial;
-
         private float strength = 0.8f;
-        private static readonly int Strength = Shader.PropertyToID("_Strength");
 
         private void FixedUpdate()
         {
@@ -17,15 +14,14 @@ namespace Block2nd.Render
             if (level == null)
                 return;
 
-            var (x, y, z) = GameClient.Instance.player.IntPosition;
+            var (x, y, z) = GameClient.Instance.Player.IntPosition;
             var skyLight = level.GetSkyLight(x, y, z);
             var factor = Mathf.Sqrt(1 - skyLight / 15f);
 
-            var targetStrength = 0.3f * factor + 0.3f;
+            var targetStrength = 0.4f * factor + 0.2f;
 
             strength = Mathf.Lerp(strength, targetStrength, 0.4f);
-            
-            postMaterial.SetFloat(Strength, strength);
+            GameClient.Instance.GuiEffectController.SetVignetteEffectStrength(strength);
         }
     }
 }

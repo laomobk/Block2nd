@@ -54,7 +54,7 @@ namespace Block2nd.World
         public GameObject blockParticlePrefab;
         public GameObject chunkPrefab;
 
-        public Player Player => client.player;
+        public Player Player => client.Player;
         public TerrainNoiseGenerator TerrainNoiseGenerator => terrainNoise;
 
         private readonly Queue<DirtyChunkRenderTask> dirtyChunkQueue = new Queue<DirtyChunkRenderTask>();
@@ -157,7 +157,7 @@ namespace Block2nd.World
             {
                 var nUpdate = PerformChunkUpdate();
                 lastTickTime = Time.time;
-                client.guiCanvasManager.SetUpdateText(nUpdate);
+                client.GuiCanvasManager.SetUpdateText(nUpdate);
             }
 
             if (dirtyChunkQueue.Count > 0)
@@ -211,7 +211,7 @@ namespace Block2nd.World
             for (; chunkUpdateQueue.Count > 0 && length < maxEachUpdateCount; ++length)
                 ctxArray[length] = chunkUpdateQueue.Dequeue();
 
-            var player = client.player;
+            var player = client.Player;
 
             for (int i = 0; i < length; ++i)
             {
@@ -247,7 +247,7 @@ namespace Block2nd.World
 
         private void LevelTick()
         {
-            var playerPos = client.player.transform.position;
+            var playerPos = client.Player.transform.position;
 
 #if !UNITY_EDITOR
             if (levelTickCount % 3 == 0)
@@ -258,14 +258,14 @@ namespace Block2nd.World
 
             ProvideChunksSurrounding(playerPos);
 
-            client.guiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
+            client.GuiCanvasManager.chunkStatText.SetChunksInCache(chunkProvider.GetChunkCacheCount());
             chunkRenderEntityManager.Tick();
 
             if (simulateTime && client.GameClientState == GameClientState.GAME)
             {
                 levelTime = (levelTime + levelTimeSpeed) % 14400;
                 
-                var (ix, iy, iz) = client.player.IntPosition;
+                var (ix, iy, iz) = client.Player.IntPosition;
                 var playerCurrentSkyLight = GetSkyLight(ix, iy, iz);
 
                 playerCurrentSkyLightToSet = Mathf.Lerp(playerCurrentSkyLightToSet, playerCurrentSkyLight / 15f, 0.2f);
@@ -294,7 +294,7 @@ namespace Block2nd.World
             var playerSightBlendFactor = horizonPlayerSightBlendCurve.Evaluate(levelTime / 14400f);
 
             var playerTorwardSun = 
-                1 - Mathf.Abs((client.player.transform.localEulerAngles.y - 180f) - 
+                1 - Mathf.Abs((client.Player.transform.localEulerAngles.y - 180f) - 
                               Mathf.Sign(playerSightBlendFactor) * 90) / 90f;
 
             if (playerTorwardSun <= 1 && playerTorwardSun >= 0)
@@ -515,7 +515,7 @@ namespace Block2nd.World
         // Only for the player first time enter the world.
         public IEnumerator ProvideChunksSurroundingCoroutineWithReport(Vector3 position, int radius)
         {
-            var progressUI = client.guiCanvasManager.worldGeneratingProgressUI;
+            var progressUI = client.GuiCanvasManager.worldGeneratingProgressUI;
 
             progressUI.SetTitle("Building terrain...");
             progressUI.SetProgress(0);
@@ -679,7 +679,7 @@ namespace Block2nd.World
         private bool IsBoundsInFrustum(Bounds aabb)
         {
             Plane[] planes = new Plane[6];
-            GeometryUtility.CalculateFrustumPlanes(client.player.playerCamera, planes);
+            GeometryUtility.CalculateFrustumPlanes(client.Player.playerCamera, planes);
             return GeometryUtility.TestPlanesAABB(planes, aabb);
         }
 
@@ -688,7 +688,7 @@ namespace Block2nd.World
             var chunkHeight = worldSettings.chunkHeight;
 
             var viewDistance = client.gameSettings.viewDistance;
-            var playerCamera = client.player.playerCamera;
+            var playerCamera = client.Player.playerCamera;
             var cameraPos = playerCamera.transform.position;
             var forward = playerCamera.transform.forward;
             var right = playerCamera.transform.right;
@@ -741,7 +741,7 @@ namespace Block2nd.World
             CreateBlockParticle(new Vector3(x, y, z));
             var behavior = BlockMetaDatabase.GetBlockBehaviorByCode(
                 GetBlock(x, y, z, out var chunk, false, true).blockCode);
-            behavior?.OnDestroy(new IntVector3(x, y, z), this, chunk, client.player);
+            behavior?.OnDestroy(new IntVector3(x, y, z), this, chunk, client.Player);
             SetBlock(0, x, y, z, true);
         }
 
@@ -889,7 +889,7 @@ namespace Block2nd.World
                             if (cx != x && cy != y && cz != z)
                             {
                                 defaultAct = BlockMetaDatabase.GetBlockBehaviorByCode(block.blockCode).OnHurt(
-                                    new IntVector3(cx, cy, cz), this, cp, client.player);
+                                    new IntVector3(cx, cy, cz), this, cp, client.Player);
                             }
 
                             if (defaultAct)
@@ -901,8 +901,8 @@ namespace Block2nd.World
                 }
             }
 
-            var dir = client.player.transform.position - new Vector3(x, y, z);
-            client.player.playerController.AddImpulseForse(dir.normalized * 100 / (1f + dir.magnitude));
+            var dir = client.Player.transform.position - new Vector3(x, y, z);
+            client.Player.playerController.AddImpulseForse(dir.normalized * 100 / (1f + dir.magnitude));
 
             Profiler.EndSample();
         }
@@ -1137,7 +1137,7 @@ namespace Block2nd.World
                 false, false, true, state);
 
             if (blockCode > 0)
-                meta.behavior.OnInit(new IntVector3(x, y, z), this, chunk, client.player);
+                meta.behavior.OnInit(new IntVector3(x, y, z), this, chunk, client.Player);
 
             if (notify)
             {
@@ -1470,7 +1470,7 @@ namespace Block2nd.World
         {
             var playerDataWriter = levelSaveHandler.GetPlayerDataWriter();
             
-            var player = client.player;
+            var player = client.Player;
             var playerKnbt = player.GetPlayerKNBTData();
             playerKnbt.Write(playerDataWriter);
             

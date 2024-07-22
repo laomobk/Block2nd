@@ -4,7 +4,7 @@
     {
         public CommandRuntimeError Execute(CommandRuntime rt, string[] args)
         {
-            rt.GameClient.player.playerController.flying = true;
+            rt.GameClient.Player.playerController.flying = true;
 
             return null;
         }

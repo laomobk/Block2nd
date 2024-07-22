@@ -29,14 +29,21 @@ namespace Block2nd.Client
 	
 	public class GameClient : MonoBehaviour
 	{
-		public GameObject levelPrefab;
-		public GUICanvasManager guiCanvasManager;
+		[SerializeField] private GameObject levelPrefab;
+		[SerializeField] private GUICanvasManager guiCanvasManager;
+		[SerializeField] private Player player;
+		[SerializeField] private GUIEffectController guiEffectController;
+		
+		public GUIEffectController GuiEffectController => guiEffectController;
+		public GUICanvasManager GuiCanvasManager => guiCanvasManager;
+		public Player Player => player;
+		
 		public GameSettings gameSettings;
 		public WorldSettings worldSettings;
 		public Transform worldTransform;
-		public Player player;
 		public int initWorldWidth = 256;
-		
+
+
 		private GameObject currentLevel;
 		private Coroutine levelTickCoroutine;
 		
