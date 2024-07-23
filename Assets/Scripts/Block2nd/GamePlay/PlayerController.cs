@@ -105,7 +105,7 @@ namespace Block2nd.GamePlay
             floatBegin = false;
             
             floating = true;
-            playerSpeed.y += 30f * Time.deltaTime;
+            playerSpeed.y = 5f;
         }
 
         public void MoveForward()
@@ -222,7 +222,7 @@ namespace Block2nd.GamePlay
                 floating = false;
                 
                 inWater = gameClient.CurrentLevel.GetBlock(
-                    IntVector3.FromFloorVector3(transform.position)).blockCode == waterCode;
+                    IntVector3.FromFloorVector3(transform.position + Vector3.down * 0.5f)).blockCode == waterCode;
                 
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
@@ -271,7 +271,7 @@ namespace Block2nd.GamePlay
                         else
                         {
                             floatBegin = true;
-                            playerSpeed.y = -3f * Time.deltaTime;
+                            playerSpeed.y = -2f;
                         }
                     }
                     else if (entityBase.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)
