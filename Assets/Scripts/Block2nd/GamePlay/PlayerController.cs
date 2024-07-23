@@ -130,8 +130,8 @@ namespace Block2nd.GamePlay
 
         public void MoveAxis(Vector2 axis)
         {
-            playerSpeed.x = axis.x * speedRatio;
-            playerSpeed.z = axis.y * speedRatio;
+            playerSpeed.x = axis.x * speedRatio * Time.deltaTime;
+            playerSpeed.z = axis.y * speedRatio * Time.deltaTime;
         }
 
         public void ResetXZVelocity()
@@ -271,7 +271,7 @@ namespace Block2nd.GamePlay
                         else
                         {
                             floatBegin = true;
-                            playerSpeed.y = -3f;
+                            playerSpeed.y = -3f * Time.deltaTime;
                         }
                     }
                     else if (entityBase.OnGround && Input.GetKey(KeyCode.Space) && !jumpBegin)

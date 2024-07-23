@@ -126,6 +126,8 @@ namespace Block2nd.Client
 
 		private void Update()
 		{
+			// for (int i = 0; i < 50000000; ++i){}
+			
 			if (gameClientState == GameClientState.GAME)
 			{
 				if (Input.GetKeyDown(KeyCode.L))

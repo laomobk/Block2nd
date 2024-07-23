@@ -5,6 +5,8 @@ namespace Block2nd.Phys
 {
     public class AABB
     {
+        private AABB() {}
+        
         public float epsilon = 0;
         public float minX, minY, minZ;
         public float maxX, maxY, maxZ;
@@ -48,12 +50,12 @@ namespace Block2nd.Phys
 
         public AABB Copy()
         {
-            return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+            return LuckyPool.GetAABBFromPool(minX, minY, minZ, maxX, maxY, maxZ);
         }
 
         public AABB CopyWithOffset(float ox, float oy, float oz)
         {
-            return new AABB(minX + ox, minY + oy, minZ + oz, maxX + ox, maxY + oy, maxZ + oz);
+            return LuckyPool.GetAABBFromPool(minX + ox, minY + oy, minZ + oz, maxX + ox, maxY + oy, maxZ + oz);
         }
 
         public AABB CopyWithExpand(float dx, float dy, float dz)
@@ -80,7 +82,7 @@ namespace Block2nd.Phys
             else
                 newMinZ += dz;
 
-            return new AABB(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
+            return LuckyPool.GetAABBFromPool(newMinX, newMinY, newMinZ, newMaxX, newMaxY, newMaxZ);
         }
 
         public float ClipXCollide(AABB thatBox, float wantX)
@@ -346,7 +348,7 @@ namespace Block2nd.Phys
 
         public static AABB One()
         {
-            return new AABB(0, 0, 0, 1, 1, 1);
+            return LuckyPool.GetAABBFromPool(0, 0, 0, 1, 1, 1);
         }
 
         public static readonly AABB LazyOneBox = new AABB(0, 0, 0, 1, 1, 1);

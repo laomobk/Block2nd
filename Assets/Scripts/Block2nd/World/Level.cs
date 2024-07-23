@@ -901,8 +901,8 @@ namespace Block2nd.World
                 }
             }
 
-            var dir = client.Player.transform.position - new Vector3(x, y, z);
-            client.Player.playerController.AddImpulseForse(dir.normalized * 100 / (1f + dir.magnitude));
+            // var dir = client.Player.transform.position - new Vector3(x, y, z);
+            // client.Player.playerController.AddImpulseForse(dir.normalized * 100 / (1f + dir.magnitude));
 
             Profiler.EndSample();
         }
