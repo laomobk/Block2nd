@@ -425,7 +425,7 @@ namespace Block2nd.Client
 				point = SpawnPlayer(level);
 			}
 
-			yield return StartCoroutine(level.ProvideChunksSurroundingCoroutineWithReport(point, 6));
+			yield return StartCoroutine(level.ProvideChunksSurroundingCoroutineWithReport(point));
 			
 			progressUI.gameObject.SetActive(false);
 			

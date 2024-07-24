@@ -491,21 +491,29 @@ namespace Block2nd.World
 
             while (!handle.IsCompleted) yield return null;
             handle.Complete();
+            
+            IntVector3[] posArray = new IntVector3[nativePosArray.Length];
+            nativePosArray.CopyTo(posArray);
+            int[] flagArray = new int[newChunkFlagArray.Length];
+            newChunkFlagArray.CopyTo(flagArray);
+            
+            nativePosArray.Dispose();
+            newChunkFlagArray.Dispose();
+            nativeArrayDisposed = true;
 
             for (int i = 0; i <= idx; ++i)
             {
-                if (newChunkFlagArray[i] > 0)
+                if (flagArray[i] > 0)
                 {
-                    var pos = nativePosArray[i];
+                    var pos = posArray[i];
                     chunkProvider.GetChunkGenerator().PopulateChunk(this, pos.x, pos.y);
 
                     yield return null;
                 }
             }
-            
-            nativePosArray.Dispose();
-            newChunkFlagArray.Dispose();
-            nativeArrayDisposed = true;
+
+            posArray = null;
+            flagArray = null;
 
             chunkProvideLock = false;
 
@@ -513,7 +521,7 @@ namespace Block2nd.World
         }
 
         // Only for the player first time enter the world.
-        public IEnumerator ProvideChunksSurroundingCoroutineWithReport(Vector3 position, int radius)
+        public IEnumerator ProvideChunksSurroundingCoroutineWithReport(Vector3 position, int radius = 0)
         {
             var progressUI = client.GuiCanvasManager.worldGeneratingProgressUI;
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using Block2nd.Persistence.KNBT;
 using UnityEngine;
@@ -22,15 +23,26 @@ namespace Block2nd.World
             }
             
             Profiler.BeginSample("Load Chunk From Disk");
+
+            var fileStream = new FileStream(path, FileMode.Open);
+            var buffer = new byte[fileStream.Length];
+            fileStream.Read(buffer, 0, buffer.Length);
+            fileStream.Dispose();
             
-            var gzipStream = new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress);
+            MemoryStream memoryStream = new MemoryStream(buffer);
+            var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
             var reader = new BinaryReader(gzipStream);
 
+            Profiler.BeginSample("Decompress Chunk");
+            
             var knbt = new KNBTTagCompound("Chunk");
             knbt.Read(reader);
             
+            Profiler.EndSample();
+            
             reader.Dispose();
             gzipStream.Dispose();
+            memoryStream.Dispose();
             
             Chunk chunk = new Chunk(level, chunkX, chunkZ, level.worldSettings.chunkHeight);
 
@@ -45,6 +57,9 @@ namespace Block2nd.World
             chunk.dirty = false;
             chunk.modified = false;
             chunk.saved = true;
+
+            knbt = null;
+            buffer = null;
             
             Profiler.EndSample();
             
