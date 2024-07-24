@@ -130,8 +130,8 @@ namespace Block2nd.GamePlay
 
         public void MoveAxis(Vector2 axis)
         {
-            playerSpeed.x = axis.x * speedRatio * Time.deltaTime;
-            playerSpeed.z = axis.y * speedRatio * Time.deltaTime;
+            playerSpeed.x = axis.x * speedRatio;
+            playerSpeed.z = axis.y * speedRatio;
         }
 
         public void ResetXZVelocity()
