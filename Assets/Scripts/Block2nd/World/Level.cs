@@ -30,7 +30,7 @@ namespace Block2nd.World
         internal Chunk chunk;
         internal bool forceRender;
     }
-    
+
     public class Level : MonoBehaviour
     {
         public string levelFolderName = "Level_01";
@@ -84,15 +84,11 @@ namespace Block2nd.World
         private ChunkRenderEntityManager chunkRenderEntityManager;
         public ChunkRenderEntityManager ChunkRenderEntityManager => chunkRenderEntityManager;
 
-        private NativeArray<IntVector3> nativePosArray;
-        private NativeArray<int> newChunkFlagArray;
-        private bool nativeArrayDisposed = true;
-
         [HideInInspector] public LevelSaveHandler levelSaveHandler;
         [HideInInspector] public int seed;
 
         #region Ambient Colors Inspect Settings
-        
+
         public Color glowHorizonColor;
         public Color noonHorizonColor;
         public Color nightHorizonColor;
@@ -102,7 +98,7 @@ namespace Block2nd.World
 
         public Color noonSkyColor;
         public Color nightSkyColor;
-        
+
         public AnimationCurve horizonColorBlendCurve;
         public AnimationCurve dayAndNightColorBlendCurve;
         public AnimationCurve horizonEmissionCurve;
@@ -112,7 +108,7 @@ namespace Block2nd.World
         private float playerCurrentSkyLightToSet = 1f;
 
         #endregion
-        
+
         public ChunkManager ChunkManager
         {
             get { return chunkManager; }
@@ -126,7 +122,7 @@ namespace Block2nd.World
             terrainNoise = new TerrainNoiseGenerator(worldSettings);
 
             chunkProvider = new ChunkProviderGenerateOrLoad(
-                new LocalChunkLoader(),
+                new LocalChunkLoaderSingleChunk(),
                 new EarthChunkGenerator(worldSettings));
 
             chunkRenderEntityManager = GetComponent<ChunkRenderEntityManager>();
@@ -264,7 +260,7 @@ namespace Block2nd.World
             if (simulateTime && client.GameClientState == GameClientState.GAME)
             {
                 levelTime = (levelTime + levelTimeSpeed) % 14400;
-                
+
                 var (ix, iy, iz) = client.Player.IntPosition;
                 var playerCurrentSkyLight = GetSkyLight(ix, iy, iz);
 
@@ -282,19 +278,19 @@ namespace Block2nd.World
         {
             var horizonBlendFactor = horizonColorBlendCurve.Evaluate(levelTime / 14400f);
             if (horizonBlendFactor < 0) horizonBlendFactor = 0;
-            
+
             var dayAndNightBlendFactor = dayAndNightColorBlendCurve.Evaluate(levelTime / 14400f);
             if (dayAndNightBlendFactor < 0) dayAndNightBlendFactor = 0;
-            
+
             var horizonEmissionAdd = horizonEmissionCurve.Evaluate(levelTime / 14400f);
 
             var horizonSkyLightBlendFactor = horizonSkyLightBlendCurve.Evaluate(levelTime / 14400f);
             if (horizonSkyLightBlendFactor < 0) horizonSkyLightBlendFactor = 0;
-            
+
             var playerSightBlendFactor = horizonPlayerSightBlendCurve.Evaluate(levelTime / 14400f);
 
-            var playerTorwardSun = 
-                1 - Mathf.Abs((client.Player.transform.localEulerAngles.y - 180f) - 
+            var playerTorwardSun =
+                1 - Mathf.Abs((client.Player.transform.localEulerAngles.y - 180f) -
                               Mathf.Sign(playerSightBlendFactor) * 90) / 90f;
 
             if (playerTorwardSun <= 1 && playerTorwardSun >= 0)
@@ -314,14 +310,14 @@ namespace Block2nd.World
             ShaderUniformManager.Instance.skyLightColor = noonSkyColor * dayAndNightBlendFactor +
                                                           nightSkyColor * (1 - dayAndNightBlendFactor);
 
-            ShaderUniformManager.Instance.skyHorizonColor = 
+            ShaderUniformManager.Instance.skyHorizonColor =
                 playerCurrentSkyLightToSet * (
-                (1 - horizonSkyLightBlendFactor) * (
-                    (1 + horizonEmissionAdd) *
-                    (dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor + 
-                                               noonHorizonColor * (1 - horizonBlendFactor)) + 
-                     (1 - dayAndNightBlendFactor) * nightHorizonColor)));
-            
+                    (1 - horizonSkyLightBlendFactor) * (
+                        (1 + horizonEmissionAdd) *
+                        (dayAndNightBlendFactor * (glowHorizonColor * horizonBlendFactor +
+                                                   noonHorizonColor * (1 - horizonBlendFactor)) +
+                         (1 - dayAndNightBlendFactor) * nightHorizonColor)));
+
             ShaderUniformManager.Instance.heavenColor = noonHeavenColor * dayAndNightBlendFactor +
                                                         nightHeavenColor * (1 - dayAndNightBlendFactor);
         }
@@ -351,7 +347,9 @@ namespace Block2nd.World
                         {
                             chunkProvideIgnoreDistance = false;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         breakChunkDisplay = false;
                     }
 
@@ -439,45 +437,9 @@ namespace Block2nd.World
             chunkProvideLock = false;
         }
 
-        public IEnumerator ProvideChunksSurroundingCoroutineWithJob(
-            Vector3 position, int radius)
+        private IEnumerator ProvideChunksWithJob_Do(
+            NativeArray<IntVector3> nativePosArray, NativeArray<int> newChunkFlagArray, int length)
         {
-            if (radius == 0)
-            {
-                radius = client.gameSettings.viewDistance + 2;
-            }
-
-            chunkProvideLock = true;
-
-            int pointChunkX = (int) position.x >> 4;
-            int pointChunkZ = (int) position.z >> 4;
-
-            lastChunkProvidePosition = position;
-
-            var arrSize = (radius * 2 + 1) * (radius * 2 + 1);
-            var idx = 0;
-
-            if (!nativeArrayDisposed)
-            {
-                nativePosArray.Dispose();
-                newChunkFlagArray.Dispose();
-            }
-
-            nativePosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
-            newChunkFlagArray = new NativeArray<int>(arrSize, Allocator.TempJob);
-
-            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
-            {
-                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
-                {
-
-                    if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
-                    {
-                        nativePosArray[idx++] = new IntVector3(cx, cz);
-                    }
-                }
-            }
-
             var job = new PreheatSurroundingChunkJob();
 
             job.positions = nativePosArray;
@@ -486,22 +448,21 @@ namespace Block2nd.World
             ChunkJobExchange.level = this;
             ChunkJobExchange.chunkProvider = chunkProvider;
 
-            var handle = job.Schedule(idx, 16);
-            Debug.Log("chunk preheat job count = " + idx);
+            var handle = job.Schedule(length, 16);
+            Debug.Log("chunk preheat job count = " + length);
 
             while (!handle.IsCompleted) yield return null;
             handle.Complete();
             
-            IntVector3[] posArray = new IntVector3[nativePosArray.Length];
+            IntVector3[] posArray = new IntVector3[length];
             nativePosArray.CopyTo(posArray);
-            int[] flagArray = new int[newChunkFlagArray.Length];
+            int[] flagArray = new int[length];
             newChunkFlagArray.CopyTo(flagArray);
             
             nativePosArray.Dispose();
             newChunkFlagArray.Dispose();
-            nativeArrayDisposed = true;
 
-            for (int i = 0; i <= idx; ++i)
+            for (int i = 0; i < length; ++i)
             {
                 if (flagArray[i] > 0)
                 {
@@ -514,6 +475,45 @@ namespace Block2nd.World
 
             posArray = null;
             flagArray = null;
+        }
+
+        public IEnumerator ProvideChunksSurroundingCoroutineWithJob(
+            Vector3 position, int radius)
+        {
+            if (radius == 0)
+            {
+                radius = client.gameSettings.viewDistance + 2;
+            }
+
+            if (chunkProvideLock)
+                yield break;
+            
+            chunkProvideLock = true;
+
+            int pointChunkX = (int) position.x >> 4;
+            int pointChunkZ = (int) position.z >> 4;
+
+            lastChunkProvidePosition = position;
+
+            var arrSize = (radius * 2 + 1) * (radius * 2 + 1);
+
+            int idx = 0;
+            var nativePosArray = new NativeArray<IntVector3>(arrSize, Allocator.TempJob);
+            var newChunkFlagArray = new NativeArray<int>(arrSize, Allocator.TempJob);
+
+            for (int cx = pointChunkX - radius; cx <= pointChunkX + radius; ++cx)
+            {
+                for (int cz = pointChunkZ - radius; cz <= pointChunkZ + radius; ++cz)
+                {
+
+                    if (chunkProvider.GetChunkInCache(this, cx, cz) == null)
+                    {
+                        nativePosArray[idx++] = new IntVector3(cx, cz);
+                    }
+                }
+            }
+            
+            yield return StartCoroutine(ProvideChunksWithJob_Do(nativePosArray, newChunkFlagArray, arrSize));
 
             chunkProvideLock = false;
 
@@ -1502,6 +1502,14 @@ namespace Block2nd.World
             SavePlayerData();
             
             chunkProvider.SaveChunk(this, true);
+        }
+
+        public void UnloadLevel()
+        {
+            chunkProvider.Clean();
+            chunkUpdateQueue.Clear();
+            chunkProvider = null;
+            chunkUpdateQueue = null;
         }
     }
 }

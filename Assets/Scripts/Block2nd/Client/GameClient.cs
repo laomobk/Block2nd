@@ -350,7 +350,7 @@ namespace Block2nd.Client
 			LevelSaveHandler handler = new LevelSaveHandler(preview.folderName);
 			EnterWorld(preview, 
 				new ChunkProviderGenerateOrLoad(
-					new LocalChunkLoader(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
+					new LocalChunkLoaderSingleChunk(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
 						preview.terrainType, worldSettings)), handler);
 		}
 
@@ -544,9 +544,11 @@ namespace Block2nd.Client
 			progressUI.SetProgress("");
 			yield return null;
 			
-			currentLevel.GetComponent<Level>().StopAllCoroutines();
-
+			CurrentLevel.StopAllCoroutines();
 			SaveLevel();
+			CurrentLevel.UnloadLevel();
+
+			Resources.UnloadUnusedAssets();
 			
 			GC.Collect();
 			

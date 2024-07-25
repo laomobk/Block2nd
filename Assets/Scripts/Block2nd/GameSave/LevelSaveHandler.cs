@@ -17,6 +17,7 @@ namespace Block2nd.GameSave
         {
             LevelSaveRoot = Path.Combine(GameRootDirectory.GetInstance().saveRoot, levelFolderName);
             ChunkSaveRoot = Path.Combine(LevelSaveRoot, "Dim1");
+            ChunkSaveRoot = Path.Combine(LevelSaveRoot, "Dim1");
 
             if (init && !Directory.Exists(LevelSaveRoot))
             {
@@ -38,6 +39,18 @@ namespace Block2nd.GameSave
             {
                 Directory.CreateDirectory(chunkFileRoot);
             }
+
+            return fullPath;
+        }
+        
+        public string GetChunkRegionPath(int chunkX, int chunkZ)
+        {
+            var regionX = chunkX >> 5;
+            var regionZ = chunkZ >> 5;
+
+            var chunkFileName = "r." + regionX + "," + regionZ + ".krgn";
+
+            var fullPath = Path.Combine(ChunkSaveRoot, chunkFileName);
 
             return fullPath;
         }

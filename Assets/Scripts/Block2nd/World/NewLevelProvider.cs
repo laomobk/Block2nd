@@ -23,7 +23,7 @@ namespace Block2nd.World
 
             level.name = levelName;
             level.SetChunkProvider(new ChunkProviderGenerateOrLoad(
-                new LocalChunkLoader(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
+                new LocalChunkLoaderSingleChunk(), BuiltinChunkGeneratorFactory.GetChunkGeneratorFromId(
                     terrainType, worldSettings)));
 
             return null;

@@ -17,5 +17,7 @@ namespace Block2nd.World
         ChunkGeneratorBase GetChunkGenerator();
 
         IChunkLoader GetChunkLoader();
+
+        void Clean();
     }
 }

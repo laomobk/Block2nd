@@ -8,7 +8,7 @@ using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace Block2nd.World
 {
-    public class LocalChunkLoader : IChunkLoader
+    public class LocalChunkLoaderSingleChunk : IChunkLoader
     {
         public Chunk TryLoadChunk(Level level, int chunkX, int chunkZ)
         {
@@ -24,14 +24,20 @@ namespace Block2nd.World
             
             Profiler.BeginSample("Load Chunk From Disk");
 
-            var fileStream = new FileStream(path, FileMode.Open);
-            var buffer = new byte[fileStream.Length];
-            fileStream.Read(buffer, 0, buffer.Length);
-            fileStream.Dispose();
+            var buffer = new byte[4096];
+            MemoryStream memoryStream = new MemoryStream();
             
-            MemoryStream memoryStream = new MemoryStream(buffer);
-            var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
-            var reader = new BinaryReader(gzipStream);
+            var gzipStream = new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress);
+            int n;
+
+            while ((n = gzipStream.Read(buffer, 0, 4096)) > 0)
+            {
+                memoryStream.Write(buffer, 0, n);
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+                
+            var reader = new BinaryReader(memoryStream);
 
             Profiler.BeginSample("Decompress Chunk");
             
@@ -78,18 +84,28 @@ namespace Block2nd.World
             
             Profiler.BeginSample("Save Chunk");
             
+            var memoryStream = new MemoryStream();
             var gzipStream = new GZipStream(new FileStream(path, FileMode.OpenOrCreate), CompressionLevel.Fastest);
-            var writer = new BinaryWriter(gzipStream);
-            
+
+            var writer = new BinaryWriter(memoryStream);
+
             knbt.Write(writer);
+            
+            memoryStream.WriteTo(gzipStream);
             
             writer.Dispose();
             gzipStream.Dispose();
+            memoryStream.Dispose();
             
             Profiler.EndSample();
 
             chunk.saved = true;
             chunk.modified = false;
+        }
+
+        public void Clean()
+        {
+            
         }
     }
 }

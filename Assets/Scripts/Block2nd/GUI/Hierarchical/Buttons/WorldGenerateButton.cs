@@ -27,14 +27,14 @@ namespace Block2nd.GUI.Hierarchical.Buttons
         public void GenerateWorldHonkai()
         {
             GenerateWorld(new ChunkProviderGenerateOrLoad(
-                new LocalChunkLoader(),
+                new LocalChunkLoaderSingleChunk(),
                 new HonkaiChunkGenerator(gameClient.worldSettings)));
         }
         
         public void GenerateWorldFlat()
         {
             GenerateWorld(new ChunkProviderGenerateOrLoad(
-                new LocalChunkLoader(),
+                new LocalChunkLoaderSingleChunk(),
                 new FlatChunkGenerator(gameClient.worldSettings)));
         }
     }

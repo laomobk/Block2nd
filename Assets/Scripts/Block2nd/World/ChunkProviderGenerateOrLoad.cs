@@ -181,5 +181,11 @@ namespace Block2nd.World
         {
             return chunkLoader;
         }
+
+        public void Clean()
+        {
+            chunkDict.Clear();
+            hotChunks = null;
+        }
     }
 }
