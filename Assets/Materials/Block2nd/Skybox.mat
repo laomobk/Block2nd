@@ -29,6 +29,6 @@ Material:
     - _BlendRatio: -0.67
     - _StepRatio: 1
     m_Colors:
-    - _HorizonColor: {r: 0.6627075, g: 0.78214777, b: 0.96644855, a: 1}
-    - _TopColor: {r: 0.35742605, g: 0.6074417, b: 0.94076884, a: 0}
+    - _HorizonColor: {r: 1.0170012, g: 0.51944613, b: 0.3251046, a: 0.9083527}
+    - _TopColor: {r: 0.14908993, g: 0.2709441, b: 0.43319568, a: 0}
   m_BuildTextureStacks: []

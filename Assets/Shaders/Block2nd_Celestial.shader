@@ -9,7 +9,7 @@
 		Tags { "Queue"="Transparent+1" "IgnoreProjector"="True" "RenderType"="Background" }
 		LOD 100
 		
-		Blend SrcAlpha OneMinusSrcAlpha
+		Blend One OneMinusSrcAlpha 
 		ZTest Less
 
 		Pass
