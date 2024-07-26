@@ -2,14 +2,15 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Skybox
   m_Shader: {fileID: 4800000, guid: 286b43ba556078f4ba5a11b5cec548e3, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -23,9 +24,11 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _BlendRatio: -0.67
     - _StepRatio: 1
     m_Colors:
-    - _HorizonColor: {r: 0.6915175, g: 0.81342113, b: 1.002151, a: 1.0034158}
-    - _TopColor: {r: 0.3811352, g: 0.645396, b: 0.9977426, a: 0}
+    - _HorizonColor: {r: 0.6627075, g: 0.78214777, b: 0.96644855, a: 1}
+    - _TopColor: {r: 0.35742605, g: 0.6074417, b: 0.94076884, a: 0}
+  m_BuildTextureStacks: []

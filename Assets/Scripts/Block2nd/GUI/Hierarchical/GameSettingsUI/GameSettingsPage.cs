@@ -20,6 +20,7 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
         public Button viewDistanceButton;
         public Button musicButton;
         public Button backButton;
+        public Button vSyncButton;
 
         private bool needToRefreshRender;
 
@@ -48,8 +49,8 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
                 viewDistanceCandidates);
 
             GetButtonText(viewDistanceButton).text = "View Distance: " + viewDistanceLevels[levelIdx];
-
             GetButtonText(musicButton).text = "Music: " + (gameSettings.music ? "On" : "Off");
+            GetButtonText(vSyncButton).text = "V-Sync: " + (gameSettings.vSync ? "On" : "Off");
         }
 
         private void StoreSettings()
@@ -94,6 +95,19 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
             StoreSettings();
         }
 
+        public void ToggleDebugUi()
+        {
+            GameClient.Instance.GuiCanvasManager.ToggleDebugUI();
+        }
+
+        public void ToggleVSync()
+        {
+            gameSettings.vSync = !gameSettings.vSync;
+            gameSettings.dirty = true;
+            SyncWithSettings();
+            StoreSettings();
+        }
+
         public void OnExit()
         {
             if (GameClient.Instance == null)
@@ -103,11 +117,6 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
             {
                 level.RefreshChunkRender();
             }
-        }
-
-        public void ToggleDebugUi()
-        {
-            GameClient.Instance.GuiCanvasManager.ToggleDebugUI();
         }
     }
 }

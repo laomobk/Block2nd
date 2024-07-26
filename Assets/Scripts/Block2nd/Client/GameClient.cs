@@ -122,6 +122,7 @@ namespace Block2nd.Client
 			SetLightingWithGameSetting();
 			terrainMaterial.shader = shaderCandidates[gameSettings.shader];
 			GlobalMusicPlayer.SetVolume(gameSettings.music ? 1 : 0);
+			QualitySettings.vSyncCount = gameSettings.vSync ? 1 : 0;
 		}
 
 		private void Update()

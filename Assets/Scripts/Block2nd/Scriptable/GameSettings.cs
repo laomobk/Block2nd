@@ -22,6 +22,8 @@ namespace Block2nd.Scriptable
 		public bool music = true;
 		public int shader = 0;
 
+		public bool vSync = true;
+
 		public void LoadSettings()
 		{
 			var root = GameRootDirectory.GetInstance();
@@ -40,6 +42,7 @@ namespace Block2nd.Scriptable
 			viewDistance = kmbt.GetInt("ViewDistance", 8);
 			music = kmbt.GetBoolean("Music", true);
 			shader = kmbt.GetInt("Shader", 0);
+			vSync = kmbt.GetBoolean("vSync", true);
 			
 			Debug.Log("Game settings loaded");
 		}
@@ -56,6 +59,7 @@ namespace Block2nd.Scriptable
 			kmbt.SetInt("ViewDistance", viewDistance);
 			kmbt.SetByte("Music", music);
 			kmbt.SetInt("Shader", shader);
+			kmbt.SetByte("vSync", vSync);
 			
 			kmbt.Write(writer);
 			

@@ -24,7 +24,7 @@ namespace Block2nd.Render
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
-            if (client.CurrentLevel != null)
+            if (client.GameClientState != GameClientState.IN_PROGRESS && client.CurrentLevel != null)
             {
                 inWaterPostMaterial.SetInt("_InWater", client.CurrentLevel.GetBlock(
                     player.playerCamera.transform.position).blockCode == waterCode
