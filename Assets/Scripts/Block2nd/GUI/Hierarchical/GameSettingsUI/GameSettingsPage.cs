@@ -96,6 +96,9 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
 
         public void OnExit()
         {
+            if (GameClient.Instance == null)
+                return;
+            
             if (needToRefreshRender && GameClient.Instance.TryGetCurrentLevel(out Level level))
             {
                 level.RefreshChunkRender();
