@@ -21,6 +21,7 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
         public Button musicButton;
         public Button backButton;
         public Button vSyncButton;
+        public Button fullScreenButton;
 
         private bool needToRefreshRender;
 
@@ -51,6 +52,21 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
             GetButtonText(viewDistanceButton).text = "View Distance: " + viewDistanceLevels[levelIdx];
             GetButtonText(musicButton).text = "Music: " + (gameSettings.music ? "On" : "Off");
             GetButtonText(vSyncButton).text = "V-Sync: " + (gameSettings.vSync ? "On" : "Off");
+            GetButtonText(fullScreenButton).text = "Fullscreen: " + (gameSettings.fullScreen ? "On" : "Off");
+
+            if (!Application.isMobilePlatform)
+            {
+                var res = Screen.resolutions[Screen.resolutions.Length - 1];
+                if (gameSettings.fullScreen && Screen.fullScreenMode == FullScreenMode.Windowed)
+                {
+                    Screen.SetResolution(res.width, res.height, FullScreenMode.ExclusiveFullScreen);
+                }
+
+                if (!gameSettings.fullScreen && Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen)
+                {
+					Screen.SetResolution(res.width, res.height, FullScreenMode.Windowed);
+                }
+            }
         }
 
         private void StoreSettings()
@@ -103,6 +119,14 @@ namespace Block2nd.GUI.Hierarchical.GameSettingsUI
         public void ToggleVSync()
         {
             gameSettings.vSync = !gameSettings.vSync;
+            gameSettings.dirty = true;
+            SyncWithSettings();
+            StoreSettings();
+        }
+
+        public void ToggleFullscreen()
+        {
+            gameSettings.fullScreen = !gameSettings.fullScreen;
             gameSettings.dirty = true;
             SyncWithSettings();
             StoreSettings();

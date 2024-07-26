@@ -23,6 +23,7 @@ namespace Block2nd.Scriptable
 		public int shader = 0;
 
 		public bool vSync = true;
+		public bool fullScreen = false;
 
 		public void LoadSettings()
 		{
@@ -43,6 +44,7 @@ namespace Block2nd.Scriptable
 			music = kmbt.GetBoolean("Music", true);
 			shader = kmbt.GetInt("Shader", 0);
 			vSync = kmbt.GetBoolean("vSync", true);
+			fullScreen = kmbt.GetBoolean("fullscreen", true);
 			
 			Debug.Log("Game settings loaded");
 		}
@@ -60,6 +62,7 @@ namespace Block2nd.Scriptable
 			kmbt.SetByte("Music", music);
 			kmbt.SetInt("Shader", shader);
 			kmbt.SetByte("vSync", vSync);
+			kmbt.SetByte("fullscreen", fullScreen);
 			
 			kmbt.Write(writer);
 			
