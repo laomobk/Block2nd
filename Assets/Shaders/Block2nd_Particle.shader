@@ -37,6 +37,8 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			float2 _Texcoord;
+
+			fixed _SkyLightLuminance;
 			
 			v2f vert (appdata v)
 			{
@@ -50,6 +52,7 @@
 			{
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, _Texcoord + i.uv / 32);
+				col.xyz = col.xyz * _SkyLightLuminance;
 				if (col.a == 0)
 					discard;
 				return col;
